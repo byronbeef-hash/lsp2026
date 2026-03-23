@@ -35,40 +35,74 @@ export const useAuthStore = create<AuthState>((set) => ({
   },
 
   initialize: async () => {
-    const supabase = createClient();
+    try {
+      const supabase = createClient();
 
-    // Check for an existing session on startup
-    const {
-      data: { session },
-    } = await supabase.auth.getSession();
+      // Check for an existing session on startup
+      const {
+        data: { session },
+      } = await supabase.auth.getSession();
 
-    set({
-      session,
-      user: session?.user ?? null,
-      isAuthenticated: !!session?.user,
-      isLoading: false,
-    });
-
-    // Subscribe to auth state changes and keep store in sync
-    const {
-      data: { subscription },
-    } = supabase.auth.onAuthStateChange((_event, session) => {
       set({
         session,
         user: session?.user ?? null,
         isAuthenticated: !!session?.user,
         isLoading: false,
       });
-    });
 
-    // Return unsubscribe function for cleanup
-    return () => subscription.unsubscribe();
+      // Subscribe to auth state changes and keep store in sync
+      const {
+        data: { subscription },
+      } = supabase.auth.onAuthStateChange((_event, session) => {
+        set({
+          session,
+          user: session?.user ?? null,
+          isAuthenticated: !!session?.user,
+          isLoading: false,
+        });
+      });
+
+      // Return unsubscribe function for cleanup
+      return () => subscription.unsubscribe();
+    } catch {
+      // Supabase not configured — run in demo mode
+      set({ isLoading: false });
+      return () => {};
+    }
   },
 
   login: async (email, password) => {
-    const supabase = createClient();
     set({ isLoading: true });
 
+    // Demo login bypass — no Supabase required
+    if (email === "beef" && password === "demo") {
+      const demoUser = {
+        id: "demo-user-001",
+        email: "beef",
+        user_metadata: {
+          first_name: "Tim",
+          last_name: "Dickinson",
+          full_name: "Tim Dickinson",
+        },
+        app_metadata: {},
+        aud: "authenticated",
+        created_at: new Date().toISOString(),
+      } as unknown as SupabaseUser;
+
+      // Set demo session cookie so middleware allows access
+      document.cookie = "demo_session=true; path=/; max-age=86400; SameSite=Lax";
+
+      set({
+        user: demoUser,
+        session: { user: demoUser, access_token: "demo-token" } as unknown as Session,
+        isAuthenticated: true,
+        isLoading: false,
+      });
+      return { error: null };
+    }
+
+    // Real Supabase auth
+    const supabase = createClient();
     const { error } = await supabase.auth.signInWithPassword({
       email,
       password,
@@ -84,10 +118,23 @@ export const useAuthStore = create<AuthState>((set) => ({
   },
 
   logout: async () => {
-    const supabase = createClient();
-    set({ isLoading: true });
-    await supabase.auth.signOut();
-    // State reset handled by onAuthStateChange listener
+    // Clear demo session cookie
+    document.cookie = "demo_session=; path=/; max-age=0";
+
+    try {
+      const supabase = createClient();
+      set({ isLoading: true });
+      await supabase.auth.signOut();
+    } catch {
+      // Supabase not configured — just reset state
+    }
+
+    set({
+      user: null,
+      session: null,
+      isAuthenticated: false,
+      isLoading: false,
+    });
   },
 
   register: async (email, password, firstName, lastName) => {

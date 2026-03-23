@@ -1,6 +1,7 @@
 "use client";
 
 import { cn } from "@/lib/utils";
+import { BullLogo } from "@/components/icons/BullLogo";
 import {
   LayoutDashboard,
   Beef,
@@ -74,7 +75,7 @@ export function TopNav() {
         {/* Logo */}
         <Link href="/" className="flex items-center shrink-0">
           <div className="w-9 h-9 rounded-xl bg-white/20 flex items-center justify-center">
-            <Beef className="w-5 h-5 text-white" />
+            <BullLogo size={24} className="text-white" />
           </div>
         </Link>
 

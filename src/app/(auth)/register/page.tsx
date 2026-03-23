@@ -2,7 +2,8 @@
 
 import { useState } from "react";
 import { GlassCard, GlassInput, GlassButton } from "@/components/glass";
-import { Beef, CheckCircle } from "lucide-react";
+import { BullLogo } from "@/components/icons/BullLogo";
+import { CheckCircle } from "lucide-react";
 import Link from "next/link";
 import { useAuthStore } from "@/stores/auth";
 
@@ -100,7 +101,7 @@ export default function RegisterPage() {
       <div className="w-full max-w-md animate-fade-in-up">
         <div className="flex flex-col items-center mb-8">
           <div className="w-16 h-16 rounded-2xl bg-white/15 backdrop-blur-lg flex items-center justify-center mb-4 border border-white/20">
-            <Beef className="w-8 h-8 text-white" />
+            <BullLogo size={40} className="text-white" />
           </div>
           <h1 className="text-2xl font-bold text-white">Create Account</h1>
           <p className="text-white/50 mt-1">Get started with LiveStock</p>

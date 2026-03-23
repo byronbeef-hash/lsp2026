@@ -2,7 +2,8 @@
 
 import { useState } from "react";
 import { GlassCard, GlassInput, GlassButton } from "@/components/glass";
-import { Beef, Eye, EyeOff } from "lucide-react";
+import { BullLogo } from "@/components/icons/BullLogo";
+import { Eye, EyeOff } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useAuthStore } from "@/stores/auth";
@@ -13,7 +14,7 @@ export default function LoginPage() {
 
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
-  const [form, setForm] = useState({ email: "", password: "" });
+  const [form, setForm] = useState({ email: "beef", password: "demo" });
   const [error, setError] = useState("");
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -49,8 +50,8 @@ export default function LoginPage() {
       <div className="w-full max-w-md animate-fade-in-up">
         {/* Logo */}
         <div className="flex flex-col items-center mb-8">
-          <div className="w-16 h-16 rounded-2xl bg-white/15 backdrop-blur-lg flex items-center justify-center mb-4 border border-white/20">
-            <Beef className="w-8 h-8 text-white" />
+          <div className="w-20 h-20 rounded-2xl bg-white/15 backdrop-blur-lg flex items-center justify-center mb-4 border border-white/20">
+            <BullLogo size={48} className="text-white" />
           </div>
           <h1 className="text-2xl font-bold text-white">Welcome Back</h1>
           <p className="text-white/50 mt-1">Sign in to your account</p>
@@ -66,7 +67,7 @@ export default function LoginPage() {
 
             <GlassInput
               label="Email"
-              type="email"
+              type="text"
               name="email"
               placeholder="you@example.com"
               value={form.email}
