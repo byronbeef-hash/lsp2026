@@ -1,5 +1,12 @@
 import { create } from "zustand";
 import { createClient } from "@/lib/supabase";
+import {
+  mockRecords,
+  mockMedicalBatches,
+  mockPaddocks,
+  mockNotifications,
+  mockCalendarEvents,
+} from "@/lib/mock-data";
 import type {
   LivestockRecord,
   MedicalBatch,
@@ -46,7 +53,7 @@ interface RecordsState {
 }
 
 export const useRecordsStore = create<RecordsState>((set, get) => ({
-  records: [],
+  records: mockRecords,
   loading: false,
   error: null,
   searchQuery: "",
@@ -59,15 +66,21 @@ export const useRecordsStore = create<RecordsState>((set, get) => ({
 
   fetchRecords: async () => {
     set({ loading: true, error: null });
-    const supabase = createClient();
-    const { data, error } = await supabase
-      .from("livestock_records")
-      .select("*")
-      .order("created_at", { ascending: false });
-    if (error) {
-      set({ error: error.message, loading: false });
-    } else {
-      set({ records: data || [], loading: false });
+    try {
+      const supabase = createClient();
+      const { data, error } = await supabase
+        .from("livestock_records")
+        .select("*")
+        .order("created_at", { ascending: false });
+      if (error || !data || data.length === 0) {
+        // Fall back to mock data
+        set({ records: mockRecords, loading: false });
+      } else {
+        set({ records: data, loading: false });
+      }
+    } catch {
+      // Supabase not configured — use mock data
+      set({ records: mockRecords, loading: false });
     }
   },
 
@@ -239,7 +252,7 @@ interface MedicalState {
 }
 
 export const useMedicalStore = create<MedicalState>((set, get) => ({
-  batches: [],
+  batches: mockMedicalBatches,
   loading: false,
   error: null,
   filterStatus: null,
@@ -415,7 +428,7 @@ interface PaddockState {
 }
 
 export const usePaddockStore = create<PaddockState>((set, get) => ({
-  paddocks: [],
+  paddocks: mockPaddocks,
   loading: false,
   error: null,
   selectedPaddock: null,
@@ -544,7 +557,7 @@ interface CalendarState {
 }
 
 export const useCalendarStore = create<CalendarState>((set, get) => ({
-  events: [],
+  events: mockCalendarEvents,
   loading: false,
   error: null,
   selectedDate: null,
@@ -666,7 +679,7 @@ interface NotificationState {
 }
 
 export const useNotificationStore = create<NotificationState>((set, get) => ({
-  notifications: [],
+  notifications: mockNotifications,
   loading: false,
   error: null,
   filterType: null,

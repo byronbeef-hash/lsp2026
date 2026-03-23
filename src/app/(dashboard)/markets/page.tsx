@@ -2,6 +2,7 @@
 
 import { useEffect, useState, useCallback } from "react";
 import { GlassCard, GlassBadge } from "@/components/glass";
+import { MlaTicker } from "@/components/MlaTicker";
 import {
   TrendingUp,
   TrendingDown,
@@ -140,6 +141,11 @@ export default function MarketsPage() {
 
   return (
     <div className="space-y-5">
+      {/* Live MLA Ticker */}
+      <div className="-mx-4 md:-mx-6 -mt-6 mb-2">
+        <MlaTicker />
+      </div>
+
       {/* Header */}
       <div className="flex items-center justify-between animate-fade-in-up">
         <div>

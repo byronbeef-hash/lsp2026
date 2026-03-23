@@ -74,9 +74,7 @@ export function TopNav() {
       <nav className="glass-nav px-4 lg:px-6 py-3 flex items-center justify-between" role="navigation" aria-label="Main navigation">
         {/* Logo */}
         <Link href="/" className="flex items-center shrink-0">
-          <div className="w-9 h-9 rounded-xl bg-white/20 flex items-center justify-center">
-            <BullLogo size={24} className="text-white" />
-          </div>
+          <BullLogo size={36} className="text-white" />
         </Link>
 
         {/* Primary Nav Links */}
