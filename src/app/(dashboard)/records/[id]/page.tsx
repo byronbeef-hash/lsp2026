@@ -1,8 +1,10 @@
 "use client";
 
-import { use, useState } from "react";
+import { use, useState, useMemo } from "react";
 import { GlassCard, GlassBadge, GlassButton, GlassSheet } from "@/components/glass";
 import { useRecordsStore, useMedicalStore } from "@/stores/modules";
+import { animalWeightHistory } from "@/lib/mock-data";
+import Image from "next/image";
 import {
   Beef,
   ArrowLeft,
@@ -74,13 +76,23 @@ export default function RecordDetailPage({
 
   if (!record) return notFound();
 
-  // Mock weight history for this animal
-  const weightHistory = [
-    { date: "2025-12-05", weight_kg: (record.weight_kg ?? 450) - 32, notes: "Routine weigh-in" },
-    { date: "2026-01-10", weight_kg: (record.weight_kg ?? 450) - 18, notes: "Post-treatment weigh" },
-    { date: "2026-02-08", weight_kg: (record.weight_kg ?? 450) - 7, notes: "Monthly weigh-in" },
-    { date: record.record_date ?? "2026-03-01", weight_kg: record.weight_kg ?? 450, notes: "Latest weigh-in" },
-  ];
+  // Real weight history for this animal
+  const weightHistory = animalWeightHistory[record.visual_tag] || [];
+
+  // Computed weight stats
+  const weightStats = useMemo(() => {
+    if (weightHistory.length < 2) return null;
+    const first = weightHistory[0];
+    const last = weightHistory[weightHistory.length - 1];
+    const totalGain = last.weight_kg - first.weight_kg;
+    const daysBetween = Math.round((new Date(last.date).getTime() - new Date(first.date).getTime()) / (1000 * 60 * 60 * 24));
+    const lifetimeAdg = daysBetween > 0 ? (totalGain / daysBetween).toFixed(2) : "0";
+    const lastAdg = last.adg;
+    const peakAdg = Math.max(...weightHistory.filter(w => w.adg !== null).map(w => w.adg as number));
+    const maxWeight = Math.max(...weightHistory.map(w => w.weight_kg));
+    const minWeight = Math.min(...weightHistory.map(w => w.weight_kg));
+    return { totalGain, lifetimeAdg, lastAdg, peakAdg, maxWeight, minWeight, daysBetween };
+  }, [weightHistory]);
 
   // Medical batches this animal is in
   const animalMedicalBatches = batches.filter((b) =>
@@ -183,9 +195,21 @@ export default function RecordDetailPage({
       {/* Header Card */}
       <GlassCard className="animate-fade-in-up">
         <div className="flex items-start gap-4">
-          <div className="w-16 h-16 rounded-2xl bg-white/10 flex items-center justify-center flex-shrink-0">
-            <Beef className="w-8 h-8 text-white/60" />
-          </div>
+          {record.profile_image ? (
+            <div className="w-20 h-20 rounded-2xl overflow-hidden flex-shrink-0 border border-white/10">
+              <Image
+                src={record.profile_image}
+                alt={record.visual_tag}
+                width={80}
+                height={80}
+                className="w-full h-full object-cover"
+              />
+            </div>
+          ) : (
+            <div className="w-20 h-20 rounded-2xl bg-white/10 flex items-center justify-center flex-shrink-0">
+              <Beef className="w-8 h-8 text-white/60" />
+            </div>
+          )}
           <div className="flex-1">
             <div className="flex items-center gap-3 mb-1 flex-wrap">
               <h1 className="text-xl font-bold text-white">{record.visual_tag}</h1>
@@ -392,88 +416,153 @@ export default function RecordDetailPage({
       )}
 
       {activeTab === "weight" && (
-        <GlassCard className="animate-fade-in-up" style={{ animationDelay: "75ms" } as React.CSSProperties}>
-          <h2 className="text-sm font-semibold text-white/60 uppercase tracking-wider mb-4">
-            Weight History
-          </h2>
-          <div className="overflow-x-auto">
-            <table className="w-full">
-              <thead>
-                <tr className="border-b border-white/10">
-                  <th className="text-left px-4 py-2 text-xs uppercase tracking-wider text-white/50 font-semibold">
-                    Date
-                  </th>
-                  <th className="text-left px-4 py-2 text-xs uppercase tracking-wider text-white/50 font-semibold">
-                    Weight (kg)
-                  </th>
-                  <th className="text-left px-4 py-2 text-xs uppercase tracking-wider text-white/50 font-semibold">
-                    Change
-                  </th>
-                  <th className="text-left px-4 py-2 text-xs uppercase tracking-wider text-white/50 font-semibold">
-                    Notes
-                  </th>
-                </tr>
-              </thead>
-              <tbody>
-                {weightHistory.map((entry, index) => {
-                  const prevWeight = index > 0 ? weightHistory[index - 1].weight_kg : null;
-                  const change = prevWeight !== null ? entry.weight_kg - prevWeight : null;
-                  return (
-                    <tr key={index} className="border-b border-white/5">
-                      <td className="px-4 py-3 text-sm text-white/70">{entry.date}</td>
-                      <td className="px-4 py-3 text-sm text-white font-medium">{entry.weight_kg} kg</td>
-                      <td className="px-4 py-3">
-                        {change !== null ? (
-                          <span
-                            className={`inline-flex items-center gap-1 text-sm font-medium ${
-                              change > 0
-                                ? "text-emerald-400"
-                                : change < 0
-                                  ? "text-red-400"
-                                  : "text-white/50"
-                            }`}
-                          >
-                            {change > 0 ? (
-                              <TrendingUp className="w-3.5 h-3.5" />
-                            ) : change < 0 ? (
-                              <TrendingDown className="w-3.5 h-3.5" />
-                            ) : (
-                              <Minus className="w-3.5 h-3.5" />
-                            )}
-                            {change > 0 ? "+" : ""}
-                            {change} kg
-                          </span>
-                        ) : (
-                          <span className="text-sm text-white/30">--</span>
-                        )}
-                      </td>
-                      <td className="px-4 py-3 text-sm text-white/50">{entry.notes}</td>
-                    </tr>
-                  );
-                })}
-              </tbody>
-            </table>
-          </div>
-          {/* Weight summary */}
-          <div className="mt-4 pt-4 border-t border-white/10 grid grid-cols-3 gap-4">
-            <div>
-              <p className="text-xs text-white/40 mb-1">Total Gain</p>
-              <p className="text-lg font-bold text-emerald-400">
-                +{weightHistory[weightHistory.length - 1].weight_kg - weightHistory[0].weight_kg} kg
-              </p>
+        <div className="space-y-4">
+          {/* Weight Stats Summary */}
+          {weightStats && (
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 animate-fade-in-up" style={{ animationDelay: "75ms" } as React.CSSProperties}>
+              <GlassCard>
+                <p className="text-[10px] text-white/40 uppercase tracking-wider">Current Weight</p>
+                <p className="text-2xl font-bold text-white mt-1">{record.weight_kg} kg</p>
+                <p className="text-xs text-white/40">{record.weight_lb} lb</p>
+              </GlassCard>
+              <GlassCard>
+                <p className="text-[10px] text-white/40 uppercase tracking-wider">Total Gain</p>
+                <p className="text-2xl font-bold text-emerald-400 mt-1">+{weightStats.totalGain} kg</p>
+                <p className="text-xs text-white/40">from weaning</p>
+              </GlassCard>
+              <GlassCard>
+                <p className="text-[10px] text-white/40 uppercase tracking-wider">Lifetime ADG</p>
+                <p className="text-2xl font-bold text-white mt-1">{weightStats.lifetimeAdg} kg/d</p>
+                <p className="text-xs text-white/40">over {Math.round(weightStats.daysBetween / 30)} months</p>
+              </GlassCard>
+              <GlassCard>
+                <p className="text-[10px] text-white/40 uppercase tracking-wider">Current ADG</p>
+                <p className={`text-2xl font-bold mt-1 ${(weightStats.lastAdg ?? 0) >= 0.3 ? "text-emerald-400" : (weightStats.lastAdg ?? 0) >= 0.1 ? "text-amber-400" : "text-white/60"}`}>
+                  {weightStats.lastAdg?.toFixed(2) ?? "--"} kg/d
+                </p>
+                <p className="text-xs text-white/40">peak: {weightStats.peakAdg.toFixed(2)} kg/d</p>
+              </GlassCard>
             </div>
-            <div>
-              <p className="text-xs text-white/40 mb-1">Avg. Monthly Gain</p>
-              <p className="text-lg font-bold text-white">
-                +{Math.round((weightHistory[weightHistory.length - 1].weight_kg - weightHistory[0].weight_kg) / (weightHistory.length - 1))} kg
-              </p>
+          )}
+
+          {/* Weight Gain Chart */}
+          <GlassCard className="animate-fade-in-up" style={{ animationDelay: "100ms" } as React.CSSProperties}>
+            <h2 className="text-sm font-semibold text-white/60 uppercase tracking-wider mb-4">
+              Weight Gain Chart
+            </h2>
+            {weightHistory.length > 1 ? (
+              <div className="relative h-52">
+                {/* Y-axis labels */}
+                {weightStats && (
+                  <>
+                    <div className="absolute left-0 top-0 text-[10px] text-white/30">{weightStats.maxWeight}kg</div>
+                    <div className="absolute left-0 bottom-0 text-[10px] text-white/30">{weightStats.minWeight}kg</div>
+                  </>
+                )}
+                {/* Chart area */}
+                <div className="ml-12 h-full flex items-end gap-1">
+                  {weightHistory.map((entry, i) => {
+                    const min = weightStats?.minWeight ?? 0;
+                    const max = weightStats?.maxWeight ?? 1;
+                    const range = max - min || 1;
+                    const heightPct = ((entry.weight_kg - min) / range) * 85 + 10;
+                    const adgColor = entry.adg === null ? "bg-blue-400/60" :
+                      entry.adg >= 0.4 ? "bg-emerald-400" :
+                      entry.adg >= 0.2 ? "bg-blue-400" :
+                      entry.adg >= 0.1 ? "bg-amber-400" : "bg-white/30";
+                    return (
+                      <div key={i} className="flex-1 flex flex-col items-center gap-1 group relative">
+                        {/* Tooltip */}
+                        <div className="absolute -top-16 left-1/2 -translate-x-1/2 glass-sm rounded-lg px-2 py-1.5 text-[10px] text-white opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap z-10 pointer-events-none">
+                          <p className="font-bold">{entry.weight_kg} kg</p>
+                          {entry.adg !== null && <p>ADG: {entry.adg} kg/d</p>}
+                          {entry.note && <p className="text-white/50">{entry.note}</p>}
+                        </div>
+                        <div
+                          className={`w-full rounded-t-md ${adgColor} transition-all duration-300 hover:opacity-80 min-h-[4px]`}
+                          style={{ height: `${heightPct}%` }}
+                        />
+                        <span className="text-[8px] text-white/30 -rotate-45 origin-left whitespace-nowrap mt-1">
+                          {new Date(entry.date).toLocaleDateString("en-AU", { month: "short", year: "2-digit" })}
+                        </span>
+                      </div>
+                    );
+                  })}
+                </div>
+                {/* Legend */}
+                <div className="flex gap-4 mt-6 ml-12">
+                  <div className="flex items-center gap-1.5 text-[10px] text-white/40">
+                    <span className="w-3 h-2 rounded-sm bg-emerald-400" /> ADG ≥0.4
+                  </div>
+                  <div className="flex items-center gap-1.5 text-[10px] text-white/40">
+                    <span className="w-3 h-2 rounded-sm bg-blue-400" /> ADG 0.2–0.4
+                  </div>
+                  <div className="flex items-center gap-1.5 text-[10px] text-white/40">
+                    <span className="w-3 h-2 rounded-sm bg-amber-400" /> ADG 0.1–0.2
+                  </div>
+                  <div className="flex items-center gap-1.5 text-[10px] text-white/40">
+                    <span className="w-3 h-2 rounded-sm bg-white/30" /> ADG &lt;0.1
+                  </div>
+                </div>
+              </div>
+            ) : (
+              <p className="text-sm text-white/40 text-center py-8">Not enough data points for chart</p>
+            )}
+          </GlassCard>
+
+          {/* Weight Records Table */}
+          <GlassCard className="animate-fade-in-up" style={{ animationDelay: "125ms" } as React.CSSProperties}>
+            <h2 className="text-sm font-semibold text-white/60 uppercase tracking-wider mb-4">
+              Weight Records
+            </h2>
+            <div className="overflow-x-auto">
+              <table className="w-full">
+                <thead>
+                  <tr className="border-b border-white/10">
+                    <th className="text-left px-4 py-2 text-xs uppercase tracking-wider text-white/50 font-semibold">Date</th>
+                    <th className="text-left px-4 py-2 text-xs uppercase tracking-wider text-white/50 font-semibold">Weight</th>
+                    <th className="text-left px-4 py-2 text-xs uppercase tracking-wider text-white/50 font-semibold">Change</th>
+                    <th className="text-left px-4 py-2 text-xs uppercase tracking-wider text-white/50 font-semibold">ADG</th>
+                    <th className="text-left px-4 py-2 text-xs uppercase tracking-wider text-white/50 font-semibold">Notes</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {[...weightHistory].reverse().map((entry, index) => {
+                    const revIdx = weightHistory.length - 1 - index;
+                    const prevWeight = revIdx > 0 ? weightHistory[revIdx - 1].weight_kg : null;
+                    const change = prevWeight !== null ? entry.weight_kg - prevWeight : null;
+                    return (
+                      <tr key={index} className="border-b border-white/5">
+                        <td className="px-4 py-3 text-sm text-white/70">{entry.date}</td>
+                        <td className="px-4 py-3 text-sm text-white font-medium">{entry.weight_kg} kg</td>
+                        <td className="px-4 py-3">
+                          {change !== null ? (
+                            <span className={`inline-flex items-center gap-1 text-sm font-medium ${change > 0 ? "text-emerald-400" : change < 0 ? "text-red-400" : "text-white/50"}`}>
+                              {change > 0 ? <TrendingUp className="w-3.5 h-3.5" /> : change < 0 ? <TrendingDown className="w-3.5 h-3.5" /> : <Minus className="w-3.5 h-3.5" />}
+                              {change > 0 ? "+" : ""}{change} kg
+                            </span>
+                          ) : (
+                            <span className="text-sm text-white/30">--</span>
+                          )}
+                        </td>
+                        <td className="px-4 py-3">
+                          {entry.adg !== null ? (
+                            <span className={`text-sm font-medium ${entry.adg >= 0.4 ? "text-emerald-400" : entry.adg >= 0.2 ? "text-blue-400" : entry.adg >= 0.1 ? "text-amber-400" : "text-white/50"}`}>
+                              {entry.adg.toFixed(2)} kg/d
+                            </span>
+                          ) : (
+                            <span className="text-sm text-white/30">--</span>
+                          )}
+                        </td>
+                        <td className="px-4 py-3 text-sm text-white/50">{entry.note || ""}</td>
+                      </tr>
+                    );
+                  })}
+                </tbody>
+              </table>
             </div>
-            <div>
-              <p className="text-xs text-white/40 mb-1">Current Weight</p>
-              <p className="text-lg font-bold text-white">{record.weight_kg} kg</p>
-            </div>
-          </div>
-        </GlassCard>
+          </GlassCard>
+        </div>
       )}
 
       {activeTab === "medical" && (

@@ -112,6 +112,13 @@ export interface WeightHistory {
   avg_weight: number;
 }
 
+export interface AnimalWeightRecord {
+  date: string;
+  weight_kg: number;
+  adg: number | null; // average daily gain kg/day since last weigh
+  note?: string;
+}
+
 export interface BreedDistribution {
   breed: string;
   count: number;
