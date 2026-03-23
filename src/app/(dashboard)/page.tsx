@@ -1,5 +1,6 @@
 "use client";
 
+import { useState, useEffect } from "react";
 import { GlassCard, GlassBadge } from "@/components/glass";
 import {
   DashboardWidgets,
@@ -349,34 +350,72 @@ function GreetingWidget() {
 
 function StatsWidget() {
   const stats = mockDashboardStats;
+  const [nyciPrice, setNyciPrice] = useState<number>(472.79);
+
+  useEffect(() => {
+    fetch("https://amlaupdater.vercel.app/api/check-prices")
+      .then((r) => r.json())
+      .then((data) => {
+        if (data?.indicators?.nyci?.current) {
+          setNyciPrice(data.indicators.nyci.current);
+        }
+      })
+      .catch(() => {});
+  }, []);
+
+  // Herd value: total head × avg weight × NYCI price (c/kg → $/kg)
+  const herdValue = stats.total_livestock * stats.avg_weight_kg * (nyciPrice / 100);
+  // Avg weight gain from weight history
+  const weightGain = mockWeightHistory.length >= 2
+    ? mockWeightHistory[mockWeightHistory.length - 1].avg_weight - mockWeightHistory[mockWeightHistory.length - 2].avg_weight
+    : 0;
+
   return (
-    <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 md:gap-4">
-      <StatCard
-        label="Total Livestock"
-        value={stats.total_livestock.toLocaleString()}
-        icon={Beef}
-        trend={`\u2191 12 this week`}
-        delay={50}
-      />
-      <StatCard
-        label="Avg Weight"
-        value={`${stats.avg_weight_kg.toFixed(0)} kg`}
-        icon={Weight}
-        trend={`\u2191 2.3% vs last month`}
-        delay={100}
-      />
-      <StatCard
-        label="Male / Female"
-        value={`${stats.total_male} / ${stats.total_female}`}
-        icon={Activity}
-        delay={150}
-      />
-      <StatCard
-        label="Active Medical"
-        value={`${stats.medical_batches_active} batches`}
-        icon={Stethoscope}
-        delay={200}
-      />
+    <div className="space-y-3 md:space-y-4">
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 md:gap-4">
+        <StatCard
+          label="Total Livestock"
+          value={stats.total_livestock.toLocaleString()}
+          icon={Beef}
+          trend={`\u2191 12 this week`}
+          delay={50}
+        />
+        <StatCard
+          label="Avg Weight"
+          value={`${stats.avg_weight_kg.toFixed(0)} kg`}
+          icon={Weight}
+          trend={`\u2191 2.3% vs last month`}
+          delay={100}
+        />
+        <StatCard
+          label="Male / Female"
+          value={`${stats.total_male} / ${stats.total_female}`}
+          icon={Activity}
+          delay={150}
+        />
+        <StatCard
+          label="Active Medical"
+          value={`${stats.medical_batches_active} batches`}
+          icon={Stethoscope}
+          delay={200}
+        />
+      </div>
+      <div className="grid grid-cols-2 gap-3 md:gap-4">
+        <StatCard
+          label="Est. Herd Value"
+          value={`$${(herdValue / 1000).toFixed(0)}k`}
+          icon={DollarSign}
+          trend={`NYCI ${nyciPrice.toFixed(0)}c/kg`}
+          delay={250}
+        />
+        <StatCard
+          label="Avg Weight Gain"
+          value={`+${weightGain.toFixed(0)} kg/mo`}
+          icon={TrendingUp}
+          trend="vs last month"
+          delay={300}
+        />
+      </div>
     </div>
   );
 }
