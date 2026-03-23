@@ -32,7 +32,35 @@ import {
   Map,
 } from "lucide-react";
 import Link from "next/link";
-import type { ActivityItem, CalendarEvent } from "@/types";
+import dynamic from "next/dynamic";
+import type { ActivityItem, CalendarEvent, Paddock } from "@/types";
+import { mockMapMarkers, mockFenceLines } from "@/lib/mock-data";
+
+const MapView = dynamic(() => import("@/components/maps/MapView"), {
+  ssr: false,
+  loading: () => (
+    <div className="w-full h-full flex items-center justify-center bg-[#000030] rounded-xl">
+      <div className="text-center">
+        <Map className="w-8 h-8 text-white/30 mx-auto mb-2 animate-pulse" />
+        <p className="text-xs text-white/40">Loading map...</p>
+      </div>
+    </div>
+  ),
+});
+
+const statusColors: Record<Paddock["status"], { fill: string; border: string; label: string }> = {
+  active: { fill: "rgba(16, 185, 129, 0.25)", border: "#10b981", label: "Active" },
+  resting: { fill: "rgba(245, 158, 11, 0.25)", border: "#f59e0b", label: "Resting" },
+  maintenance: { fill: "rgba(239, 68, 68, 0.25)", border: "#ef4444", label: "Maintenance" },
+};
+
+const fenceConditionColors: Record<string, string> = {
+  good: "#10b981", fair: "#f59e0b", poor: "#f97316", needs_repair: "#ef4444",
+};
+
+const markerIcons: Record<string, string> = {
+  water: "💧", gate: "🚪", shed: "🏠", trough: "🪣", yard: "🔲", silo: "🏗️", dam: "🌊",
+};
 
 // ─── Helpers ────────────────────────────────────────────────
 
@@ -506,6 +534,44 @@ export default function DashboardPage() {
             </div>
           </GlassCard>
         </div>
+      </div>
+
+      {/* ── Property Map ─────────────────────────────────────── */}
+      <div
+        className="animate-fade-in-up"
+        style={{ animationDelay: "425ms" } as React.CSSProperties}
+      >
+        <GlassCard padding="none">
+          <div className="px-5 pt-5 pb-3 flex items-center justify-between">
+            <div>
+              <h2 className="text-lg font-semibold text-white">Property Map</h2>
+              <p className="text-xs text-white/50 mt-0.5">
+                99 Anderson Rd, Nimbin NSW 2480 &middot; {paddocks.length} paddocks
+              </p>
+            </div>
+            <Link
+              href="/maps"
+              className="text-sm text-white/50 hover:text-white flex items-center gap-1 transition-colors"
+            >
+              Full Map <ArrowRight className="w-3.5 h-3.5" />
+            </Link>
+          </div>
+          <div className="h-[320px] rounded-b-2xl overflow-hidden">
+            <MapView
+              paddocks={paddocks}
+              markers={mockMapMarkers}
+              fences={mockFenceLines}
+              showPaddocks={true}
+              showLabels={true}
+              mapStyle="satellite"
+              selectedPaddock={null}
+              onPaddockClick={() => {}}
+              statusColors={statusColors}
+              fenceConditionColors={fenceConditionColors}
+              markerIcons={markerIcons}
+            />
+          </div>
+        </GlassCard>
       </div>
 
       {/* ── Paddock Overview ────────────────────────────────── */}
