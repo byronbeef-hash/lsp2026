@@ -15,6 +15,7 @@ import {
   Settings,
   Settings2,
   ChevronDown,
+  LayoutGrid,
   Calendar,
   ScanLine,
   Package,
@@ -123,6 +124,19 @@ export function TopNav() {
               <Settings2 className="w-5 h-5 text-white/70" />
             </button>
           )}
+
+          {/* More Menu Button */}
+          <Link
+            href="/more"
+            className={cn(
+              "p-2 rounded-xl transition-colors",
+              pathname === "/more" ? "bg-white/20" : "hover:bg-white/10"
+            )}
+            aria-label="All modules"
+            title="All modules"
+          >
+            <LayoutGrid className="w-5 h-5 text-white/70" />
+          </Link>
 
           {/* Notifications */}
           <Link
