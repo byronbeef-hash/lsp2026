@@ -28,6 +28,7 @@ import {
   FlaskConical,
   Wheat,
   Wrench,
+  Sparkles,
 } from "lucide-react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
@@ -54,6 +55,7 @@ const moreMenuItems = [
   { href: "/chemicals", label: "Chemicals", icon: FlaskConical, description: "Chemical batches" },
   { href: "/feed", label: "Feed", icon: Wheat, description: "Feed management" },
   { href: "/machinery", label: "Machinery", icon: Wrench, description: "Equipment & services" },
+  { href: "/ai-advisor", label: "AI Advisor", icon: Sparkles, description: "AI farm insights" },
   { href: "/farms", label: "Farms", icon: Building2, description: "Farm management" },
   { href: "/scanner", label: "EID Scanner", icon: ScanLine, description: "Scan tags" },
   { href: "/notifications", label: "Notifications", icon: Bell, description: "Alerts & updates" },

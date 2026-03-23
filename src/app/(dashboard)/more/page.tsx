@@ -17,6 +17,7 @@ import {
   FlaskConical,
   Wheat,
   Wrench,
+  Sparkles,
 } from "lucide-react";
 import Link from "next/link";
 
@@ -102,6 +103,13 @@ export default function MorePage() {
       href: "/feed",
       icon: Wheat,
       color: "bg-yellow-500/20 text-yellow-300",
+    },
+    {
+      title: "AI Advisor",
+      description: "AI-powered farm insights",
+      href: "/ai-advisor",
+      icon: Sparkles,
+      color: "bg-purple-500/20 text-purple-300",
     },
     {
       title: "Machinery",
