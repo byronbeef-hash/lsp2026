@@ -447,61 +447,111 @@ export default function RecordDetailPage({
 
           {/* Weight Gain Chart */}
           <GlassCard className="animate-fade-in-up" style={{ animationDelay: "100ms" } as React.CSSProperties}>
-            <h2 className="text-sm font-semibold text-white/60 uppercase tracking-wider mb-4">
+            <h2 className="text-sm font-semibold text-white/60 uppercase tracking-wider mb-5">
               Weight Gain Chart
             </h2>
-            {weightHistory.length > 1 ? (
-              <div className="relative h-52">
-                {/* Y-axis labels */}
-                {weightStats && (
-                  <>
-                    <div className="absolute left-0 top-0 text-[10px] text-white/30">{weightStats.maxWeight}kg</div>
-                    <div className="absolute left-0 bottom-0 text-[10px] text-white/30">{weightStats.minWeight}kg</div>
-                  </>
-                )}
-                {/* Chart area */}
-                <div className="ml-12 h-full flex items-end gap-1">
-                  {weightHistory.map((entry, i) => {
-                    const min = weightStats?.minWeight ?? 0;
-                    const max = weightStats?.maxWeight ?? 1;
-                    const range = max - min || 1;
-                    const heightPct = ((entry.weight_kg - min) / range) * 85 + 10;
-                    const adgColor = entry.adg === null ? "bg-blue-400/60" :
-                      entry.adg >= 0.4 ? "bg-emerald-400" :
-                      entry.adg >= 0.2 ? "bg-blue-400" :
-                      entry.adg >= 0.1 ? "bg-amber-400" : "bg-white/30";
-                    return (
-                      <div key={i} className="flex-1 flex flex-col items-center gap-1 group relative">
-                        {/* Tooltip */}
-                        <div className="absolute -top-16 left-1/2 -translate-x-1/2 glass-sm rounded-lg px-2 py-1.5 text-[10px] text-white opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap z-10 pointer-events-none">
-                          <p className="font-bold">{entry.weight_kg} kg</p>
-                          {entry.adg !== null && <p>ADG: {entry.adg} kg/d</p>}
-                          {entry.note && <p className="text-white/50">{entry.note}</p>}
-                        </div>
-                        <div
-                          className={`w-full rounded-t-md ${adgColor} transition-all duration-300 hover:opacity-80 min-h-[4px]`}
-                          style={{ height: `${heightPct}%` }}
-                        />
-                        <span className="text-[8px] text-white/30 -rotate-45 origin-left whitespace-nowrap mt-1">
-                          {new Date(entry.date).toLocaleDateString("en-AU", { month: "short", year: "2-digit" })}
-                        </span>
-                      </div>
-                    );
-                  })}
+            {weightHistory.length > 1 && weightStats ? (
+              <div>
+                {/* SVG Area Chart */}
+                <div className="relative">
+                  <svg viewBox="0 0 800 300" className="w-full h-auto" preserveAspectRatio="xMidYMid meet">
+                    {/* Background grid lines */}
+                    {[0, 0.25, 0.5, 0.75, 1].map((frac) => {
+                      const y = 20 + (260 - 20) * (1 - frac);
+                      const val = Math.round(weightStats.minWeight + (weightStats.maxWeight - weightStats.minWeight) * frac);
+                      return (
+                        <g key={frac}>
+                          <line x1="60" y1={y} x2="780" y2={y} stroke="rgba(255,255,255,0.06)" strokeWidth="1" />
+                          <text x="52" y={y + 4} textAnchor="end" fill="rgba(255,255,255,0.3)" fontSize="10">{val}</text>
+                        </g>
+                      );
+                    })}
+
+                    {/* Gradient fill under the line */}
+                    <defs>
+                      <linearGradient id="weightGrad" x1="0" y1="0" x2="0" y2="1">
+                        <stop offset="0%" stopColor="rgba(59,130,246,0.3)" />
+                        <stop offset="100%" stopColor="rgba(59,130,246,0.02)" />
+                      </linearGradient>
+                    </defs>
+
+                    {/* Area fill */}
+                    <path
+                      d={(() => {
+                        const pts = weightHistory.map((e, i) => {
+                          const x = 60 + (i / (weightHistory.length - 1)) * 720;
+                          const yFrac = (e.weight_kg - weightStats.minWeight) / (weightStats.maxWeight - weightStats.minWeight || 1);
+                          const y = 260 - yFrac * 240;
+                          return `${x},${y}`;
+                        });
+                        return `M${pts[0]} ${pts.map((p) => `L${p}`).join(" ")} L${60 + 720},260 L60,260 Z`;
+                      })()}
+                      fill="url(#weightGrad)"
+                    />
+
+                    {/* Line */}
+                    <polyline
+                      points={weightHistory.map((e, i) => {
+                        const x = 60 + (i / (weightHistory.length - 1)) * 720;
+                        const yFrac = (e.weight_kg - weightStats.minWeight) / (weightStats.maxWeight - weightStats.minWeight || 1);
+                        const y = 260 - yFrac * 240;
+                        return `${x},${y}`;
+                      }).join(" ")}
+                      fill="none"
+                      stroke="#3b82f6"
+                      strokeWidth="2.5"
+                      strokeLinejoin="round"
+                    />
+
+                    {/* Data points + labels */}
+                    {weightHistory.map((entry, i) => {
+                      const x = 60 + (i / (weightHistory.length - 1)) * 720;
+                      const yFrac = (entry.weight_kg - weightStats.minWeight) / (weightStats.maxWeight - weightStats.minWeight || 1);
+                      const y = 260 - yFrac * 240;
+                      const dotColor = entry.adg === null ? "#60a5fa" :
+                        entry.adg >= 0.4 ? "#34d399" :
+                        entry.adg >= 0.2 ? "#60a5fa" :
+                        entry.adg >= 0.1 ? "#fbbf24" : "rgba(255,255,255,0.4)";
+                      return (
+                        <g key={i}>
+                          {/* Dot */}
+                          <circle cx={x} cy={y} r="5" fill={dotColor} stroke="#000030" strokeWidth="2" />
+                          {/* Weight label above dot */}
+                          <text x={x} y={y - 12} textAnchor="middle" fill="white" fontSize="10" fontWeight="600">
+                            {entry.weight_kg}
+                          </text>
+                          {/* ADG label below dot (if not first) */}
+                          {entry.adg !== null && (
+                            <text x={x} y={y + 18} textAnchor="middle" fill={dotColor} fontSize="8.5" fontWeight="500">
+                              {entry.adg.toFixed(2)}
+                            </text>
+                          )}
+                          {/* Date on X-axis */}
+                          <text x={x} y={282} textAnchor="middle" fill="rgba(255,255,255,0.3)" fontSize="9">
+                            {new Date(entry.date).toLocaleDateString("en-AU", { month: "short", year: "2-digit" })}
+                          </text>
+                        </g>
+                      );
+                    })}
+
+                    {/* Axis labels */}
+                    <text x="10" y="150" textAnchor="middle" fill="rgba(255,255,255,0.2)" fontSize="9" transform="rotate(-90, 10, 150)">Weight (kg)</text>
+                  </svg>
                 </div>
+
                 {/* Legend */}
-                <div className="flex gap-4 mt-6 ml-12">
+                <div className="flex flex-wrap gap-4 mt-3 justify-center">
                   <div className="flex items-center gap-1.5 text-[10px] text-white/40">
-                    <span className="w-3 h-2 rounded-sm bg-emerald-400" /> ADG ≥0.4
+                    <span className="w-2.5 h-2.5 rounded-full bg-emerald-400" /> ADG ≥0.4 kg/d
                   </div>
                   <div className="flex items-center gap-1.5 text-[10px] text-white/40">
-                    <span className="w-3 h-2 rounded-sm bg-blue-400" /> ADG 0.2–0.4
+                    <span className="w-2.5 h-2.5 rounded-full bg-blue-400" /> ADG 0.2–0.4
                   </div>
                   <div className="flex items-center gap-1.5 text-[10px] text-white/40">
-                    <span className="w-3 h-2 rounded-sm bg-amber-400" /> ADG 0.1–0.2
+                    <span className="w-2.5 h-2.5 rounded-full bg-amber-400" /> ADG 0.1–0.2
                   </div>
                   <div className="flex items-center gap-1.5 text-[10px] text-white/40">
-                    <span className="w-3 h-2 rounded-sm bg-white/30" /> ADG &lt;0.1
+                    <span className="w-2.5 h-2.5 rounded-full bg-white/40" /> ADG &lt;0.1
                   </div>
                 </div>
               </div>

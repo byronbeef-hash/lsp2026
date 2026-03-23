@@ -100,14 +100,14 @@ export function MlaTicker() {
   ));
 
   return (
-    <div className="w-full bg-[#000030]/80 backdrop-blur-md border-b border-white/10 overflow-hidden relative z-50">
+    <div className="w-full bg-[#000020]/90 backdrop-blur-md border-y border-white/10 overflow-hidden relative py-2.5 rounded-xl">
       {loading && (
         <div className="absolute inset-0 flex items-center justify-center">
           <div className="text-[10px] text-white/30 animate-pulse">Loading MLA prices...</div>
         </div>
       )}
       <div
-        className={`group flex items-center h-9 ${loading ? "opacity-0" : "opacity-100"} transition-opacity duration-500`}
+        className={`group flex items-center ${loading ? "opacity-0" : "opacity-100"} transition-opacity duration-500`}
       >
         <div className="animate-ticker inline-flex items-center whitespace-nowrap group-hover:[animation-play-state:paused]">
           {/* Render content 3 times for seamless loop */}

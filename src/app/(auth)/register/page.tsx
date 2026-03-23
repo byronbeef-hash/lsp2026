@@ -100,8 +100,8 @@ export default function RegisterPage() {
     <div className="min-h-screen flex items-center justify-center px-4 py-12">
       <div className="w-full max-w-md animate-fade-in-up">
         <div className="flex flex-col items-center mb-8">
-          <div className="w-16 h-16 rounded-2xl bg-white/15 backdrop-blur-lg flex items-center justify-center mb-4 border border-white/20">
-            <BullLogo size={40} className="text-white" />
+          <div className="mb-4">
+            <BullLogo size={64} className="text-white" />
           </div>
           <h1 className="text-2xl font-bold text-white">Create Account</h1>
           <p className="text-white/50 mt-1">Get started with LiveStock</p>

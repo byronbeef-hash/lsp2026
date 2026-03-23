@@ -311,7 +311,7 @@ export default function DashboardPage() {
               <div className="w-px h-4 bg-white/20" />
               <div className="flex items-center gap-1.5">
                 <MapPin className="w-4 h-4 text-white/50" />
-                <span className="text-sm text-white/50">Sydney NSW</span>
+                <span className="text-sm text-white/50">Lismore NSW</span>
               </div>
             </div>
           </div>

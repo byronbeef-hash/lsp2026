@@ -34,15 +34,15 @@ interface SettingsState {
 }
 
 const defaultProfile: ProfileSettings = {
-  firstName: "",
-  lastName: "",
+  firstName: "Tim",
+  lastName: "Dickinson",
   email: "",
 };
 
 const defaultFarm: FarmSettings = {
-  farmName: "",
-  location: "",
-  farmSize: "",
+  farmName: "Anderson Road Farm",
+  location: "99 Anderson Rd, Nimbin NSW 2480",
+  farmSize: "215",
 };
 
 const defaultPreferences: PreferencesSettings = {

@@ -173,7 +173,7 @@ export default function MarketsPage() {
   return (
     <div className="space-y-5">
       {/* Live MLA Ticker */}
-      <div className="-mx-4 md:-mx-6 -mt-6 mb-2">
+      <div className="animate-fade-in-up">
         <MlaTicker />
       </div>
 

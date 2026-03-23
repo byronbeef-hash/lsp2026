@@ -1,7 +1,5 @@
 "use client";
 
-import Image from "next/image";
-
 interface BullLogoProps {
   className?: string;
   size?: number;
@@ -9,14 +7,14 @@ interface BullLogoProps {
 
 export function BullLogo({ className = "", size = 32 }: BullLogoProps) {
   return (
-    <Image
+    // eslint-disable-next-line @next/next/no-img-element
+    <img
       src="/logo-white.png"
       alt="AgriEID"
       width={size}
       height={size}
-      className={className}
-      style={{ objectFit: "contain" }}
-      priority
+      className={`object-contain ${className}`}
+      style={{ width: size, height: size }}
     />
   );
 }

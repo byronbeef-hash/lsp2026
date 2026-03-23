@@ -106,7 +106,7 @@ export default function MapView({
 }: MapViewProps) {
   // Calculate center from paddock data
   const center = useMemo<L.LatLngTuple>(() => {
-    if (paddocks.length === 0) return [-33.8700, 151.2060];
+    if (paddocks.length === 0) return [-28.594, 153.224];
     const avgLat =
       paddocks.reduce((sum, p) => sum + p.lat, 0) / paddocks.length;
     const avgLng =

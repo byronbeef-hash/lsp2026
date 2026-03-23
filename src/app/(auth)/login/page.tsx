@@ -50,8 +50,8 @@ export default function LoginPage() {
       <div className="w-full max-w-md animate-fade-in-up">
         {/* Logo */}
         <div className="flex flex-col items-center mb-8">
-          <div className="w-20 h-20 rounded-2xl bg-white/15 backdrop-blur-lg flex items-center justify-center mb-4 border border-white/20">
-            <BullLogo size={48} className="text-white" />
+          <div className="mb-4">
+            <BullLogo size={72} className="text-white" />
           </div>
           <h1 className="text-2xl font-bold text-white">Welcome Back</h1>
           <p className="text-white/50 mt-1">Sign in to your account</p>
