@@ -72,6 +72,11 @@ export function TopNav() {
   return (
     <header className="hidden md:block fixed top-4 left-4 right-4 z-40">
       <nav className="glass-nav px-4 lg:px-6 py-3 flex items-center justify-between" role="navigation" aria-label="Main navigation">
+        {/* Logo */}
+        <Link href="/" className="flex items-center shrink-0">
+          <BullLogo size={47} className="opacity-70 brightness-125" />
+        </Link>
+
         {/* Primary Nav Links */}
         <div className="flex items-center gap-0.5">
           {primaryNav.map((item) => {
