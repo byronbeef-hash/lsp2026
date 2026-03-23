@@ -1,6 +1,7 @@
 "use client";
 
 import { ReactNode } from "react";
+import { MlaTicker } from "@/components/MlaTicker";
 import { TopNav } from "./TopNav";
 import { BottomNav } from "./BottomNav";
 
@@ -11,6 +12,7 @@ interface AppShellProps {
 export function AppShell({ children }: AppShellProps) {
   return (
     <div className="min-h-screen">
+      <MlaTicker />
       <TopNav />
       <BottomNav />
 

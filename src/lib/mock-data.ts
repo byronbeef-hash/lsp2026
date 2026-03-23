@@ -2,6 +2,7 @@ import type {
   LivestockRecord, DashboardStats, MedicalBatch, Paddock,
   Notification, CalendarEvent, WeightHistory, BreedDistribution,
   ActivityItem, MapMarker, FenceLine, AnimalWeightRecord,
+  StockGroup, RotationRecord, RotationRecommendation,
 } from "@/types";
 
 // Per-animal weight history with ADG (average daily gain) calculations
@@ -663,3 +664,25 @@ export const mockDashboardStats: DashboardStats = {
   upcoming_events: mockCalendarEvents.filter(e => !e.completed).slice(0, 4),
   alerts: mockNotifications.filter(n => !n.read).slice(0, 3),
 };
+
+export const mockStockGroups: StockGroup[] = [
+  { id: 1, name: "Breeding Herd A", stockType: "cowcalf", headCount: 28, dsePerHead: 15, totalDSE: 420, currentPaddockId: 1 },
+  { id: 2, name: "Breeding Herd B", stockType: "cowcalf", headCount: 22, dsePerHead: 15, totalDSE: 330, currentPaddockId: 2 },
+  { id: 3, name: "Bulls", stockType: "bull", headCount: 4, dsePerHead: 12, totalDSE: 48, currentPaddockId: 5 },
+  { id: 4, name: "Weaners 2024", stockType: "weaner", headCount: 15, dsePerHead: 5, totalDSE: 75, currentPaddockId: 4 },
+  { id: 5, name: "Yearling Steers", stockType: "yearling", headCount: 12, dsePerHead: 8, totalDSE: 96, currentPaddockId: 3 },
+];
+
+export const mockRotationHistory: RotationRecord[] = [
+  { id: 1, stockGroupId: 1, stockGroupName: "Breeding Herd A", fromPaddockId: 3, fromPaddockName: "Western Hill", toPaddockId: 1, toPaddockName: "North Ridge", date: "2026-02-15", reason: "Pasture recovery - Western Hill below 800kg/ha" },
+  { id: 2, stockGroupId: 2, stockGroupName: "Breeding Herd B", fromPaddockId: 4, fromPaddockName: "Creek Flats", toPaddockId: 2, toPaddockName: "South Valley", date: "2026-02-20", reason: "Scheduled rotation - 45 day rest cycle" },
+  { id: 3, stockGroupId: 4, stockGroupName: "Weaners 2024", fromPaddockId: 1, fromPaddockName: "North Ridge", toPaddockId: 4, toPaddockName: "Creek Flats", date: "2026-03-01", reason: "Weaner separation from breeding herd" },
+  { id: 4, stockGroupId: 5, stockGroupName: "Yearling Steers", fromPaddockId: 6, fromPaddockName: "Dam Paddock", toPaddockId: 3, toPaddockName: "Western Hill", date: "2026-03-05", reason: "Fresh pasture - Western Hill rested 18 days" },
+];
+
+export const mockRotationRecommendations: RotationRecommendation[] = [
+  { id: 1, action: "move_now", stockGroupName: "Breeding Herd A", fromPaddock: "North Ridge", toPaddock: "Eastern Flats", reason: "North Ridge biomass at 850 kg/ha — approaching critical floor. Eastern Flats has rested 32 days with 2,100 kg/ha available.", urgency: "critical", grazingDaysLeft: 8, score: 95 },
+  { id: 2, action: "move_soon", stockGroupName: "Weaners 2024", fromPaddock: "Creek Flats", toPaddock: "Dam Paddock", reason: "Creek Flats at 1,200 kg/ha with 18 grazing days remaining. Dam Paddock rested 25 days, biomass recovering well at 1,800 kg/ha.", urgency: "high", grazingDaysLeft: 18, score: 78 },
+  { id: 3, action: "hold", stockGroupName: "Breeding Herd B", fromPaddock: "South Valley", toPaddock: "-", reason: "South Valley at 2,400 kg/ha with 45+ grazing days. No rotation needed at this time.", urgency: "medium", grazingDaysLeft: 47, score: 45 },
+  { id: 4, action: "defer", stockGroupName: "Bulls", fromPaddock: "Eastern Block", toPaddock: "-", reason: "Low stocking density in current paddock. Next rotation review in 30 days.", urgency: "low", grazingDaysLeft: 60, score: 20 },
+];

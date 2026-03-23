@@ -13,6 +13,7 @@ import {
   Plus,
   Edit,
   Trash2,
+  RotateCw,
 } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
@@ -125,11 +126,18 @@ export default function PaddocksPage() {
           <h1 className="text-2xl font-bold text-white">Paddocks</h1>
           <p className="text-white/50 mt-1">Property and paddock management</p>
         </div>
-        <Link href="/paddocks/new">
-          <GlassButton variant="primary" icon={<Plus className="w-4 h-4" />}>
-            Add Paddock
-          </GlassButton>
-        </Link>
+        <div className="flex gap-2">
+          <Link href="/paddocks/rotation">
+            <GlassButton variant="default" icon={<RotateCw className="w-4 h-4" />}>
+              Stock Rotation
+            </GlassButton>
+          </Link>
+          <Link href="/paddocks/new">
+            <GlassButton variant="primary" icon={<Plus className="w-4 h-4" />}>
+              Add Paddock
+            </GlassButton>
+          </Link>
+        </div>
       </div>
 
       {/* Summary Stats */}

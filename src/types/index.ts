@@ -204,3 +204,37 @@ export interface RainGaugeReading {
   amount_mm: number;
   notes: string | null;
 }
+
+export interface StockGroup {
+  id: number;
+  name: string;
+  stockType: "cowcalf" | "adult" | "yearling" | "weaner" | "bull";
+  headCount: number;
+  dsePerHead: number;
+  totalDSE: number;
+  currentPaddockId: number | null;
+}
+
+export interface RotationRecord {
+  id: number;
+  stockGroupId: number;
+  stockGroupName: string;
+  fromPaddockId: number;
+  fromPaddockName: string;
+  toPaddockId: number;
+  toPaddockName: string;
+  date: string;
+  reason: string;
+}
+
+export interface RotationRecommendation {
+  id: number;
+  action: "move_now" | "move_soon" | "hold" | "defer";
+  stockGroupName: string;
+  fromPaddock: string;
+  toPaddock: string;
+  reason: string;
+  urgency: "critical" | "high" | "medium" | "low";
+  grazingDaysLeft: number;
+  score: number;
+}
