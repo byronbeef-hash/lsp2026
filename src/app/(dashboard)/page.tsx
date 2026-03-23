@@ -2,6 +2,10 @@
 
 import { GlassCard, GlassBadge } from "@/components/glass";
 import {
+  DashboardWidgets,
+  WidgetDefinition,
+} from "@/components/dashboard/DashboardWidgets";
+import {
   mockDashboardStats,
   mockPaddocks,
   mockWeightHistory,
@@ -30,6 +34,11 @@ import {
   BarChart3,
   FileText,
   Map,
+  Sun,
+  LayoutGrid,
+  ListChecks,
+  MapPinned,
+  Fence,
 } from "lucide-react";
 import Link from "next/link";
 import dynamic from "next/dynamic";
@@ -137,17 +146,6 @@ function ActivityIcon({ type }: { type: ActivityItem["type"] }) {
 }
 
 // ─── Event Type Badge ───────────────────────────────────────
-
-function eventBadgeVariant(type: CalendarEvent["type"]): "info" | "warning" | "default" | "success" | "danger" {
-  const map: Record<string, "info" | "warning" | "default" | "success" | "danger"> = {
-    medical: "info",
-    sale: "warning",
-    inspection: "default",
-    maintenance: "warning",
-    other: "default",
-  };
-  return map[type] || "default";
-}
 
 function eventBadgeColor(type: CalendarEvent["type"]): string {
   const map: Record<string, string> = {
@@ -303,11 +301,137 @@ function BreedChart() {
   );
 }
 
-// ─── Main Dashboard ─────────────────────────────────────────
+// ─── Widget Definitions ─────────────────────────────────────
 
-export default function DashboardPage() {
+const WIDGET_DEFINITIONS: WidgetDefinition[] = [
+  { id: "greeting", title: "Greeting & Weather", icon: Sun, defaultVisible: true, defaultOrder: 0 },
+  { id: "stats", title: "Stat Cards", icon: LayoutGrid, defaultVisible: true, defaultOrder: 1 },
+  { id: "charts", title: "Charts", icon: BarChart3, defaultVisible: true, defaultOrder: 2 },
+  { id: "activity", title: "Activity & Events", icon: ListChecks, defaultVisible: true, defaultOrder: 3 },
+  { id: "map", title: "Property Map", icon: MapPinned, defaultVisible: true, defaultOrder: 4 },
+  { id: "paddocks", title: "Paddock Overview", icon: Fence, defaultVisible: true, defaultOrder: 5 },
+];
+
+// ─── Widget Content Components ──────────────────────────────
+
+function GreetingWidget() {
+  return (
+    <div className="animate-fade-in-up">
+      <div className="flex flex-col sm:flex-row sm:items-end sm:justify-between gap-4">
+        <div>
+          <h1 className="text-2xl md:text-3xl font-bold text-white">
+            {getGreeting()}, Tim
+          </h1>
+          <p className="text-white/50 mt-1">{formatDate(new Date())}</p>
+        </div>
+        <div className="flex items-center gap-3">
+          <div className="flex items-center gap-4 glass-sm px-4 py-2.5">
+            <div className="flex items-center gap-1.5">
+              <Thermometer className="w-4 h-4 text-amber-400" />
+              <span className="text-sm font-semibold text-white">24°C</span>
+            </div>
+            <div className="w-px h-4 bg-white/20" />
+            <div className="flex items-center gap-1.5">
+              <Cloud className="w-4 h-4 text-sky-300" />
+              <span className="text-sm text-white/70">Partly Cloudy</span>
+            </div>
+            <div className="w-px h-4 bg-white/20" />
+            <div className="flex items-center gap-1.5">
+              <MapPin className="w-4 h-4 text-white/50" />
+              <span className="text-sm text-white/50">Lismore NSW</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function StatsWidget() {
   const stats = mockDashboardStats;
-  const paddocks = mockPaddocks;
+  return (
+    <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 md:gap-4">
+      <StatCard
+        label="Total Livestock"
+        value={stats.total_livestock.toLocaleString()}
+        icon={Beef}
+        trend={`\u2191 12 this week`}
+        delay={50}
+      />
+      <StatCard
+        label="Avg Weight"
+        value={`${stats.avg_weight_kg.toFixed(0)} kg`}
+        icon={Weight}
+        trend={`\u2191 2.3% vs last month`}
+        delay={100}
+      />
+      <StatCard
+        label="Male / Female"
+        value={`${stats.total_male} / ${stats.total_female}`}
+        icon={Activity}
+        delay={150}
+      />
+      <StatCard
+        label="Active Medical"
+        value={`${stats.medical_batches_active} batches`}
+        icon={Stethoscope}
+        delay={200}
+      />
+    </div>
+  );
+}
+
+function ChartsWidget() {
+  return (
+    <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+      {/* Weight Trend Chart */}
+      <div
+        className="animate-fade-in-up"
+        style={{ animationDelay: "250ms" } as React.CSSProperties}
+      >
+        <GlassCard>
+          <div className="flex items-center justify-between">
+            <div>
+              <h2 className="text-lg font-semibold text-white">Weight Trend</h2>
+              <p className="text-xs text-white/50 mt-0.5">
+                6-month average weight (kg)
+              </p>
+            </div>
+            <div className="w-9 h-9 rounded-xl bg-white/10 flex items-center justify-center">
+              <BarChart3 className="w-4 h-4 text-white/60" />
+            </div>
+          </div>
+          <WeightChart />
+        </GlassCard>
+      </div>
+
+      {/* Breed Distribution */}
+      <div
+        className="animate-fade-in-up"
+        style={{ animationDelay: "300ms" } as React.CSSProperties}
+      >
+        <GlassCard>
+          <div className="flex items-center justify-between">
+            <div>
+              <h2 className="text-lg font-semibold text-white">
+                Breed Distribution
+              </h2>
+              <p className="text-xs text-white/50 mt-0.5">
+                Breakdown by breed across herd
+              </p>
+            </div>
+            <div className="w-9 h-9 rounded-xl bg-white/10 flex items-center justify-center">
+              <Beef className="w-4 h-4 text-white/60" />
+            </div>
+          </div>
+          <BreedChart />
+        </GlassCard>
+      </div>
+    </div>
+  );
+}
+
+function ActivityWidget() {
   const activities = mockActivity.slice(0, 6);
   const upcomingEvents = mockCalendarEvents
     .filter((e) => !e.completed)
@@ -315,332 +439,249 @@ export default function DashboardPage() {
     .slice(0, 4);
 
   return (
-    <div className="space-y-6 pb-8">
-      {/* ── Welcome Header ──────────────────────────────────── */}
-      <div className="animate-fade-in-up">
-        <div className="flex flex-col sm:flex-row sm:items-end sm:justify-between gap-4">
-          <div>
-            <h1 className="text-2xl md:text-3xl font-bold text-white">
-              {getGreeting()}, Tim
-            </h1>
-            <p className="text-white/50 mt-1">{formatDate(new Date())}</p>
-          </div>
-          <div className="flex items-center gap-3">
-            <div className="flex items-center gap-4 glass-sm px-4 py-2.5">
-              <div className="flex items-center gap-1.5">
-                <Thermometer className="w-4 h-4 text-amber-400" />
-                <span className="text-sm font-semibold text-white">24°C</span>
-              </div>
-              <div className="w-px h-4 bg-white/20" />
-              <div className="flex items-center gap-1.5">
-                <Cloud className="w-4 h-4 text-sky-300" />
-                <span className="text-sm text-white/70">Partly Cloudy</span>
-              </div>
-              <div className="w-px h-4 bg-white/20" />
-              <div className="flex items-center gap-1.5">
-                <MapPin className="w-4 h-4 text-white/50" />
-                <span className="text-sm text-white/50">Lismore NSW</span>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      {/* ── KPI Stat Cards ──────────────────────────────────── */}
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 md:gap-4">
-        <StatCard
-          label="Total Livestock"
-          value={stats.total_livestock.toLocaleString()}
-          icon={Beef}
-          trend={`\u2191 12 this week`}
-          delay={50}
-        />
-        <StatCard
-          label="Avg Weight"
-          value={`${stats.avg_weight_kg.toFixed(0)} kg`}
-          icon={Weight}
-          trend={`\u2191 2.3% vs last month`}
-          delay={100}
-        />
-        <StatCard
-          label="Male / Female"
-          value={`${stats.total_male} / ${stats.total_female}`}
-          icon={Activity}
-          delay={150}
-        />
-        <StatCard
-          label="Active Medical"
-          value={`${stats.medical_batches_active} batches`}
-          icon={Stethoscope}
-          delay={200}
-        />
-      </div>
-
-      {/* ── Charts Row: Weight Trend + Breed Distribution ──── */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-        {/* Weight Trend Chart */}
-        <div
-          className="animate-fade-in-up"
-          style={{ animationDelay: "250ms" } as React.CSSProperties}
-        >
-          <GlassCard>
-            <div className="flex items-center justify-between">
-              <div>
-                <h2 className="text-lg font-semibold text-white">Weight Trend</h2>
-                <p className="text-xs text-white/50 mt-0.5">
-                  6-month average weight (kg)
-                </p>
-              </div>
-              <div className="w-9 h-9 rounded-xl bg-white/10 flex items-center justify-center">
-                <BarChart3 className="w-4 h-4 text-white/60" />
-              </div>
-            </div>
-            <WeightChart />
-          </GlassCard>
-        </div>
-
-        {/* Breed Distribution */}
-        <div
-          className="animate-fade-in-up"
-          style={{ animationDelay: "300ms" } as React.CSSProperties}
-        >
-          <GlassCard>
-            <div className="flex items-center justify-between">
-              <div>
-                <h2 className="text-lg font-semibold text-white">
-                  Breed Distribution
-                </h2>
-                <p className="text-xs text-white/50 mt-0.5">
-                  Breakdown by breed across herd
-                </p>
-              </div>
-              <div className="w-9 h-9 rounded-xl bg-white/10 flex items-center justify-center">
-                <Beef className="w-4 h-4 text-white/60" />
-              </div>
-            </div>
-            <BreedChart />
-          </GlassCard>
-        </div>
-      </div>
-
-      {/* ── Activity Feed + Upcoming Events ────────────────── */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-        {/* Recent Activity Feed */}
-        <div
-          className="animate-fade-in-up"
-          style={{ animationDelay: "350ms" } as React.CSSProperties}
-        >
-          <GlassCard padding="none">
-            <div className="px-5 pt-5 pb-3 flex items-center justify-between">
-              <div>
-                <h2 className="text-lg font-semibold text-white">
-                  Recent Activity
-                </h2>
-                <p className="text-xs text-white/50 mt-0.5">Latest farm operations</p>
-              </div>
-              <div className="w-9 h-9 rounded-xl bg-white/10 flex items-center justify-center">
-                <Clock className="w-4 h-4 text-white/60" />
-              </div>
-            </div>
-            <div className="max-h-[340px] overflow-y-auto px-5 pb-5">
-              <div className="space-y-1">
-                {activities.map((item) => (
-                  <div
-                    key={item.id}
-                    className="flex items-start gap-3 py-2.5 border-b border-white/[0.06] last:border-b-0"
-                  >
-                    <ActivityIcon type={item.type} />
-                    <div className="flex-1 min-w-0">
-                      <p className="text-sm text-white/90 leading-snug">
-                        {item.description}
-                      </p>
-                      <p className="text-xs text-white/40 mt-1">
-                        {relativeTime(item.timestamp)}
-                      </p>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </div>
-          </GlassCard>
-        </div>
-
-        {/* Upcoming Events */}
-        <div
-          className="animate-fade-in-up"
-          style={{ animationDelay: "400ms" } as React.CSSProperties}
-        >
-          <GlassCard padding="none">
-            <div className="px-5 pt-5 pb-3 flex items-center justify-between">
-              <div>
-                <h2 className="text-lg font-semibold text-white">
-                  Upcoming Events
-                </h2>
-                <p className="text-xs text-white/50 mt-0.5">
-                  Next scheduled activities
-                </p>
-              </div>
-              <div className="w-9 h-9 rounded-xl bg-white/10 flex items-center justify-center">
-                <Calendar className="w-4 h-4 text-white/60" />
-              </div>
-            </div>
-            <div className="px-5 pb-5 space-y-2">
-              {upcomingEvents.map((event) => {
-                const dateInfo = formatEventDate(event.date);
-                return (
-                  <div
-                    key={event.id}
-                    className="flex items-center gap-4 py-3 px-3 rounded-xl bg-white/[0.04] hover:bg-white/[0.08] transition-colors"
-                  >
-                    {/* Date block */}
-                    <div className="w-12 h-14 rounded-xl bg-white/10 flex flex-col items-center justify-center flex-shrink-0">
-                      <span className="text-[10px] font-semibold text-white/50 uppercase leading-none">
-                        {dateInfo.month}
-                      </span>
-                      <span className="text-lg font-bold text-white leading-tight">
-                        {dateInfo.day}
-                      </span>
-                      <span className="text-[10px] text-white/40 leading-none">
-                        {dateInfo.weekday}
-                      </span>
-                    </div>
-
-                    {/* Event info */}
-                    <div className="flex-1 min-w-0">
-                      <div className="flex items-center gap-2 mb-1">
-                        <p className="text-sm font-medium text-white truncate">
-                          {event.title}
-                        </p>
-                      </div>
-                      <div className="flex items-center gap-2">
-                        {event.time && (
-                          <span className="text-xs text-white/40 flex items-center gap-1">
-                            <Clock className="w-3 h-3" />
-                            {formatTime(event.time)}
-                          </span>
-                        )}
-                      </div>
-                    </div>
-
-                    {/* Type badge */}
-                    <span
-                      className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-[10px] font-semibold uppercase tracking-wide border border-white/10 flex-shrink-0 ${eventBadgeColor(event.type)}`}
-                    >
-                      {event.type}
-                    </span>
-                  </div>
-                );
-              })}
-            </div>
-          </GlassCard>
-        </div>
-      </div>
-
-      {/* ── Property Map ─────────────────────────────────────── */}
+    <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+      {/* Recent Activity Feed */}
       <div
         className="animate-fade-in-up"
-        style={{ animationDelay: "425ms" } as React.CSSProperties}
+        style={{ animationDelay: "350ms" } as React.CSSProperties}
       >
         <GlassCard padding="none">
           <div className="px-5 pt-5 pb-3 flex items-center justify-between">
             <div>
-              <h2 className="text-lg font-semibold text-white">Property Map</h2>
-              <p className="text-xs text-white/50 mt-0.5">
-                99 Anderson Rd, Nimbin NSW 2480 &middot; {paddocks.length} paddocks
-              </p>
+              <h2 className="text-lg font-semibold text-white">
+                Recent Activity
+              </h2>
+              <p className="text-xs text-white/50 mt-0.5">Latest farm operations</p>
             </div>
-            <Link
-              href="/maps"
-              className="text-sm text-white/50 hover:text-white flex items-center gap-1 transition-colors"
-            >
-              Full Map <ArrowRight className="w-3.5 h-3.5" />
-            </Link>
+            <div className="w-9 h-9 rounded-xl bg-white/10 flex items-center justify-center">
+              <Clock className="w-4 h-4 text-white/60" />
+            </div>
           </div>
-          <div className="h-[320px] rounded-b-2xl overflow-hidden">
-            <MapView
-              paddocks={paddocks}
-              markers={mockMapMarkers}
-              fences={mockFenceLines}
-              showPaddocks={true}
-              showLabels={true}
-              mapStyle="satellite"
-              selectedPaddock={null}
-              onPaddockClick={() => {}}
-              statusColors={statusColors}
-              fenceConditionColors={fenceConditionColors}
-              markerIcons={markerIcons}
-            />
+          <div className="max-h-[340px] overflow-y-auto px-5 pb-5">
+            <div className="space-y-1">
+              {activities.map((item) => (
+                <div
+                  key={item.id}
+                  className="flex items-start gap-3 py-2.5 border-b border-white/[0.06] last:border-b-0"
+                >
+                  <ActivityIcon type={item.type} />
+                  <div className="flex-1 min-w-0">
+                    <p className="text-sm text-white/90 leading-snug">
+                      {item.description}
+                    </p>
+                    <p className="text-xs text-white/40 mt-1">
+                      {relativeTime(item.timestamp)}
+                    </p>
+                  </div>
+                </div>
+              ))}
+            </div>
           </div>
         </GlassCard>
       </div>
 
-      {/* ── Paddock Overview ────────────────────────────────── */}
+      {/* Upcoming Events */}
       <div
         className="animate-fade-in-up"
-        style={{ animationDelay: "450ms" } as React.CSSProperties}
+        style={{ animationDelay: "400ms" } as React.CSSProperties}
       >
-        <GlassCard>
-          <div className="flex items-center justify-between mb-4">
+        <GlassCard padding="none">
+          <div className="px-5 pt-5 pb-3 flex items-center justify-between">
             <div>
               <h2 className="text-lg font-semibold text-white">
-                Paddock Overview
+                Upcoming Events
               </h2>
               <p className="text-xs text-white/50 mt-0.5">
-                Current animal distribution
+                Next scheduled activities
               </p>
             </div>
-            <Link
-              href="/paddocks"
-              className="text-sm text-white/50 hover:text-white flex items-center gap-1 transition-colors"
-            >
-              View all <ArrowRight className="w-4 h-4" />
-            </Link>
+            <div className="w-9 h-9 rounded-xl bg-white/10 flex items-center justify-center">
+              <Calendar className="w-4 h-4 text-white/60" />
+            </div>
           </div>
-
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
-            {paddocks.slice(0, 6).map((paddock) => {
-              const pct =
-                paddock.capacity > 0
-                  ? Math.round((paddock.current_count / paddock.capacity) * 100)
-                  : 0;
-              const barColor = capacityColor(paddock.current_count, paddock.capacity);
-              const textColor = capacityTextColor(paddock.current_count, paddock.capacity);
-
+          <div className="px-5 pb-5 space-y-2">
+            {upcomingEvents.map((event) => {
+              const dateInfo = formatEventDate(event.date);
               return (
                 <div
-                  key={paddock.id}
-                  className="rounded-xl bg-white/[0.06] border border-white/[0.08] p-4 hover:bg-white/[0.1] transition-colors"
+                  key={event.id}
+                  className="flex items-center gap-4 py-3 px-3 rounded-xl bg-white/[0.04] hover:bg-white/[0.08] transition-colors"
                 >
-                  <div className="flex items-center justify-between mb-2">
-                    <h3 className="text-sm font-semibold text-white truncate">
-                      {paddock.name}
-                    </h3>
-                    {paddock.status === "resting" && (
-                      <GlassBadge variant="warning">Resting</GlassBadge>
-                    )}
-                  </div>
-                  <div className="flex items-center justify-between mb-2">
-                    <span className="text-xs text-white/50">
-                      {paddock.current_count} / {paddock.capacity} head
+                  {/* Date block */}
+                  <div className="w-12 h-14 rounded-xl bg-white/10 flex flex-col items-center justify-center flex-shrink-0">
+                    <span className="text-[10px] font-semibold text-white/50 uppercase leading-none">
+                      {dateInfo.month}
                     </span>
-                    <span className={`text-xs font-semibold ${textColor}`}>
-                      {pct}%
+                    <span className="text-lg font-bold text-white leading-tight">
+                      {dateInfo.day}
+                    </span>
+                    <span className="text-[10px] text-white/40 leading-none">
+                      {dateInfo.weekday}
                     </span>
                   </div>
-                  <div className="h-1.5 w-full rounded-full bg-white/10 overflow-hidden">
-                    <div
-                      className={`h-full rounded-full transition-all duration-500 ${barColor}`}
-                      style={{ width: `${pct}%` }}
-                    />
+
+                  {/* Event info */}
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-center gap-2 mb-1">
+                      <p className="text-sm font-medium text-white truncate">
+                        {event.title}
+                      </p>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      {event.time && (
+                        <span className="text-xs text-white/40 flex items-center gap-1">
+                          <Clock className="w-3 h-3" />
+                          {formatTime(event.time)}
+                        </span>
+                      )}
+                    </div>
                   </div>
+
+                  {/* Type badge */}
+                  <span
+                    className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-[10px] font-semibold uppercase tracking-wide border border-white/10 flex-shrink-0 ${eventBadgeColor(event.type)}`}
+                  >
+                    {event.type}
+                  </span>
                 </div>
               );
             })}
           </div>
         </GlassCard>
       </div>
+    </div>
+  );
+}
 
-      {/* ── Quick Actions ───────────────────────────────────── */}
+function MapWidget() {
+  const paddocks = mockPaddocks;
+  return (
+    <div
+      className="animate-fade-in-up"
+      style={{ animationDelay: "425ms" } as React.CSSProperties}
+    >
+      <GlassCard padding="none">
+        <div className="px-5 pt-5 pb-3 flex items-center justify-between">
+          <div>
+            <h2 className="text-lg font-semibold text-white">Property Map</h2>
+            <p className="text-xs text-white/50 mt-0.5">
+              99 Anderson Rd, Nimbin NSW 2480 &middot; {paddocks.length} paddocks
+            </p>
+          </div>
+          <Link
+            href="/maps"
+            className="text-sm text-white/50 hover:text-white flex items-center gap-1 transition-colors"
+          >
+            Full Map <ArrowRight className="w-3.5 h-3.5" />
+          </Link>
+        </div>
+        <div className="h-[320px] rounded-b-2xl overflow-hidden">
+          <MapView
+            paddocks={paddocks}
+            markers={mockMapMarkers}
+            fences={mockFenceLines}
+            showPaddocks={true}
+            showLabels={true}
+            mapStyle="satellite"
+            selectedPaddock={null}
+            onPaddockClick={() => {}}
+            statusColors={statusColors}
+            fenceConditionColors={fenceConditionColors}
+            markerIcons={markerIcons}
+          />
+        </div>
+      </GlassCard>
+    </div>
+  );
+}
+
+function PaddocksWidget() {
+  const paddocks = mockPaddocks;
+  return (
+    <div
+      className="animate-fade-in-up"
+      style={{ animationDelay: "450ms" } as React.CSSProperties}
+    >
+      <GlassCard>
+        <div className="flex items-center justify-between mb-4">
+          <div>
+            <h2 className="text-lg font-semibold text-white">
+              Paddock Overview
+            </h2>
+            <p className="text-xs text-white/50 mt-0.5">
+              Current animal distribution
+            </p>
+          </div>
+          <Link
+            href="/paddocks"
+            className="text-sm text-white/50 hover:text-white flex items-center gap-1 transition-colors"
+          >
+            View all <ArrowRight className="w-4 h-4" />
+          </Link>
+        </div>
+
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+          {paddocks.slice(0, 6).map((paddock) => {
+            const pct =
+              paddock.capacity > 0
+                ? Math.round((paddock.current_count / paddock.capacity) * 100)
+                : 0;
+            const barColor = capacityColor(paddock.current_count, paddock.capacity);
+            const textColor = capacityTextColor(paddock.current_count, paddock.capacity);
+
+            return (
+              <div
+                key={paddock.id}
+                className="rounded-xl bg-white/[0.06] border border-white/[0.08] p-4 hover:bg-white/[0.1] transition-colors"
+              >
+                <div className="flex items-center justify-between mb-2">
+                  <h3 className="text-sm font-semibold text-white truncate">
+                    {paddock.name}
+                  </h3>
+                  {paddock.status === "resting" && (
+                    <GlassBadge variant="warning">Resting</GlassBadge>
+                  )}
+                </div>
+                <div className="flex items-center justify-between mb-2">
+                  <span className="text-xs text-white/50">
+                    {paddock.current_count} / {paddock.capacity} head
+                  </span>
+                  <span className={`text-xs font-semibold ${textColor}`}>
+                    {pct}%
+                  </span>
+                </div>
+                <div className="h-1.5 w-full rounded-full bg-white/10 overflow-hidden">
+                  <div
+                    className={`h-full rounded-full transition-all duration-500 ${barColor}`}
+                    style={{ width: `${pct}%` }}
+                  />
+                </div>
+              </div>
+            );
+          })}
+        </div>
+      </GlassCard>
+    </div>
+  );
+}
+
+// ─── Main Dashboard ─────────────────────────────────────────
+
+export default function DashboardPage() {
+  return (
+    <div className="space-y-6 pb-8">
+      <DashboardWidgets widgets={WIDGET_DEFINITIONS}>
+        {{
+          greeting: <GreetingWidget />,
+          stats: <StatsWidget />,
+          charts: <ChartsWidget />,
+          activity: <ActivityWidget />,
+          map: <MapWidget />,
+          paddocks: <PaddocksWidget />,
+        }}
+      </DashboardWidgets>
+
+      {/* ── Quick Actions (always visible, not a widget) ──── */}
       <div
         className="animate-fade-in-up"
         style={{ animationDelay: "500ms" } as React.CSSProperties}

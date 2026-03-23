@@ -14,6 +14,9 @@ import {
   CloudRain,
   CheckSquare,
   Building2,
+  FlaskConical,
+  Wheat,
+  Wrench,
 } from "lucide-react";
 import Link from "next/link";
 
@@ -85,6 +88,27 @@ export default function MorePage() {
       href: "/reports",
       icon: BarChart3,
       color: "bg-indigo-500/20 text-indigo-300",
+    },
+    {
+      title: "Chemicals",
+      description: "Chemical batches & applications",
+      href: "/chemicals",
+      icon: FlaskConical,
+      color: "bg-violet-500/20 text-violet-300",
+    },
+    {
+      title: "Feed",
+      description: "Feed management & inventory",
+      href: "/feed",
+      icon: Wheat,
+      color: "bg-yellow-500/20 text-yellow-300",
+    },
+    {
+      title: "Machinery",
+      description: "Equipment & maintenance",
+      href: "/machinery",
+      icon: Wrench,
+      color: "bg-teal-500/20 text-teal-300",
     },
     {
       title: "Farms",

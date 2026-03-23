@@ -24,6 +24,9 @@ import {
   CloudSun,
   TrendingUp,
   Wallet,
+  FlaskConical,
+  Wheat,
+  Wrench,
 } from "lucide-react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
@@ -47,6 +50,9 @@ const moreMenuItems = [
   { href: "/sales", label: "Sales", icon: DollarSign, description: "Livestock sales" },
   { href: "/rain-gauge", label: "Rain Gauge", icon: CloudRain, description: "Rainfall tracking" },
   { href: "/todo", label: "Todo List", icon: CheckSquare, description: "Tasks & reminders" },
+  { href: "/chemicals", label: "Chemicals", icon: FlaskConical, description: "Chemical batches" },
+  { href: "/feed", label: "Feed", icon: Wheat, description: "Feed management" },
+  { href: "/machinery", label: "Machinery", icon: Wrench, description: "Equipment & services" },
   { href: "/farms", label: "Farms", icon: Building2, description: "Farm management" },
   { href: "/scanner", label: "EID Scanner", icon: ScanLine, description: "Scan tags" },
   { href: "/notifications", label: "Notifications", icon: Bell, description: "Alerts & updates" },
