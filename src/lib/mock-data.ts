@@ -1,0 +1,336 @@
+import type {
+  LivestockRecord, DashboardStats, MedicalBatch, Paddock,
+  Notification, CalendarEvent, WeightHistory, BreedDistribution,
+  ActivityItem, MapMarker, FenceLine,
+} from "@/types";
+
+export const mockRecords: LivestockRecord[] = [
+  {
+    id: 1, uuid: "rec-001", visual_tag: "AU-0142", eid: "982000411234567",
+    sex: "Female", weight_kg: 485, weight_lb: 1069, breed: "Angus",
+    condition: "Good", date_of_birth: "2022-03-15", date_of_sale: null,
+    date_of_death: null, record_date: "2026-03-01", notes: "Healthy, good condition",
+    is_pregnant: true, is_dehorn: false, mother_visual_tag: "AU-0098",
+    father_visual_tag: "AU-0051", profile_image: null, farm_uuid: "farm-001",
+    paddock_id: 1, created_at: "2026-03-01T10:00:00Z", updated_at: "2026-03-05T14:30:00Z",
+  },
+  {
+    id: 2, uuid: "rec-002", visual_tag: "AU-0143", eid: "982000411234568",
+    sex: "Male", weight_kg: 620, weight_lb: 1367, breed: "Hereford",
+    condition: "Excellent", date_of_birth: "2021-08-22", date_of_sale: null,
+    date_of_death: null, record_date: "2026-03-02", notes: null,
+    is_pregnant: false, is_dehorn: true, mother_visual_tag: "AU-0077",
+    father_visual_tag: "AU-0033", profile_image: null, farm_uuid: "farm-001",
+    paddock_id: 2, created_at: "2026-03-02T09:15:00Z", updated_at: "2026-03-04T11:00:00Z",
+  },
+  {
+    id: 3, uuid: "rec-003", visual_tag: "AU-0144", eid: "982000411234569",
+    sex: "Female", weight_kg: 410, weight_lb: 904, breed: "Angus",
+    condition: "Fair", date_of_birth: "2023-01-10", date_of_sale: null,
+    date_of_death: null, record_date: "2026-03-03", notes: "Underweight, monitor feed",
+    is_pregnant: false, is_dehorn: false, mother_visual_tag: "AU-0102",
+    father_visual_tag: "AU-0051", profile_image: null, farm_uuid: "farm-001",
+    paddock_id: 1, created_at: "2026-03-03T08:45:00Z", updated_at: "2026-03-03T08:45:00Z",
+  },
+  {
+    id: 4, uuid: "rec-004", visual_tag: "AU-0145", eid: "982000411234570",
+    sex: "Male", weight_kg: 550, weight_lb: 1213, breed: "Brahman",
+    condition: "Good", date_of_birth: "2022-06-18", date_of_sale: null,
+    date_of_death: null, record_date: "2026-03-01", notes: null,
+    is_pregnant: false, is_dehorn: true, mother_visual_tag: "AU-0115",
+    father_visual_tag: "AU-0062", profile_image: null, farm_uuid: "farm-001",
+    paddock_id: 3, created_at: "2026-03-01T11:30:00Z", updated_at: "2026-03-05T09:00:00Z",
+  },
+  {
+    id: 5, uuid: "rec-005", visual_tag: "AU-0146", eid: "982000411234571",
+    sex: "Female", weight_kg: 470, weight_lb: 1036, breed: "Charolais",
+    condition: "Good", date_of_birth: "2022-11-05", date_of_sale: null,
+    date_of_death: null, record_date: "2026-03-04", notes: "Due for vaccination",
+    is_pregnant: true, is_dehorn: false, mother_visual_tag: "AU-0088",
+    father_visual_tag: "AU-0041", profile_image: null, farm_uuid: "farm-001",
+    paddock_id: 2, created_at: "2026-03-04T14:00:00Z", updated_at: "2026-03-05T16:00:00Z",
+  },
+  {
+    id: 6, uuid: "rec-006", visual_tag: "AU-0147", eid: null,
+    sex: "Male", weight_kg: 380, weight_lb: 838, breed: "Angus",
+    condition: "Good", date_of_birth: "2023-09-20", date_of_sale: null,
+    date_of_death: null, record_date: "2026-03-05", notes: "Young bull, growing well",
+    is_pregnant: false, is_dehorn: false, mother_visual_tag: "AU-0142",
+    father_visual_tag: null, profile_image: null, farm_uuid: "farm-001",
+    paddock_id: 4, created_at: "2026-03-05T10:00:00Z", updated_at: "2026-03-05T10:00:00Z",
+  },
+  {
+    id: 7, uuid: "rec-007", visual_tag: "AU-0148", eid: "982000411234572",
+    sex: "Female", weight_kg: 510, weight_lb: 1124, breed: "Hereford",
+    condition: "Excellent", date_of_birth: "2021-12-03", date_of_sale: null,
+    date_of_death: null, record_date: "2026-03-04", notes: "Prime breeding stock",
+    is_pregnant: true, is_dehorn: false, mother_visual_tag: "AU-0066",
+    father_visual_tag: "AU-0033", profile_image: null, farm_uuid: "farm-001",
+    paddock_id: 1, created_at: "2026-03-04T09:00:00Z", updated_at: "2026-03-05T11:00:00Z",
+  },
+  {
+    id: 8, uuid: "rec-008", visual_tag: "AU-0149", eid: "982000411234573",
+    sex: "Male", weight_kg: 590, weight_lb: 1301, breed: "Angus",
+    condition: "Good", date_of_birth: "2022-02-14", date_of_sale: null,
+    date_of_death: null, record_date: "2026-03-05", notes: null,
+    is_pregnant: false, is_dehorn: true, mother_visual_tag: "AU-0098",
+    father_visual_tag: "AU-0051", profile_image: null, farm_uuid: "farm-001",
+    paddock_id: 3, created_at: "2026-03-05T13:00:00Z", updated_at: "2026-03-05T13:00:00Z",
+  },
+];
+
+export const mockMedicalBatches: MedicalBatch[] = [
+  {
+    id: 1, uuid: "med-001", batch_name: "Spring Vaccination 2026",
+    status: "active", treatment_type: "Vaccination", medication: "Bovilis MH+IBR",
+    dosage: "2ml subcutaneous", administered_by: "Dr. Sarah Mitchell",
+    animal_count: 85, animals: ["AU-0142", "AU-0144", "AU-0146", "AU-0148"],
+    scheduled_date: "2026-03-01", completed_date: null,
+    notes: "Annual spring vaccination program - respiratory complex",
+    farm_uuid: "farm-001", created_at: "2026-02-25T10:00:00Z",
+  },
+  {
+    id: 2, uuid: "med-002", batch_name: "Parasite Treatment - March",
+    status: "active", treatment_type: "Drench", medication: "Ivermectin Plus",
+    dosage: "1ml/50kg body weight", administered_by: "Dr. Sarah Mitchell",
+    animal_count: 120, animals: ["AU-0143", "AU-0145", "AU-0147", "AU-0149"],
+    scheduled_date: "2026-03-03", completed_date: null,
+    notes: "Quarterly parasite control program",
+    farm_uuid: "farm-001", created_at: "2026-02-28T14:00:00Z",
+  },
+  {
+    id: 3, uuid: "med-003", batch_name: "Pregnancy Testing - Q1",
+    status: "scheduled", treatment_type: "Examination", medication: "N/A",
+    dosage: "N/A", administered_by: "Dr. James Cooper",
+    animal_count: 65, animals: ["AU-0142", "AU-0146", "AU-0148"],
+    scheduled_date: "2026-03-15", completed_date: null,
+    notes: "Q1 pregnancy testing for breeding herd",
+    farm_uuid: "farm-001", created_at: "2026-03-01T08:00:00Z",
+  },
+  {
+    id: 4, uuid: "med-004", batch_name: "Clostridial Booster - Feb",
+    status: "completed", treatment_type: "Vaccination", medication: "Ultravac 7in1",
+    dosage: "2ml subcutaneous", administered_by: "Dr. Sarah Mitchell",
+    animal_count: 247, animals: ["AU-0142", "AU-0143", "AU-0144", "AU-0145", "AU-0146", "AU-0147"],
+    scheduled_date: "2026-02-10", completed_date: "2026-02-12",
+    notes: "Whole herd booster completed on schedule",
+    farm_uuid: "farm-001", created_at: "2026-02-01T09:00:00Z",
+  },
+  {
+    id: 5, uuid: "med-005", batch_name: "Lame Cattle Treatment",
+    status: "active", treatment_type: "Treatment", medication: "Oxytetracycline LA",
+    dosage: "20mg/kg intramuscular", administered_by: "Dr. James Cooper",
+    animal_count: 8, animals: ["AU-0144"],
+    scheduled_date: "2026-03-04", completed_date: null,
+    notes: "Treatment for foot rot cases identified in paddock 3",
+    farm_uuid: "farm-001", created_at: "2026-03-04T07:30:00Z",
+  },
+];
+
+export const mockPaddocks: Paddock[] = [
+  {
+    id: 1, uuid: "pad-001", name: "North Paddock", area_hectares: 45,
+    capacity: 80, current_count: 62, status: "active",
+    pasture_type: "Improved Pasture", water_source: true,
+    lat: -33.8640, lng: 151.2060, farm_uuid: "farm-001",
+    polygon: [
+      [-33.8600, 151.2020], [-33.8600, 151.2120], [-33.8660, 151.2120],
+      [-33.8680, 151.2100], [-33.8680, 151.2020],
+    ],
+    created_at: "2025-01-15T00:00:00Z",
+  },
+  {
+    id: 2, uuid: "pad-002", name: "South River Flat", area_hectares: 60,
+    capacity: 100, current_count: 78, status: "active",
+    pasture_type: "Native Grass", water_source: true,
+    lat: -33.8760, lng: 151.2100, farm_uuid: "farm-001",
+    polygon: [
+      [-33.8720, 151.2020], [-33.8720, 151.2180], [-33.8800, 151.2180],
+      [-33.8810, 151.2100], [-33.8800, 151.2020],
+    ],
+    created_at: "2025-01-15T00:00:00Z",
+  },
+  {
+    id: 3, uuid: "pad-003", name: "Western Hill", area_hectares: 35,
+    capacity: 50, current_count: 45, status: "active",
+    pasture_type: "Mixed Pasture", water_source: true,
+    lat: -33.8660, lng: 151.1960, farm_uuid: "farm-001",
+    polygon: [
+      [-33.8600, 151.1900], [-33.8600, 151.2020], [-33.8680, 151.2020],
+      [-33.8720, 151.2020], [-33.8720, 151.1900],
+    ],
+    created_at: "2025-01-15T00:00:00Z",
+  },
+  {
+    id: 4, uuid: "pad-004", name: "Holding Yards", area_hectares: 5,
+    capacity: 40, current_count: 22, status: "active",
+    pasture_type: "Bare Ground", water_source: true,
+    lat: -33.8695, lng: 151.2060, farm_uuid: "farm-001",
+    polygon: [
+      [-33.8680, 151.2040], [-33.8680, 151.2080], [-33.8710, 151.2080],
+      [-33.8710, 151.2040],
+    ],
+    created_at: "2025-01-15T00:00:00Z",
+  },
+  {
+    id: 5, uuid: "pad-005", name: "East Boundary", area_hectares: 50,
+    capacity: 70, current_count: 40, status: "active",
+    pasture_type: "Improved Pasture", water_source: false,
+    lat: -33.8650, lng: 151.2200, farm_uuid: "farm-001",
+    polygon: [
+      [-33.8600, 151.2120], [-33.8600, 151.2280], [-33.8700, 151.2280],
+      [-33.8700, 151.2120],
+    ],
+    created_at: "2025-03-01T00:00:00Z",
+  },
+  {
+    id: 6, uuid: "pad-006", name: "Calving Paddock", area_hectares: 20,
+    capacity: 30, current_count: 0, status: "resting",
+    pasture_type: "Improved Pasture", water_source: true,
+    lat: -33.8760, lng: 151.1960, farm_uuid: "farm-001",
+    polygon: [
+      [-33.8720, 151.1900], [-33.8720, 151.2020], [-33.8800, 151.2020],
+      [-33.8800, 151.1900],
+    ],
+    created_at: "2025-01-15T00:00:00Z",
+  },
+];
+
+export const mockMapMarkers: MapMarker[] = [
+  { id: 1, name: "Main Dam", type: "dam", lat: -33.8630, lng: 151.2050, notes: "Capacity ~2ML, fed by creek" },
+  { id: 2, name: "North Trough", type: "trough", lat: -33.8620, lng: 151.2070, notes: "Auto-fill from dam pump" },
+  { id: 3, name: "South Trough", type: "trough", lat: -33.8770, lng: 151.2100, notes: "Solar pump from bore" },
+  { id: 4, name: "Main Gate", type: "gate", lat: -33.8680, lng: 151.2020, notes: "Property entrance" },
+  { id: 5, name: "Loading Ramp", type: "yard", lat: -33.8700, lng: 151.2060, notes: "Cattle loading facility" },
+  { id: 6, name: "Feed Shed", type: "shed", lat: -33.8690, lng: 151.2045, notes: "Grain & pellet storage" },
+  { id: 7, name: "Hay Silo", type: "silo", lat: -33.8705, lng: 151.2035, notes: "Round bale storage" },
+  { id: 8, name: "Western Gate", type: "gate", lat: -33.8660, lng: 151.1900, notes: "Access to Western Hill" },
+  { id: 9, name: "Creek Crossing", type: "water", lat: -33.8810, lng: 151.2100, notes: "Natural water source" },
+];
+
+export const mockFenceLines: FenceLine[] = [
+  {
+    id: 1, name: "North Boundary Fence", type: "boundary", condition: "good",
+    coordinates: [[-33.8600, 151.1900], [-33.8600, 151.2120], [-33.8600, 151.2280]],
+    length_km: 3.2,
+  },
+  {
+    id: 2, name: "East Boundary Fence", type: "boundary", condition: "good",
+    coordinates: [[-33.8600, 151.2280], [-33.8700, 151.2280], [-33.8800, 151.2280]],
+    length_km: 2.2,
+  },
+  {
+    id: 3, name: "South Boundary Fence", type: "boundary", condition: "fair",
+    coordinates: [[-33.8800, 151.2280], [-33.8810, 151.2100], [-33.8800, 151.2020], [-33.8800, 151.1900]],
+    length_km: 3.4,
+  },
+  {
+    id: 4, name: "West Boundary Fence", type: "boundary", condition: "good",
+    coordinates: [[-33.8800, 151.1900], [-33.8720, 151.1900], [-33.8600, 151.1900]],
+    length_km: 2.2,
+  },
+  {
+    id: 5, name: "East Boundary Internal", type: "electric", condition: "needs_repair",
+    coordinates: [[-33.8600, 151.2120], [-33.8680, 151.2100], [-33.8700, 151.2120]],
+    length_km: 1.2,
+  },
+  {
+    id: 6, name: "Holding Yard Fence", type: "internal", condition: "good",
+    coordinates: [[-33.8680, 151.2040], [-33.8680, 151.2080], [-33.8710, 151.2080], [-33.8710, 151.2040], [-33.8680, 151.2040]],
+    length_km: 0.5,
+  },
+];
+
+export const mockNotifications: Notification[] = [
+  {
+    id: 1, type: "alert", title: "Low Condition Score",
+    message: "AU-0144 condition has dropped to Fair. Weight: 410kg, down 15kg since last weigh-in. Recommend increased feed allocation.",
+    read: false, action_url: "/records/3", created_at: "2026-03-06T08:00:00Z",
+  },
+  {
+    id: 2, type: "warning", title: "Vaccination Due",
+    message: "65 animals are due for pregnancy testing by March 15. Schedule with your veterinarian.",
+    read: false, action_url: "/medical", created_at: "2026-03-05T16:00:00Z",
+  },
+  {
+    id: 3, type: "info", title: "Weight Recording Complete",
+    message: "Batch weigh-in for North Paddock completed. 62 animals recorded. Average weight: 492kg.",
+    read: false, action_url: "/records", created_at: "2026-03-05T14:30:00Z",
+  },
+  {
+    id: 4, type: "success", title: "Medical Batch Completed",
+    message: "Clostridial Booster - Feb has been completed. 247 animals treated successfully.",
+    read: true, action_url: "/medical", created_at: "2026-02-12T17:00:00Z",
+  },
+  {
+    id: 5, type: "alert", title: "Paddock Capacity Warning",
+    message: "South River Flat is at 78% capacity (78/100). Consider moving animals to East Boundary.",
+    read: true, action_url: "/paddocks", created_at: "2026-03-04T10:00:00Z",
+  },
+  {
+    id: 6, type: "warning", title: "Missing EID Tag",
+    message: "AU-0147 has no EID tag recorded. Please update with electronic ID.",
+    read: true, action_url: "/records/6", created_at: "2026-03-05T10:30:00Z",
+  },
+  {
+    id: 7, type: "info", title: "New Record Added",
+    message: "AU-0149 has been added to the system. Angus male, 590kg in the Western Hill paddock.",
+    read: true, action_url: "/records/8", created_at: "2026-03-05T13:00:00Z",
+  },
+];
+
+export const mockCalendarEvents: CalendarEvent[] = [
+  { id: 1, title: "Spring Vaccination Program", type: "medical", date: "2026-03-01", time: "08:00", description: "Annual vaccination - respiratory complex", completed: true },
+  { id: 2, title: "Parasite Treatment", type: "medical", date: "2026-03-03", time: "07:00", description: "Quarterly drench program", completed: false },
+  { id: 3, title: "Weigh-in: North Paddock", type: "inspection", date: "2026-03-05", time: "06:00", description: "Monthly weight recording", completed: true },
+  { id: 4, title: "Buyer Visit - Thompson Group", type: "sale", date: "2026-03-10", time: "10:00", description: "Inspect sale cattle", completed: false },
+  { id: 5, title: "Pregnancy Testing Q1", type: "medical", date: "2026-03-15", time: "07:00", description: "Q1 pregnancy testing for breeding herd", completed: false },
+  { id: 6, title: "Fence Repair - East Boundary", type: "maintenance", date: "2026-03-12", time: "09:00", description: "Repair damaged section near creek", completed: false },
+  { id: 7, title: "Livestock Agent Meeting", type: "sale", date: "2026-03-18", time: "14:00", description: "Discuss Q2 sale schedule", completed: false },
+  { id: 8, title: "Annual Property Inspection", type: "inspection", date: "2026-03-22", time: "09:00", description: "Biosecurity and compliance review", completed: false },
+  { id: 9, title: "Weaner Draft", type: "other", date: "2026-03-25", time: "06:00", description: "Separate weaners from mothers", completed: false },
+  { id: 10, title: "Water Trough Maintenance", type: "maintenance", date: "2026-03-08", time: "08:00", description: "Clean and service all troughs", completed: false },
+];
+
+export const mockWeightHistory: WeightHistory[] = [
+  { date: "Oct", avg_weight: 455 },
+  { date: "Nov", avg_weight: 462 },
+  { date: "Dec", avg_weight: 468 },
+  { date: "Jan", avg_weight: 474 },
+  { date: "Feb", avg_weight: 478 },
+  { date: "Mar", avg_weight: 480 },
+];
+
+export const mockBreedDistribution: BreedDistribution[] = [
+  { breed: "Angus", count: 98, percentage: 39.7 },
+  { breed: "Hereford", count: 62, percentage: 25.1 },
+  { breed: "Brahman", count: 45, percentage: 18.2 },
+  { breed: "Charolais", count: 28, percentage: 11.3 },
+  { breed: "Mixed", count: 14, percentage: 5.7 },
+];
+
+export const mockActivity: ActivityItem[] = [
+  { id: 1, type: "record_added", description: "AU-0149 added to system - Angus male, 590kg", timestamp: "2026-03-05T13:00:00Z", icon_type: "plus" },
+  { id: 2, type: "weight_update", description: "North Paddock weigh-in completed - 62 animals", timestamp: "2026-03-05T14:30:00Z", icon_type: "scale" },
+  { id: 3, type: "medical", description: "Parasite treatment started - 120 animals", timestamp: "2026-03-03T08:00:00Z", icon_type: "syringe" },
+  { id: 4, type: "alert", description: "AU-0144 condition dropped to Fair", timestamp: "2026-03-03T08:45:00Z", icon_type: "alert" },
+  { id: 5, type: "paddock_move", description: "22 head moved to Holding Yards", timestamp: "2026-03-02T16:00:00Z", icon_type: "move" },
+  { id: 6, type: "medical", description: "Spring Vaccination started - 85 animals", timestamp: "2026-03-01T08:00:00Z", icon_type: "syringe" },
+  { id: 7, type: "sale", description: "Sale draft prepared - 15 steers for Thompson Group", timestamp: "2026-02-28T11:00:00Z", icon_type: "dollar" },
+  { id: 8, type: "record_added", description: "AU-0147 added to system - Angus male, 380kg", timestamp: "2026-03-05T10:00:00Z", icon_type: "plus" },
+];
+
+export const mockDashboardStats: DashboardStats = {
+  total_livestock: 247,
+  total_male: 112,
+  total_female: 135,
+  total_weight_kg: 118650,
+  avg_weight_kg: 480.4,
+  recent_records: mockRecords.slice(0, 4),
+  medical_batches_active: 3,
+  weight_history: mockWeightHistory,
+  breed_distribution: mockBreedDistribution,
+  recent_activity: mockActivity,
+  upcoming_events: mockCalendarEvents.filter(e => !e.completed).slice(0, 4),
+  alerts: mockNotifications.filter(n => !n.read).slice(0, 3),
+};
