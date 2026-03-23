@@ -384,7 +384,7 @@ function StatsWidget() {
           label="Avg Weight"
           value={`${stats.avg_weight_kg.toFixed(0)} kg`}
           icon={Weight}
-          trend={`\u2191 2.3% vs last month`}
+          trend={`$${((stats.avg_weight_kg * nyciPrice) / 100).toFixed(0)}/hd @ ${nyciPrice.toFixed(0)}c/kg`}
           delay={100}
         />
         <StatCard
@@ -412,7 +412,7 @@ function StatsWidget() {
           label="Avg Weight Gain"
           value={`+${weightGain.toFixed(0)} kg/mo`}
           icon={TrendingUp}
-          trend="vs last month"
+          trend={`+$${((weightGain * nyciPrice) / 100).toFixed(0)}/hd/mo value gain`}
           delay={300}
         />
       </div>
