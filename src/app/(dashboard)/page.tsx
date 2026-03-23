@@ -348,8 +348,18 @@ function GreetingWidget() {
   );
 }
 
+// Herd breakdown by class
+const herdClasses = [
+  { name: "Cows", count: 120, avgAge: "4.2 yrs", avgWeight: 520, color: "bg-blue-500" },
+  { name: "Bulls", count: 5, avgAge: "5.8 yrs", avgWeight: 780, color: "bg-purple-500" },
+  { name: "Weaners", count: 100, avgAge: "8 mo", avgWeight: 280, color: "bg-amber-500" },
+  { name: "Steers", count: 48, avgAge: "2.1 yrs", avgWeight: 480, color: "bg-emerald-500" },
+  { name: "Heifers", count: 52, avgAge: "1.8 yrs", avgWeight: 420, color: "bg-pink-500" },
+];
+const totalHead = herdClasses.reduce((s, c) => s + c.count, 0);
+
 function StatsWidget() {
-  const stats = mockDashboardStats;
+  const stats = { ...mockDashboardStats, total_livestock: totalHead };
   const [nyciPrice, setNyciPrice] = useState<number>(472.79);
 
   useEffect(() => {
@@ -363,19 +373,18 @@ function StatsWidget() {
       .catch(() => {});
   }, []);
 
-  // Herd value: total head × avg weight × NYCI price (c/kg → $/kg)
   const herdValue = stats.total_livestock * stats.avg_weight_kg * (nyciPrice / 100);
-  // Avg weight gain from weight history
   const weightGain = mockWeightHistory.length >= 2
     ? mockWeightHistory[mockWeightHistory.length - 1].avg_weight - mockWeightHistory[mockWeightHistory.length - 2].avg_weight
     : 0;
 
   return (
     <div className="space-y-3 md:space-y-4">
+      {/* Row 1: Key stats */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 md:gap-4">
         <StatCard
           label="Total Livestock"
-          value={stats.total_livestock.toLocaleString()}
+          value={totalHead.toLocaleString()}
           icon={Beef}
           trend={`\u2191 12 this week`}
           delay={50}
@@ -388,33 +397,66 @@ function StatsWidget() {
           delay={100}
         />
         <StatCard
-          label="Male / Female"
-          value={`${stats.total_male} / ${stats.total_female}`}
-          icon={Activity}
-          delay={150}
-        />
-        <StatCard
-          label="Active Medical"
-          value={`${stats.medical_batches_active} batches`}
-          icon={Stethoscope}
-          delay={200}
-        />
-      </div>
-      <div className="grid grid-cols-2 gap-3 md:gap-4">
-        <StatCard
           label="Est. Herd Value"
           value={`$${(herdValue / 1000).toFixed(0)}k`}
           icon={DollarSign}
           trend={`NYCI ${nyciPrice.toFixed(0)}c/kg`}
-          delay={250}
+          delay={150}
         />
         <StatCard
           label="Avg Weight Gain"
           value={`+${weightGain.toFixed(0)} kg/mo`}
           icon={TrendingUp}
-          trend={`+$${((weightGain * nyciPrice) / 100).toFixed(0)}/hd/mo value gain`}
-          delay={300}
+          trend={`+$${((weightGain * nyciPrice) / 100).toFixed(0)}/hd/mo`}
+          delay={200}
         />
+      </div>
+
+      {/* Row 2: Herd breakdown by class */}
+      <div
+        className="animate-fade-in-up"
+        style={{ animationDelay: "250ms" } as React.CSSProperties}
+      >
+        <GlassCard>
+          <div className="flex items-center justify-between mb-3">
+            <h3 className="text-sm font-semibold text-white/60 uppercase tracking-wider">
+              Herd Breakdown
+            </h3>
+            <span className="text-xs text-white/40">{totalHead} head total</span>
+          </div>
+          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3">
+            {herdClasses.map((cls) => (
+              <div
+                key={cls.name}
+                className="bg-white/5 rounded-xl p-3 border border-white/5"
+              >
+                <div className="flex items-center gap-2 mb-2">
+                  <div className={`w-2.5 h-2.5 rounded-full ${cls.color}`} />
+                  <span className="text-sm font-semibold text-white">{cls.name}</span>
+                </div>
+                <p className="text-2xl font-bold text-white mb-1">{cls.count}</p>
+                <div className="space-y-0.5">
+                  <p className="text-[11px] text-white/40">
+                    Avg age: <span className="text-white/60 font-medium">{cls.avgAge}</span>
+                  </p>
+                  <p className="text-[11px] text-white/40">
+                    Avg wt: <span className="text-white/60 font-medium">{cls.avgWeight} kg</span>
+                  </p>
+                  <p className="text-[11px] text-emerald-400/70 font-medium">
+                    ${((cls.avgWeight * nyciPrice) / 100).toFixed(0)}/hd
+                  </p>
+                </div>
+                {/* Mini capacity bar */}
+                <div className="mt-2 h-1 rounded-full bg-white/10 overflow-hidden">
+                  <div
+                    className={`h-full rounded-full ${cls.color}`}
+                    style={{ width: `${(cls.count / totalHead) * 100}%` }}
+                  />
+                </div>
+              </div>
+            ))}
+          </div>
+        </GlassCard>
       </div>
     </div>
   );
