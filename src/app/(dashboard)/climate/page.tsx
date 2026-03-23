@@ -1,5 +1,6 @@
 "use client";
 
+import { useState, useEffect, useCallback, useRef } from "react";
 import { GlassCard, GlassBadge } from "@/components/glass";
 import {
   Leaf,
@@ -14,6 +15,15 @@ import {
   CloudRain,
   Target,
   Zap,
+  Play,
+  Pause,
+  SkipForward,
+  SkipBack,
+  MapPin,
+  ArrowUp,
+  ArrowDown,
+  Minus,
+  X,
 } from "lucide-react";
 
 // ---------------------------------------------------------------------------
@@ -34,9 +44,9 @@ const phiScore = Math.round(
 
 const statCards = [
   { label: "Current Biomass", value: "2,450", unit: "kg/ha", badge: "Good", badgeVariant: "success" as const, icon: Leaf, color: "text-emerald-400", bgColor: "bg-emerald-500/15" },
-  { label: "12-Month Avg", value: "1,520", unit: "kg/ha", badge: null, badgeVariant: "default" as const, icon: BarChart3, color: "text-blue-400", bgColor: "bg-blue-500/15" },
+  { label: "Property Size", value: "1,000", unit: "acres", badge: null, badgeVariant: "default" as const, icon: BarChart3, color: "text-blue-400", bgColor: "bg-blue-500/15" },
   { label: "Annual Rainfall", value: "892", unit: "mm", badge: "108% of avg", badgeVariant: "info" as const, icon: CloudRain, color: "text-sky-400", bgColor: "bg-sky-500/15" },
-  { label: "Carrying Capacity", value: "874", unit: "DSE", badge: "58 cow/calf", badgeVariant: "default" as const, icon: Beef, color: "text-orange-400", bgColor: "bg-orange-500/15" },
+  { label: "Carrying Capacity", value: "240", unit: "head", badge: "120 Breeders + 120 Calves", badgeVariant: "default" as const, icon: Beef, color: "text-orange-400", bgColor: "bg-orange-500/15" },
   { label: "Grazing Days", value: "85", unit: "days", badge: null, badgeVariant: "info" as const, icon: Calendar, color: "text-blue-300", bgColor: "bg-blue-400/15" },
   { label: "Carbon Credits", value: "12", unit: "ACCUs", badge: "$360/yr", badgeVariant: "success" as const, icon: TreePine, color: "text-green-400", bgColor: "bg-green-500/15" },
 ];
@@ -79,6 +89,89 @@ const forecasts = [
   { month: "Aug", biomass: 850, confidence: 62, rain: 28 },
   { month: "Sep", biomass: 1150, confidence: 55, rain: 40 },
 ];
+
+// ---------------------------------------------------------------------------
+// BIOMASS TIMELINE MAP DATA
+// ---------------------------------------------------------------------------
+
+const MONTHS = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+
+interface PaddockData {
+  name: string;
+  acres: number;
+  biomass: number[]; // 12 months
+}
+
+// Northern Rivers NSW seasonal patterns
+const paddocks: PaddockData[] = [
+  {
+    name: "River Flat",
+    acres: 220,
+    biomass: [3200, 3400, 3100, 2600, 2200, 1400, 1000, 900, 1200, 1800, 2400, 3000],
+  },
+  {
+    name: "Top Ridge",
+    acres: 180,
+    biomass: [2600, 2800, 2500, 2100, 1700, 1000, 700, 600, 900, 1400, 1900, 2400],
+  },
+  {
+    name: "Creek Paddock",
+    acres: 160,
+    biomass: [3400, 3500, 3300, 2800, 2400, 1600, 1200, 1100, 1500, 2100, 2700, 3200],
+  },
+  {
+    name: "House Paddock",
+    acres: 140,
+    biomass: [2800, 3000, 2700, 2300, 1900, 1200, 800, 700, 1000, 1600, 2100, 2600],
+  },
+  {
+    name: "Back Block",
+    acres: 200,
+    biomass: [2400, 2600, 2300, 1900, 1500, 900, 600, 500, 800, 1200, 1700, 2200],
+  },
+  {
+    name: "Laneway",
+    acres: 100,
+    biomass: [2000, 2200, 1900, 1600, 1200, 700, 450, 400, 650, 1000, 1400, 1800],
+  },
+];
+
+function getBiomassColor(val: number): string {
+  if (val >= 3000) return "bg-green-700";
+  if (val >= 2000) return "bg-green-500";
+  if (val >= 1000) return "bg-yellow-500";
+  if (val >= 500) return "bg-orange-500";
+  return "bg-red-500";
+}
+
+function getBiomassHex(val: number): string {
+  if (val >= 3000) return "#15803d";
+  if (val >= 2000) return "#22c55e";
+  if (val >= 1000) return "#eab308";
+  if (val >= 500) return "#f97316";
+  return "#ef4444";
+}
+
+function getBiomassStatus(val: number): string {
+  if (val >= 3000) return "Excellent";
+  if (val >= 2000) return "Good";
+  if (val >= 1000) return "Moderate";
+  if (val >= 500) return "Low";
+  return "Critical";
+}
+
+function getBiomassStatusVariant(val: number): "success" | "info" | "warning" | "danger" {
+  if (val >= 2000) return "success";
+  if (val >= 1000) return "info";
+  if (val >= 500) return "warning";
+  return "danger";
+}
+
+function getRecommendedStocking(biomass: number, acres: number): number {
+  // Rough: 1 breeder per 8 acres at excellent, scales down
+  const ratio = biomass >= 3000 ? 8 : biomass >= 2000 ? 10 : biomass >= 1000 ? 14 : biomass >= 500 ? 20 : 40;
+  return Math.round(acres / ratio);
+}
 
 // ---------------------------------------------------------------------------
 // HELPERS
@@ -153,6 +246,325 @@ function PHIGauge({ score }: { score: number }) {
         <span className="text-xs text-white/40 uppercase tracking-widest mt-1">PHI Score</span>
       </div>
     </div>
+  );
+}
+
+// ---------------------------------------------------------------------------
+// COMPONENT: Biomass Timeline Map
+// ---------------------------------------------------------------------------
+
+// Paddock layout positions (grid-based property map)
+const paddockLayout: { row: number; col: number; rowSpan: number; colSpan: number }[] = [
+  { row: 1, col: 1, rowSpan: 2, colSpan: 2 }, // River Flat - large
+  { row: 1, col: 3, rowSpan: 1, colSpan: 2 }, // Top Ridge
+  { row: 2, col: 3, rowSpan: 1, colSpan: 1 }, // Creek Paddock
+  { row: 2, col: 4, rowSpan: 1, colSpan: 1 }, // House Paddock
+  { row: 3, col: 1, rowSpan: 1, colSpan: 3 }, // Back Block - wide
+  { row: 3, col: 4, rowSpan: 1, colSpan: 1 }, // Laneway - small
+];
+
+function BiomassTimelineMap() {
+  const [currentMonth, setCurrentMonth] = useState(0); // 0 = Jan
+  const [isPlaying, setIsPlaying] = useState(false);
+  const [speed, setSpeed] = useState(1);
+  const [selectedPaddock, setSelectedPaddock] = useState<number | null>(null);
+  const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
+
+  const clearTimer = useCallback(() => {
+    if (intervalRef.current) {
+      clearInterval(intervalRef.current);
+      intervalRef.current = null;
+    }
+  }, []);
+
+  useEffect(() => {
+    if (isPlaying) {
+      clearTimer();
+      intervalRef.current = setInterval(() => {
+        setCurrentMonth((prev) => {
+          if (prev >= 11) {
+            setIsPlaying(false);
+            return 0;
+          }
+          return prev + 1;
+        });
+      }, 1500 / speed);
+    } else {
+      clearTimer();
+    }
+    return clearTimer;
+  }, [isPlaying, speed, clearTimer]);
+
+  const togglePlay = () => setIsPlaying((p) => !p);
+  const stepBack = () => {
+    setIsPlaying(false);
+    setCurrentMonth((p) => (p > 0 ? p - 1 : 11));
+  };
+  const stepForward = () => {
+    setIsPlaying(false);
+    setCurrentMonth((p) => (p < 11 ? p + 1 : 0));
+  };
+  const cycleSpeed = () => setSpeed((s) => (s === 1 ? 2 : s === 2 ? 4 : 1));
+
+  // Compute stats for current month
+  const monthBiomasses = paddocks.map((p) => p.biomass[currentMonth]);
+  const avgBiomass = Math.round(monthBiomasses.reduce((a, b) => a + b, 0) / monthBiomasses.length);
+  const bestIdx = monthBiomasses.indexOf(Math.max(...monthBiomasses));
+  const worstIdx = monthBiomasses.indexOf(Math.min(...monthBiomasses));
+  const totalRecommended = paddocks.reduce((sum, p) => sum + getRecommendedStocking(p.biomass[currentMonth], p.acres), 0);
+
+  const prevMonth = currentMonth > 0 ? currentMonth - 1 : 11;
+
+  return (
+    <GlassCard className="animate-fade-in-up" style={{ animationDelay: "210ms" }}>
+      <div className="flex items-center gap-2 mb-5">
+        <MapPin className="w-5 h-5 text-emerald-400" />
+        <h2 className="text-sm font-semibold text-white/50 uppercase tracking-wider">
+          Biomass Timeline Map
+        </h2>
+        <GlassBadge variant="info" className="ml-auto">
+          1,000 acres
+        </GlassBadge>
+      </div>
+
+      {/* Timeline Controls */}
+      <div className="flex flex-col gap-3 mb-5">
+        <div className="flex items-center gap-3">
+          <button
+            onClick={stepBack}
+            className="w-8 h-8 rounded-lg bg-white/10 hover:bg-white/20 flex items-center justify-center transition-colors"
+          >
+            <SkipBack className="w-4 h-4 text-white" />
+          </button>
+          <button
+            onClick={togglePlay}
+            className="w-10 h-10 rounded-xl bg-emerald-500/20 hover:bg-emerald-500/30 border border-emerald-500/30 flex items-center justify-center transition-colors"
+          >
+            {isPlaying ? (
+              <Pause className="w-5 h-5 text-emerald-400" />
+            ) : (
+              <Play className="w-5 h-5 text-emerald-400 ml-0.5" />
+            )}
+          </button>
+          <button
+            onClick={stepForward}
+            className="w-8 h-8 rounded-lg bg-white/10 hover:bg-white/20 flex items-center justify-center transition-colors"
+          >
+            <SkipForward className="w-4 h-4 text-white" />
+          </button>
+          <button
+            onClick={cycleSpeed}
+            className="px-3 h-8 rounded-lg bg-white/10 hover:bg-white/20 flex items-center justify-center transition-colors text-xs font-semibold text-white/70"
+          >
+            {speed}x
+          </button>
+          <div className="ml-auto text-right">
+            <p className="text-lg font-bold text-white">{MONTHS[currentMonth]} 2025</p>
+            <p className="text-[10px] text-white/40">
+              Avg {avgBiomass.toLocaleString()} kg/ha
+            </p>
+          </div>
+        </div>
+
+        {/* Timeline slider */}
+        <div className="flex items-center gap-1">
+          {MONTHS.map((m, i) => (
+            <button
+              key={m}
+              onClick={() => {
+                setIsPlaying(false);
+                setCurrentMonth(i);
+              }}
+              className={`flex-1 h-8 rounded text-[10px] font-semibold transition-all duration-200 ${
+                i === currentMonth
+                  ? "bg-emerald-500/30 text-emerald-300 border border-emerald-500/40"
+                  : i < currentMonth
+                  ? "bg-white/10 text-white/60 hover:bg-white/15"
+                  : "bg-white/5 text-white/30 hover:bg-white/10"
+              }`}
+            >
+              {m}
+            </button>
+          ))}
+        </div>
+      </div>
+
+      {/* Property Map */}
+      <div className="relative bg-slate-900/60 rounded-xl border border-white/10 p-4 mb-4">
+        <div
+          className="grid gap-2"
+          style={{
+            gridTemplateColumns: "repeat(4, 1fr)",
+            gridTemplateRows: "repeat(3, 100px)",
+          }}
+        >
+          {paddocks.map((paddock, idx) => {
+            const layout = paddockLayout[idx];
+            const biomassVal = paddock.biomass[currentMonth];
+            const prevVal = paddock.biomass[prevMonth];
+            const change = biomassVal - prevVal;
+            const isSelected = selectedPaddock === idx;
+
+            return (
+              <button
+                key={paddock.name}
+                onClick={() => setSelectedPaddock(isSelected ? null : idx)}
+                className={`relative rounded-lg border-2 transition-all duration-500 cursor-pointer overflow-hidden ${
+                  isSelected
+                    ? "border-white/60 ring-2 ring-white/20"
+                    : "border-white/10 hover:border-white/30"
+                }`}
+                style={{
+                  gridColumn: `${layout.col} / span ${layout.colSpan}`,
+                  gridRow: `${layout.row} / span ${layout.rowSpan}`,
+                  backgroundColor: getBiomassHex(biomassVal),
+                }}
+              >
+                <div className="absolute inset-0 flex flex-col items-center justify-center p-2">
+                  <span className="text-xs font-bold text-white drop-shadow-lg">
+                    {paddock.name}
+                  </span>
+                  <span className="text-[10px] text-white/90 font-semibold drop-shadow">
+                    {biomassVal.toLocaleString()} kg/ha
+                  </span>
+                  <span className="text-[9px] text-white/70 drop-shadow">
+                    {paddock.acres} acres
+                  </span>
+                  {/* Change indicator */}
+                  <span
+                    className={`text-[9px] font-semibold mt-0.5 drop-shadow flex items-center gap-0.5 ${
+                      change > 0
+                        ? "text-emerald-200"
+                        : change < 0
+                        ? "text-red-200"
+                        : "text-white/50"
+                    }`}
+                  >
+                    {change > 0 ? (
+                      <ArrowUp className="w-3 h-3" />
+                    ) : change < 0 ? (
+                      <ArrowDown className="w-3 h-3" />
+                    ) : (
+                      <Minus className="w-3 h-3" />
+                    )}
+                    {change > 0 ? "+" : ""}
+                    {change}
+                  </span>
+                </div>
+              </button>
+            );
+          })}
+        </div>
+
+        {/* Legend */}
+        <div className="flex flex-wrap items-center gap-3 mt-3 pt-3 border-t border-white/10">
+          {[
+            { label: "Critical (<500)", color: "bg-red-500" },
+            { label: "Low (500-1000)", color: "bg-orange-500" },
+            { label: "Moderate (1000-2000)", color: "bg-yellow-500" },
+            { label: "Good (2000-3000)", color: "bg-green-500" },
+            { label: "Excellent (>3000)", color: "bg-green-700" },
+          ].map((l) => (
+            <div key={l.label} className="flex items-center gap-1.5 text-[10px] text-white/50">
+              <span className={`w-2.5 h-2.5 rounded-sm ${l.color}`} />
+              {l.label} kg/ha
+            </div>
+          ))}
+        </div>
+      </div>
+
+      {/* Selected Paddock Detail */}
+      {selectedPaddock !== null && (
+        <div className="bg-white/5 rounded-xl border border-white/10 p-4 mb-4 animate-fade-in-up">
+          <div className="flex items-center justify-between mb-3">
+            <div className="flex items-center gap-2">
+              <div
+                className="w-4 h-4 rounded"
+                style={{ backgroundColor: getBiomassHex(paddocks[selectedPaddock].biomass[currentMonth]) }}
+              />
+              <h3 className="text-sm font-bold text-white">
+                {paddocks[selectedPaddock].name}
+              </h3>
+              <GlassBadge variant={getBiomassStatusVariant(paddocks[selectedPaddock].biomass[currentMonth])}>
+                {getBiomassStatus(paddocks[selectedPaddock].biomass[currentMonth])}
+              </GlassBadge>
+            </div>
+            <button
+              onClick={() => setSelectedPaddock(null)}
+              className="w-6 h-6 rounded bg-white/10 hover:bg-white/20 flex items-center justify-center transition-colors"
+            >
+              <X className="w-3 h-3 text-white/60" />
+            </button>
+          </div>
+          <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+            <div>
+              <p className="text-[10px] text-white/40 uppercase">Current Biomass</p>
+              <p className="text-lg font-bold text-white">
+                {paddocks[selectedPaddock].biomass[currentMonth].toLocaleString()}
+                <span className="text-xs text-white/40 ml-1">kg/ha</span>
+              </p>
+            </div>
+            <div>
+              <p className="text-[10px] text-white/40 uppercase">Paddock Size</p>
+              <p className="text-lg font-bold text-white">
+                {paddocks[selectedPaddock].acres}
+                <span className="text-xs text-white/40 ml-1">acres</span>
+              </p>
+            </div>
+            <div>
+              <p className="text-[10px] text-white/40 uppercase">Change from {MONTHS[prevMonth]}</p>
+              {(() => {
+                const change = paddocks[selectedPaddock].biomass[currentMonth] - paddocks[selectedPaddock].biomass[prevMonth];
+                return (
+                  <p className={`text-lg font-bold flex items-center gap-1 ${
+                    change > 0 ? "text-emerald-400" : change < 0 ? "text-red-400" : "text-white/50"
+                  }`}>
+                    {change > 0 ? <ArrowUp className="w-4 h-4" /> : change < 0 ? <ArrowDown className="w-4 h-4" /> : <Minus className="w-4 h-4" />}
+                    {change > 0 ? "+" : ""}{change}
+                    <span className="text-xs text-white/40 ml-1">kg/ha</span>
+                  </p>
+                );
+              })()}
+            </div>
+            <div>
+              <p className="text-[10px] text-white/40 uppercase">Rec. Stocking</p>
+              <p className="text-lg font-bold text-white">
+                {getRecommendedStocking(paddocks[selectedPaddock].biomass[currentMonth], paddocks[selectedPaddock].acres)}
+                <span className="text-xs text-white/40 ml-1">head</span>
+              </p>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Stats Bar */}
+      <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+        <div className="bg-white/5 rounded-lg p-3">
+          <p className="text-[10px] text-white/40 uppercase mb-1">Avg Biomass</p>
+          <p className="text-lg font-bold text-white">{avgBiomass.toLocaleString()}</p>
+          <p className="text-[10px] text-white/40">kg/ha</p>
+        </div>
+        <div className="bg-white/5 rounded-lg p-3">
+          <p className="text-[10px] text-white/40 uppercase mb-1">Best Paddock</p>
+          <p className="text-sm font-bold text-emerald-400">{paddocks[bestIdx].name}</p>
+          <p className="text-[10px] text-white/40">
+            {paddocks[bestIdx].biomass[currentMonth].toLocaleString()} kg/ha
+          </p>
+        </div>
+        <div className="bg-white/5 rounded-lg p-3">
+          <p className="text-[10px] text-white/40 uppercase mb-1">Worst Paddock</p>
+          <p className="text-sm font-bold text-orange-400">{paddocks[worstIdx].name}</p>
+          <p className="text-[10px] text-white/40">
+            {paddocks[worstIdx].biomass[currentMonth].toLocaleString()} kg/ha
+          </p>
+        </div>
+        <div className="bg-white/5 rounded-lg p-3">
+          <p className="text-[10px] text-white/40 uppercase mb-1">Rec. Total Stocking</p>
+          <p className="text-lg font-bold text-white">{totalRecommended}</p>
+          <p className="text-[10px] text-white/40">head across property</p>
+        </div>
+      </div>
+    </GlassCard>
   );
 }
 
@@ -459,7 +871,7 @@ export default function ClimatePasturePage() {
       </GlassCard>
 
       {/* ================================================================= */}
-      {/* 6 & 7. STOCKING RATE + CARBON — side by side */}
+      {/* 6 & 7. STOCKING RATE + CARBON -- side by side */}
       {/* ================================================================= */}
       <div
         className="grid grid-cols-1 lg:grid-cols-2 gap-4 animate-fade-in-up"
@@ -500,16 +912,20 @@ export default function ClimatePasturePage() {
           {/* Breakdown */}
           <div className="bg-white/5 rounded-lg p-3 space-y-1">
             <div className="flex items-center justify-between text-sm">
-              <span className="text-white/60">Cow/calf pairs</span>
-              <span className="text-white font-semibold">48</span>
+              <span className="text-white/60">Breeders</span>
+              <span className="text-white font-semibold">120</span>
             </div>
             <div className="flex items-center justify-between text-sm">
-              <span className="text-white/60">DSE per pair</span>
-              <span className="text-white font-semibold">15</span>
+              <span className="text-white/60">Calves</span>
+              <span className="text-white font-semibold">120</span>
             </div>
             <div className="flex items-center justify-between text-sm border-t border-white/10 pt-1">
-              <span className="text-white/60">Total DSE</span>
-              <span className="text-white font-bold">720</span>
+              <span className="text-white/60">Total Head</span>
+              <span className="text-white font-bold">240</span>
+            </div>
+            <div className="flex items-center justify-between text-sm">
+              <span className="text-white/60">Property</span>
+              <span className="text-white font-semibold">1,000 acres</span>
             </div>
           </div>
         </GlassCard>
@@ -588,6 +1004,11 @@ export default function ClimatePasturePage() {
           </div>
         </GlassCard>
       </div>
+
+      {/* ================================================================= */}
+      {/* 8. BIOMASS TIMELINE MAP */}
+      {/* ================================================================= */}
+      <BiomassTimelineMap />
     </div>
   );
 }
