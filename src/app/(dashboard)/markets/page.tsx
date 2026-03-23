@@ -16,11 +16,6 @@ import {
   Beef,
 } from "lucide-react";
 
-interface IndicatorChanges {
-  oneMonth: { value: number; percentage: number };
-  oneYear: { value: number; percentage: number };
-}
-
 interface DashboardIndicator {
   id: string;
   name: string;
@@ -30,14 +25,27 @@ interface DashboardIndicator {
   headWeight: number;
   volume: number;
   date: string;
-  changes: IndicatorChanges;
-}
-
-interface DashboardData {
-  dashboard: {
-    indicators: DashboardIndicator[];
+  changes: {
+    oneMonth: { value: number; percentage: number };
+    oneYear: { value: number; percentage: number };
   };
 }
+
+const INDICATOR_NAMES: Record<string, string> = {
+  nyci: "National Young Cattle",
+  oyci: "Online Young Cattle",
+  weaner_steer: "Weaner Steer",
+  processor_cow: "Processor Cow",
+  online_weaner_steer: "Online Weaner Steer",
+};
+
+const INDICATOR_IDS: Record<string, string> = {
+  nyci: "NYCI",
+  oyci: "OYCI",
+  weaner_steer: "NYCI_Weaner_Steer",
+  processor_cow: "Processor_Cow",
+  online_weaner_steer: "Online_Weaner_Steer",
+};
 
 const INDICATOR_ICONS: Record<string, React.ElementType> = {
   NYCI: Activity,
@@ -65,14 +73,37 @@ export default function MarketsPage() {
   const fetchData = useCallback(async () => {
     try {
       setError(null);
-      const res = await fetch("https://amlaupdater.vercel.app/api/dashboard");
+      const res = await fetch("https://amlaupdater.vercel.app/api/check-prices");
       if (!res.ok) throw new Error(`HTTP ${res.status}`);
-      const data: DashboardData = await res.json();
-      if (data?.dashboard?.indicators) {
-        setIndicators(data.dashboard.indicators);
+      const data = await res.json();
+      if (data?.indicators) {
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        const parsed: DashboardIndicator[] = Object.entries(data.indicators).map(
+          ([key, val]: [string, any]) => {
+            const weight = key === "processor_cow" ? 600 : 280;
+            const perHead = key === "processor_cow"
+              ? (val.per_head_600kg as number) || Math.round((val.current as number) * weight / 100)
+              : (val.per_head_280kg as number) || Math.round((val.current as number) * weight / 100);
+            return {
+              id: INDICATOR_IDS[key] || key,
+              name: INDICATOR_NAMES[key] || key,
+              price: val.current as number,
+              unit: "c/kg",
+              perHead,
+              headWeight: weight,
+              volume: val.volume as number,
+              date: (val.date as string) || data.fetched_at?.split("T")[0] || "",
+              changes: {
+                oneMonth: { value: val.m1_change as number, percentage: val.m1_pct as number },
+                oneYear: { value: val.y1_change as number, percentage: val.y1_pct as number },
+              },
+            };
+          }
+        );
+        setIndicators(parsed);
         setLastRefresh(new Date());
       }
-    } catch (err) {
+    } catch {
       setError("Unable to load market data. Please try again later.");
     } finally {
       setLoading(false);
