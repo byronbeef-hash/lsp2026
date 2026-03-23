@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { ChevronDown, ChevronUp, TrendingUp } from "lucide-react";
 
 interface IndicatorData {
   current: number;
@@ -28,9 +29,9 @@ const FALLBACK_DATA: Record<string, IndicatorData> = {
 const INDICATOR_LABELS: Record<string, string> = {
   nyci: "NYCI",
   oyci: "OYCI",
-  weaner_steer: "Weaner Steer",
-  processor_cow: "Processor Cow",
-  online_weaner_steer: "Online Weaner",
+  weaner_steer: "WEANER STEER",
+  processor_cow: "PROCESSOR COW",
+  online_weaner_steer: "ONLINE WEANER",
 };
 
 function buildTickerItems(indicators: Record<string, IndicatorData>): TickerItem[] {
@@ -49,6 +50,17 @@ function buildTickerItems(indicators: Record<string, IndicatorData>): TickerItem
 export function MlaTicker() {
   const [items, setItems] = useState<TickerItem[]>(() => buildTickerItems(FALLBACK_DATA));
   const [loading, setLoading] = useState(true);
+  const [visible, setVisible] = useState(() => {
+    if (typeof window !== "undefined") {
+      const saved = localStorage.getItem("mla-ticker-visible");
+      return saved !== null ? saved === "true" : true;
+    }
+    return true;
+  });
+
+  useEffect(() => {
+    localStorage.setItem("mla-ticker-visible", String(visible));
+  }, [visible]);
 
   useEffect(() => {
     let cancelled = false;
@@ -75,61 +87,78 @@ export function MlaTicker() {
   }, []);
 
   const tickerContent = items.map((item, i) => (
-    <div key={item.key} className="inline-flex items-center gap-5 px-6">
-      <span className="text-[11px] font-semibold text-white/60 uppercase tracking-wider">
+    <div key={`${item.key}-${i}`} className="inline-flex items-center gap-4 px-5">
+      <span className="text-[11px] font-bold text-white/50 uppercase tracking-wider">
         {item.name}
       </span>
-      <span className="text-sm font-bold text-white tabular-nums">
+      <span className="text-[13px] font-bold text-white tabular-nums">
         {item.price.toFixed(2)}
-        <span className="text-[10px] font-normal text-white/40 ml-1">c/kg</span>
+        <span className="text-[10px] font-normal text-white/40 ml-0.5">c/kg</span>
       </span>
       <span
-        className={`text-xs font-medium tabular-nums ${
+        className={`text-[11px] font-semibold tabular-nums ${
           item.change >= 0 ? "text-emerald-400" : "text-red-400"
         }`}
       >
         {item.change >= 0 ? "▲" : "▼"} {Math.abs(item.change).toFixed(2)}
       </span>
-      <span className="text-[10px] text-white/30 tabular-nums">
+      <span className="text-[10px] text-white/25 tabular-nums">
         {item.volume.toLocaleString()} hd
       </span>
-      {i < items.length - 1 && (
-        <span className="text-white/10 text-xs">|</span>
-      )}
     </div>
   ));
 
   return (
-    <div className="w-full bg-[#000020]/90 backdrop-blur-md border-y border-white/10 overflow-hidden relative py-2.5 rounded-xl">
-      {loading && (
-        <div className="absolute inset-0 flex items-center justify-center">
-          <div className="text-[10px] text-white/30 animate-pulse">Loading MLA prices...</div>
-        </div>
-      )}
-      <div
-        className={`group flex items-center ${loading ? "opacity-0" : "opacity-100"} transition-opacity duration-500`}
+    <div className="relative">
+      {/* Toggle button — always visible */}
+      <button
+        onClick={() => setVisible(!visible)}
+        className="absolute right-2 top-1/2 -translate-y-1/2 z-10 flex items-center gap-1 px-2 py-1 rounded-md bg-white/5 hover:bg-white/10 transition-colors text-white/40 hover:text-white/70"
+        title={visible ? "Hide ticker" : "Show ticker"}
       >
-        <div className="animate-ticker inline-flex items-center whitespace-nowrap group-hover:[animation-play-state:paused]">
-          {/* Render content 3 times for seamless loop */}
-          <div className="inline-flex items-center">{tickerContent}</div>
-          <div className="inline-flex items-center">{tickerContent}</div>
-          <div className="inline-flex items-center">{tickerContent}</div>
-        </div>
-      </div>
+        <TrendingUp className="w-3 h-3" />
+        {visible ? (
+          <ChevronUp className="w-3 h-3" />
+        ) : (
+          <ChevronDown className="w-3 h-3" />
+        )}
+      </button>
 
-      <style jsx>{`
-        @keyframes ticker {
-          0% {
-            transform: translateX(0);
+      {/* Ticker bar */}
+      <div
+        className={`w-full bg-[#000018] border-b border-white/8 overflow-hidden transition-all duration-300 ${
+          visible ? "py-2.5 opacity-100" : "py-0 h-0 opacity-0"
+        }`}
+      >
+        {loading && (
+          <div className="flex items-center justify-center">
+            <div className="text-[10px] text-white/30 animate-pulse">Loading MLA prices...</div>
+          </div>
+        )}
+        <div
+          className={`group flex items-center ${loading ? "opacity-0" : "opacity-100"} transition-opacity duration-500`}
+        >
+          <div className="animate-ticker inline-flex items-center whitespace-nowrap group-hover:[animation-play-state:paused]">
+            {tickerContent}
+            {tickerContent}
+            {tickerContent}
+          </div>
+        </div>
+
+        <style jsx>{`
+          @keyframes ticker {
+            0% {
+              transform: translateX(0);
+            }
+            100% {
+              transform: translateX(-33.333%);
+            }
           }
-          100% {
-            transform: translateX(-33.333%);
+          .animate-ticker {
+            animation: ticker 35s linear infinite;
           }
-        }
-        .animate-ticker {
-          animation: ticker 30s linear infinite;
-        }
-      `}</style>
+        `}</style>
+      </div>
     </div>
   );
 }
