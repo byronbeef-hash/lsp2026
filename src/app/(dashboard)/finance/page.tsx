@@ -24,12 +24,12 @@ interface MonthlyFinance {
 }
 
 const monthlyData: MonthlyFinance[] = [
-  { month: "Oct", income: 18500, expenses: 12200 },
-  { month: "Nov", income: 22400, expenses: 14800 },
-  { month: "Dec", income: 15200, expenses: 11500 },
-  { month: "Jan", income: 28600, expenses: 16200 },
-  { month: "Feb", income: 19800, expenses: 13400 },
-  { month: "Mar", income: 6920, expenses: 8200 },
+  { month: "Oct", income: 18500, expenses: 3700 },
+  { month: "Nov", income: 22400, expenses: 4480 },
+  { month: "Dec", income: 15200, expenses: 3040 },
+  { month: "Jan", income: 28600, expenses: 5720 },
+  { month: "Feb", income: 19800, expenses: 3960 },
+  { month: "Mar", income: 6920, expenses: 1384 },
 ];
 
 const recentTransactions = [
