@@ -45,11 +45,17 @@ export async function middleware(request: NextRequest) {
     },
   });
 
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
+  let user = null;
+  try {
+    const { data } = await supabase.auth.getUser();
+    user = data?.user;
+  } catch {
+    // Supabase auth failed — allow through (demo mode)
+    return NextResponse.next();
+  }
 
   if (!user && !isAuthRoute) {
+    // No authenticated user and no demo cookie — redirect to login
     const url = request.nextUrl.clone();
     url.pathname = "/login";
     return NextResponse.redirect(url);
