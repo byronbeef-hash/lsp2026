@@ -2,7 +2,7 @@
 
 import { useState, useMemo, useCallback } from "react";
 import { GlassCard, GlassBadge, GlassButton } from "@/components/glass";
-import { mockPaddocks, mockRecords, mockMapMarkers, mockFenceLines } from "@/lib/mock-data";
+import { mockPaddocks as initialPaddocks, mockRecords, mockMapMarkers as initialMarkers, mockFenceLines as initialFences, mockPropertyBoundary } from "@/lib/mock-data";
 import {
   Map,
   Fence,
@@ -21,7 +21,15 @@ import {
 } from "lucide-react";
 import Link from "next/link";
 import dynamic from "next/dynamic";
-import type { Paddock, MapMarker, FenceLine } from "@/types";
+import type { Paddock, MapMarker, FenceLine, PropertyBoundary } from "@/types";
+import type {
+  DrawingMode,
+  NewPaddockData,
+  NewMarkerData,
+  NewFenceData,
+  NewBoundaryData,
+  PaddockFormData,
+} from "@/components/maps/MapView";
 
 // Dynamically import the map component to avoid SSR issues with Leaflet
 const MapView = dynamic(() => import("@/components/maps/MapView"), {
@@ -36,8 +44,19 @@ const MapView = dynamic(() => import("@/components/maps/MapView"), {
   ),
 });
 
+// Dynamically import drawing toolbar and form (they use Leaflet icons)
+const DrawingToolbar = dynamic(
+  () => import("@/components/maps/MapView").then((m) => ({ default: m.DrawingToolbar })),
+  { ssr: false }
+);
+
+const PaddockCreationForm = dynamic(
+  () => import("@/components/maps/MapView").then((m) => ({ default: m.PaddockCreationForm })),
+  { ssr: false }
+);
+
 type FilterMode = "all" | "active" | "resting" | "maintenance" | "alerts";
-type MapLayer = "paddocks" | "markers" | "fences" | "labels";
+type MapLayer = "paddocks" | "markers" | "fences" | "labels" | "boundary";
 
 const statusColors: Record<Paddock["status"], { fill: string; border: string; label: string }> = {
   active: { fill: "rgba(16, 185, 129, 0.25)", border: "#10b981", label: "Active" },
@@ -78,9 +97,15 @@ const fenceConditionColors: Record<FenceLine["condition"], string> = {
 };
 
 export default function MapsPage() {
+  // Mutable state for drawn items
+  const [paddocks, setPaddocks] = useState<Paddock[]>(initialPaddocks);
+  const [mapMarkers, setMapMarkers] = useState<MapMarker[]>(initialMarkers);
+  const [fenceLines, setFenceLines] = useState<FenceLine[]>(initialFences);
+  const [propertyBoundary, setPropertyBoundary] = useState<PropertyBoundary | null>(mockPropertyBoundary);
+
   const [filter, setFilter] = useState<FilterMode>("all");
   const [activeLayers, setActiveLayers] = useState<Set<MapLayer>>(
-    new Set(["paddocks", "markers", "fences", "labels"])
+    new Set(["paddocks", "markers", "fences", "labels", "boundary"])
   );
   const [selectedPaddock, setSelectedPaddock] = useState<Paddock | null>(null);
   const [isFullscreen, setIsFullscreen] = useState(false);
@@ -88,20 +113,24 @@ export default function MapsPage() {
   const [showSidebar, setShowSidebar] = useState(true);
   const [mapStyle, setMapStyle] = useState<"satellite" | "terrain" | "street">("satellite");
 
+  // Drawing state
+  const [drawingMode, setDrawingMode] = useState<DrawingMode>("none");
+  const [pendingPaddock, setPendingPaddock] = useState<NewPaddockData | null>(null);
+
   const filteredPaddocks = useMemo(() => {
-    return mockPaddocks.filter((p) => {
+    return paddocks.filter((p) => {
       if (filter === "active") return p.status === "active";
       if (filter === "resting") return p.status === "resting";
       if (filter === "maintenance") return p.status === "maintenance";
       if (filter === "alerts") return hasAlert(p);
       return true;
     });
-  }, [filter]);
+  }, [filter, paddocks]);
 
-  const totalArea = mockPaddocks.reduce((sum, p) => sum + p.area_hectares, 0);
-  const totalAnimals = mockPaddocks.reduce((sum, p) => sum + p.current_count, 0);
-  const totalFenceKm = mockFenceLines.reduce((sum, f) => sum + (f.length_km || 0), 0);
-  const alertCount = mockPaddocks.filter(hasAlert).length;
+  const totalArea = paddocks.reduce((sum, p) => sum + p.area_hectares, 0);
+  const totalAnimals = paddocks.reduce((sum, p) => sum + p.current_count, 0);
+  const totalFenceKm = fenceLines.reduce((sum, f) => sum + (f.length_km || 0), 0);
+  const alertCount = paddocks.filter(hasAlert).length;
 
   const toggleLayer = useCallback((layer: MapLayer) => {
     setActiveLayers((prev) => {
@@ -116,7 +145,110 @@ export default function MapsPage() {
     return mockRecords.filter((r) => r.paddock_id === paddockId);
   }, []);
 
-  const mapHeight = isFullscreen ? "100vh" : "calc(100vh - 200px)";
+  // ── Drawing callbacks ──────────────────────────────────
+
+  const handleDrawingComplete = useCallback(
+    (
+      type: "paddock" | "boundary" | "marker" | "fence",
+      data: NewPaddockData | NewMarkerData | NewFenceData | NewBoundaryData
+    ) => {
+      if (type === "paddock") {
+        // Show the paddock creation form
+        setPendingPaddock(data as NewPaddockData);
+        setDrawingMode("none");
+      } else if (type === "boundary") {
+        const bd = data as NewBoundaryData;
+        setPropertyBoundary({
+          id: Date.now(),
+          name: "Property Boundary",
+          coordinates: bd.coordinates,
+          area_hectares: bd.area_hectares,
+          address: "",
+        });
+        setDrawingMode("none");
+      } else if (type === "marker") {
+        const md = data as NewMarkerData;
+        const newMarker: MapMarker = {
+          id: Date.now(),
+          name: `Marker ${mapMarkers.length + 1}`,
+          type: "water",
+          lat: md.lat,
+          lng: md.lng,
+          notes: "New marker",
+        };
+        setMapMarkers((prev) => [...prev, newMarker]);
+        setDrawingMode("none");
+      } else if (type === "fence") {
+        const fd = data as NewFenceData;
+        const newFence: FenceLine = {
+          id: Date.now(),
+          name: `Fence ${fenceLines.length + 1}`,
+          type: "internal",
+          condition: "good",
+          coordinates: fd.coordinates,
+          length_km: fd.length_km,
+        };
+        setFenceLines((prev) => [...prev, newFence]);
+        setDrawingMode("none");
+      }
+    },
+    [mapMarkers.length, fenceLines.length]
+  );
+
+  const handlePaddockFormSave = useCallback(
+    (formData: PaddockFormData) => {
+      if (!pendingPaddock) return;
+      const coords = pendingPaddock.polygon;
+      const avgLat = coords.reduce((s, c) => s + c[0], 0) / coords.length;
+      const avgLng = coords.reduce((s, c) => s + c[1], 0) / coords.length;
+
+      const newPaddock: Paddock = {
+        id: Date.now(),
+        uuid: `pad-${Date.now()}`,
+        name: formData.name,
+        area_hectares: pendingPaddock.area_hectares,
+        capacity: formData.capacity,
+        current_count: 0,
+        status: formData.status,
+        pasture_type: formData.pasture_type === "Improved" ? "Improved Pasture" : formData.pasture_type === "Native" ? "Native Grass" : "Mixed Pasture",
+        water_source: formData.water_source,
+        lat: avgLat,
+        lng: avgLng,
+        polygon: coords,
+        farm_uuid: "farm-001",
+        created_at: new Date().toISOString(),
+      };
+      setPaddocks((prev) => [...prev, newPaddock]);
+      setPendingPaddock(null);
+    },
+    [pendingPaddock]
+  );
+
+  const handlePaddockFormCancel = useCallback(() => {
+    setPendingPaddock(null);
+  }, []);
+
+  // ── Delete callbacks ───────────────────────────────────
+
+  const handleDeletePaddock = useCallback((id: number) => {
+    setPaddocks((prev) => prev.filter((p) => p.id !== id));
+    setDrawingMode("none");
+  }, []);
+
+  const handleDeleteMarker = useCallback((id: number) => {
+    setMapMarkers((prev) => prev.filter((m) => m.id !== id));
+    setDrawingMode("none");
+  }, []);
+
+  const handleDeleteFence = useCallback((id: number) => {
+    setFenceLines((prev) => prev.filter((f) => f.id !== id));
+    setDrawingMode("none");
+  }, []);
+
+  const handleDeleteBoundary = useCallback(() => {
+    setPropertyBoundary(null);
+    setDrawingMode("none");
+  }, []);
 
   return (
     <div className={isFullscreen ? "fixed inset-0 z-50 bg-[#000020]" : "space-y-4"}>
@@ -125,7 +257,14 @@ export default function MapsPage() {
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 animate-fade-in-up">
           <div>
             <h1 className="text-2xl font-bold text-white">Property Map</h1>
-            <p className="text-white/50 mt-1">Interactive paddock and infrastructure map</p>
+            <p className="text-white/50 mt-1">
+              Interactive paddock and infrastructure map
+              {propertyBoundary && (
+                <span className="text-blue-400 ml-2">
+                  &middot; {propertyBoundary.address || propertyBoundary.name}
+                </span>
+              )}
+            </p>
           </div>
           <div className="flex items-center gap-2 text-sm flex-wrap">
             <GlassBadge variant="default">
@@ -158,8 +297,9 @@ export default function MapsPage() {
         {/* Map */}
         <MapView
           paddocks={filteredPaddocks}
-          markers={activeLayers.has("markers") ? mockMapMarkers : []}
-          fences={activeLayers.has("fences") ? mockFenceLines : []}
+          markers={activeLayers.has("markers") ? mapMarkers : []}
+          fences={activeLayers.has("fences") ? fenceLines : []}
+          propertyBoundary={activeLayers.has("boundary") ? propertyBoundary : null}
           showPaddocks={activeLayers.has("paddocks")}
           showLabels={activeLayers.has("labels")}
           mapStyle={mapStyle}
@@ -168,6 +308,12 @@ export default function MapsPage() {
           statusColors={statusColors}
           fenceConditionColors={fenceConditionColors}
           markerIcons={markerIcons}
+          drawingMode={drawingMode}
+          onDrawingComplete={handleDrawingComplete}
+          onDeletePaddock={handleDeletePaddock}
+          onDeleteMarker={handleDeleteMarker}
+          onDeleteFence={handleDeleteFence}
+          onDeleteBoundary={handleDeleteBoundary}
         />
 
         {/* Map Controls Overlay — Top Left */}
@@ -258,6 +404,7 @@ export default function MapsPage() {
             {(
               [
                 { key: "paddocks" as MapLayer, label: "Paddock Boundaries" },
+                { key: "boundary" as MapLayer, label: "Property Boundary" },
                 { key: "markers" as MapLayer, label: "Infrastructure" },
                 { key: "fences" as MapLayer, label: "Fence Lines" },
                 { key: "labels" as MapLayer, label: "Labels" },
@@ -287,8 +434,20 @@ export default function MapsPage() {
           </div>
         )}
 
+        {/* Drawing Toolbar — Bottom Center */}
+        <DrawingToolbar drawingMode={drawingMode} onModeChange={setDrawingMode} />
+
+        {/* Paddock Creation Form Modal */}
+        {pendingPaddock && (
+          <PaddockCreationForm
+            areaHectares={pendingPaddock.area_hectares}
+            onSave={handlePaddockFormSave}
+            onCancel={handlePaddockFormCancel}
+          />
+        )}
+
         {/* Paddock Info Sidebar */}
-        {showSidebar && (
+        {showSidebar && !pendingPaddock && (
           <div className="absolute top-3 bottom-3 right-3 sm:right-auto sm:left-3 sm:top-16 z-[999] w-72 hidden sm:block">
             <div className="glass-sm rounded-xl h-full overflow-y-auto">
               <div className="p-3 border-b border-white/10">
@@ -351,8 +510,8 @@ export default function MapsPage() {
         )}
 
         {/* Selected Paddock Detail Panel */}
-        {selectedPaddock && (
-          <div className="absolute bottom-3 left-3 right-3 sm:left-[310px] z-[1000] animate-fade-in-up">
+        {selectedPaddock && !pendingPaddock && (
+          <div className="absolute bottom-16 left-3 right-3 sm:left-[310px] z-[1000] animate-fade-in-up">
             <div className="glass-sm rounded-xl p-4">
               <div className="flex items-start justify-between mb-3">
                 <div>
@@ -432,8 +591,8 @@ export default function MapsPage() {
         )}
 
         {/* Legend — Bottom Left */}
-        {!selectedPaddock && (
-          <div className="absolute bottom-3 left-3 z-[999] glass-sm rounded-xl p-3 hidden sm:block">
+        {!selectedPaddock && !pendingPaddock && drawingMode === "none" && (
+          <div className="absolute bottom-16 left-3 z-[999] glass-sm rounded-xl p-3 hidden sm:block">
             <div className="flex flex-wrap gap-x-4 gap-y-1.5">
               <div className="flex items-center gap-1.5 text-[11px] text-white/60">
                 <span className="w-3 h-3 rounded-sm border-2" style={{ borderColor: "#10b981", background: "rgba(16,185,129,0.25)" }} />
@@ -446,6 +605,10 @@ export default function MapsPage() {
               <div className="flex items-center gap-1.5 text-[11px] text-white/60">
                 <span className="w-3 h-3 rounded-sm border-2" style={{ borderColor: "#ef4444", background: "rgba(239,68,68,0.25)" }} />
                 Maintenance
+              </div>
+              <div className="flex items-center gap-1.5 text-[11px] text-white/60">
+                <span className="w-3 h-3 rounded-sm" style={{ border: "2px dashed #3b82f6" }} />
+                Boundary
               </div>
               <div className="flex items-center gap-1.5 text-[11px] text-white/60">
                 <span className="w-5 h-0.5 rounded" style={{ background: "#10b981" }} />

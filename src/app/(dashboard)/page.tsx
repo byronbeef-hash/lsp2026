@@ -580,6 +580,7 @@ function MapWidget() {
             paddocks={paddocks}
             markers={mockMapMarkers}
             fences={mockFenceLines}
+            propertyBoundary={null}
             showPaddocks={true}
             showLabels={true}
             mapStyle="satellite"
@@ -588,6 +589,8 @@ function MapWidget() {
             statusColors={statusColors}
             fenceConditionColors={fenceConditionColors}
             markerIcons={markerIcons}
+            drawingMode="none"
+            onDrawingComplete={() => {}}
           />
         </div>
       </GlassCard>

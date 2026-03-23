@@ -2,7 +2,7 @@ import type {
   LivestockRecord, DashboardStats, MedicalBatch, Paddock,
   Notification, CalendarEvent, WeightHistory, BreedDistribution,
   ActivityItem, MapMarker, FenceLine, AnimalWeightRecord,
-  StockGroup, RotationRecord, RotationRecommendation,
+  StockGroup, RotationRecord, RotationRecommendation, PropertyBoundary,
 } from "@/types";
 
 // Per-animal weight history with ADG (average daily gain) calculations
@@ -570,6 +570,24 @@ export const mockFenceLines: FenceLine[] = [
     length_km: 0.5,
   },
 ];
+
+export const mockPropertyBoundary: PropertyBoundary = {
+  id: 1,
+  name: "Anderson Creek Station",
+  coordinates: [
+    [-28.5810, 153.2000],
+    [-28.5810, 153.2460],
+    [-28.5880, 153.2460],
+    [-28.5960, 153.2460],
+    [-28.6080, 153.2460],
+    [-28.6080, 153.2240],
+    [-28.6080, 153.2000],
+    [-28.5960, 153.2000],
+    [-28.5880, 153.2000],
+  ],
+  area_hectares: 215,
+  address: "245 Anderson Road, Nimbin NSW 2480",
+};
 
 export const mockNotifications: Notification[] = [
   {

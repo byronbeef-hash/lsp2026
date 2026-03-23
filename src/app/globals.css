@@ -312,3 +312,39 @@ body {
   background: transparent !important;
   border: none !important;
 }
+
+/* ─── LEAFLET DRAW OVERRIDES ─────────────────────────── */
+
+.leaflet-draw-toolbar a {
+  background-color: rgba(0, 0, 64, 0.85) !important;
+  border: 1px solid rgba(255, 255, 255, 0.15) !important;
+  color: rgba(255, 255, 255, 0.8) !important;
+  backdrop-filter: blur(12px);
+}
+
+.leaflet-draw-toolbar a:hover {
+  background-color: rgba(0, 0, 80, 0.95) !important;
+  color: white !important;
+}
+
+.leaflet-draw-actions {
+  background: rgba(0, 0, 40, 0.9) !important;
+  border: 1px solid rgba(255, 255, 255, 0.15) !important;
+  border-radius: 8px !important;
+  backdrop-filter: blur(12px);
+}
+
+.leaflet-draw-actions li a {
+  color: rgba(255, 255, 255, 0.8) !important;
+  background: transparent !important;
+}
+
+.leaflet-draw-actions li a:hover {
+  color: white !important;
+  background: rgba(255, 255, 255, 0.15) !important;
+}
+
+/* Hide default leaflet-draw toolbar - we use our own custom toolbar */
+.leaflet-draw {
+  display: none !important;
+}

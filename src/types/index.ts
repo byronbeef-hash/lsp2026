@@ -87,6 +87,14 @@ export interface FenceLine {
   length_km?: number;
 }
 
+export interface PropertyBoundary {
+  id: number;
+  name: string;
+  coordinates: [number, number][];
+  area_hectares: number;
+  address: string;
+}
+
 export interface Notification {
   id: number;
   type: "alert" | "info" | "warning" | "success";
