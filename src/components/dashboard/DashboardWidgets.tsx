@@ -222,6 +222,18 @@ export function DashboardWidgets({ widgets, children }: DashboardWidgetsProps) {
     });
   }, []);
 
+  // Listen for toggle event from TopNav
+  useEffect(() => {
+    const handler = () => {
+      setEditMode((prev) => {
+        if (prev) setTrayOpen(false);
+        return !prev;
+      });
+    };
+    window.addEventListener("toggle-dashboard-edit", handler);
+    return () => window.removeEventListener("toggle-dashboard-edit", handler);
+  }, []);
+
   const resetToDefault = useCallback(() => {
     const defaultOrder = widgets
       .sort((a, b) => a.defaultOrder - b.defaultOrder)
@@ -246,29 +258,8 @@ export function DashboardWidgets({ widgets, children }: DashboardWidgetsProps) {
 
   return (
     <div className="relative">
-      {/* ── Edit Mode Toggle ─────────────────────────────── */}
-      <div className="flex justify-end mb-4">
-        <button
-          onClick={() => {
-            setEditMode((prev) => {
-              if (prev) setTrayOpen(false);
-              return !prev;
-            });
-          }}
-          className={`
-            inline-flex items-center gap-2 px-4 py-2 rounded-full text-sm font-semibold
-            transition-all duration-200
-            ${
-              editMode
-                ? "glass-sm bg-white/20 text-white border border-white/30 shadow-lg"
-                : "glass-sm text-white/70 hover:text-white hover:bg-white/15"
-            }
-          `}
-        >
-          <Settings2 className="w-4 h-4" />
-          {editMode ? "Done" : "Customize"}
-        </button>
-      </div>
+      {/* Edit mode listens for custom event from TopNav */}
+      <input type="hidden" id="dashboard-edit-mode" data-active={editMode ? "true" : "false"} />
 
       {/* ── Widget List ──────────────────────────────────── */}
       <div className="space-y-6">

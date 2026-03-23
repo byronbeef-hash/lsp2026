@@ -13,6 +13,7 @@ import {
   User,
   LogOut,
   Settings,
+  Settings2,
   ChevronDown,
   Calendar,
   ScanLine,
@@ -110,6 +111,17 @@ export function TopNav() {
 
         {/* Right side */}
         <div className="flex items-center gap-2 shrink-0">
+          {/* Dashboard Customize — only on dashboard */}
+          {pathname === "/" && (
+            <button
+              onClick={() => window.dispatchEvent(new Event("toggle-dashboard-edit"))}
+              className="p-2 rounded-xl transition-colors hover:bg-white/10"
+              aria-label="Customize dashboard"
+            >
+              <Settings2 className="w-5 h-5 text-white/70" />
+            </button>
+          )}
+
           {/* Notifications */}
           <Link
             href="/notifications"
