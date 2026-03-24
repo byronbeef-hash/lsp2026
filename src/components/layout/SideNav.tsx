@@ -156,7 +156,7 @@ export function SideNav() {
   return (
     <aside
       className={cn(
-        "hidden md:flex flex-col fixed left-4 top-[84px] bottom-4 z-30 glass-sm rounded-2xl transition-all duration-300 overflow-hidden",
+        "hidden md:flex flex-col fixed left-4 top-[76px] bottom-4 z-30 glass-sm rounded-2xl transition-all duration-300 overflow-hidden",
         collapsed ? "w-16" : "w-56"
       )}
     >
