@@ -1,502 +1,851 @@
 "use client";
 
-import { useState, useCallback } from "react";
-import { GlassCard, GlassButton } from "@/components/glass";
+import { useState, useMemo, useRef } from "react";
+import { GlassCard, GlassButton, GlassBadge } from "@/components/glass";
 import {
   mockBreedDistribution,
   mockWeightHistory,
   mockDashboardStats,
+  mockMedicalBatches,
+  mockRecords,
 } from "@/lib/mock-data";
 import { useRecordsStore } from "@/stores/modules";
 import { useMedicalStore } from "@/stores/modules";
-import { usePaddockStore } from "@/stores/modules";
 import { useSalesStore } from "@/stores/modules";
 import {
-  BarChart3,
-  TrendingUp,
   Beef,
-  Activity,
-  Heart,
+  TrendingUp,
   Stethoscope,
-  MapPin,
   DollarSign,
-  Baby,
+  ShieldCheck,
+  ReceiptText,
   Download,
-  CheckCircle2,
+  X,
+  FileText,
+  Printer,
 } from "lucide-react";
 
-const breedColors: Record<string, string> = {
-  Angus: "bg-blue-500",
-  Hereford: "bg-emerald-500",
-  Brahman: "bg-amber-500",
-  Charolais: "bg-purple-500",
-  Mixed: "bg-rose-400",
+// ---------------------------------------------------------------------------
+// Types
+// ---------------------------------------------------------------------------
+type ReportType =
+  | "herd-summary"
+  | "weight-gain"
+  | "medical"
+  | "financial"
+  | "biosecurity"
+  | "sales-history";
+
+// ---------------------------------------------------------------------------
+// Print CSS  (injected once via <style> in the component)
+// ---------------------------------------------------------------------------
+const PRINT_CSS = `
+@media print {
+  /* hide everything except the report */
+  body * { visibility: hidden !important; }
+  #report-printable, #report-printable * { visibility: visible !important; }
+  #report-printable {
+    position: absolute !important;
+    left: 0 !important;
+    top: 0 !important;
+    width: 100% !important;
+    background: white !important;
+    color: black !important;
+    padding: 24px !important;
+    margin: 0 !important;
+  }
+  #report-printable h1,
+  #report-printable h2,
+  #report-printable h3,
+  #report-printable p,
+  #report-printable td,
+  #report-printable th,
+  #report-printable li,
+  #report-printable span {
+    color: black !important;
+  }
+  #report-printable table {
+    border-collapse: collapse !important;
+    width: 100% !important;
+  }
+  #report-printable th,
+  #report-printable td {
+    border: 1px solid #ccc !important;
+    padding: 6px 10px !important;
+    text-align: left !important;
+    font-size: 11px !important;
+  }
+  #report-printable th {
+    background: #f3f4f6 !important;
+    font-weight: 700 !important;
+  }
+  /* hide action buttons inside report */
+  .no-print { display: none !important; }
+  @page { margin: 20mm; }
+}
+`;
+
+// ---------------------------------------------------------------------------
+// Farm details constant
+// ---------------------------------------------------------------------------
+const FARM = {
+  name: "Anderson Road Farm",
+  address: "99 Anderson Rd, Nimbin NSW 2480",
+  owner: "Tim Dickinson",
+  pic: "N0012345",
+  phone: "0412 345 678",
 };
 
-const conditionScores = [
-  { label: "Excellent", count: 2, color: "bg-emerald-500" },
-  { label: "Good", count: 4, color: "bg-blue-500" },
-  { label: "Fair", count: 1, color: "bg-amber-500" },
-  { label: "Poor", count: 0, color: "bg-red-500" },
-];
-
-function downloadCSV(filename: string, rows: string[][]): void {
-  const csv = rows.map((r) => r.map((cell) => `"${String(cell ?? "").replace(/"/g, '""')}"`).join(",")).join("\n");
-  const blob = new Blob([csv], { type: "text/csv" });
-  const url = URL.createObjectURL(blob);
-  const a = document.createElement("a");
-  a.href = url;
-  a.download = filename;
-  a.click();
-  URL.revokeObjectURL(url);
+// ---------------------------------------------------------------------------
+// Helper: today formatted
+// ---------------------------------------------------------------------------
+function todayFormatted(): string {
+  return new Date().toLocaleDateString("en-AU", {
+    weekday: "long",
+    year: "numeric",
+    month: "long",
+    day: "numeric",
+  });
 }
 
+// ---------------------------------------------------------------------------
+// Report cards definition
+// ---------------------------------------------------------------------------
+const REPORT_CARDS: {
+  id: ReportType;
+  title: string;
+  description: string;
+  icon: React.ComponentType<{ className?: string }>;
+}[] = [
+  {
+    id: "herd-summary",
+    title: "Herd Summary Report",
+    description:
+      "Total head count by category, breed distribution, average weights, and condition scores.",
+    icon: Beef,
+  },
+  {
+    id: "weight-gain",
+    title: "Weight Gain Analysis",
+    description:
+      "Monthly average weight trends and per-animal weight gain tracking.",
+    icon: TrendingUp,
+  },
+  {
+    id: "medical",
+    title: "Medical & Treatment Report",
+    description:
+      "Vaccination schedules, treatments administered, and veterinary records.",
+    icon: Stethoscope,
+  },
+  {
+    id: "financial",
+    title: "Financial Summary",
+    description:
+      "Revenue from sales, average price per kg, and profitability overview.",
+    icon: DollarSign,
+  },
+  {
+    id: "biosecurity",
+    title: "Biosecurity Plan",
+    description:
+      "Property details, quarantine procedures, vaccination schedule, and emergency contacts.",
+    icon: ShieldCheck,
+  },
+  {
+    id: "sales-history",
+    title: "Sales History",
+    description:
+      "Complete record of livestock sales, buyers, prices, and settlement status.",
+    icon: ReceiptText,
+  },
+];
+
+// ---------------------------------------------------------------------------
+// Component
+// ---------------------------------------------------------------------------
 export default function ReportsPage() {
-  const stats = mockDashboardStats;
-  const maxWeight = Math.max(...mockWeightHistory.map((w) => w.avg_weight));
-  const minWeight = Math.min(...mockWeightHistory.map((w) => w.avg_weight));
-  const weightRange = maxWeight - minWeight || 1;
-  const maxCondition = Math.max(...conditionScores.map((c) => c.count), 1);
+  const [activeReport, setActiveReport] = useState<ReportType | null>(null);
+  const reportRef = useRef<HTMLDivElement>(null);
 
   const records = useRecordsStore((s) => s.records);
   const batches = useMedicalStore((s) => s.batches);
-  const paddocks = usePaddockStore((s) => s.paddocks);
   const sales = useSalesStore((s) => s.sales);
+  const stats = mockDashboardStats;
 
-  const [successReport, setSuccessReport] = useState<string | null>(null);
+  // ---- Derived data for Herd Summary ----
+  const herdCategoryData = useMemo(() => {
+    const females = records.filter((r) => r.sex === "Female");
+    const males = records.filter((r) => r.sex === "Male");
+    const cows = females.filter(
+      (r) => r.date_of_birth && new Date(r.date_of_birth) < new Date("2023-01-01")
+    );
+    const heifers = females.filter(
+      (r) => r.date_of_birth && new Date(r.date_of_birth) >= new Date("2023-01-01")
+    );
+    const bulls = males.filter(
+      (r) => r.date_of_birth && new Date(r.date_of_birth) < new Date("2023-06-01")
+    );
+    const steers = males.filter(
+      (r) =>
+        r.date_of_birth &&
+        new Date(r.date_of_birth) >= new Date("2023-06-01") &&
+        new Date(r.date_of_birth) < new Date("2024-01-01")
+    );
+    const weaners = males.filter(
+      (r) => r.date_of_birth && new Date(r.date_of_birth) >= new Date("2024-01-01")
+    );
 
-  const showSuccess = useCallback((title: string) => {
-    setSuccessReport(title);
-    setTimeout(() => setSuccessReport(null), 2500);
-  }, []);
+    const avg = (arr: typeof records) => {
+      if (arr.length === 0) return 0;
+      return Math.round(arr.reduce((s, r) => s + (r.weight_kg ?? 0), 0) / arr.length);
+    };
 
-  // --- Report generators ---
-
-  const generateHerdSummary = useCallback(() => {
-    const headers = ["Tag", "EID", "Breed", "Sex", "Weight (kg)", "Condition", "Paddock ID", "Date"];
-    const rows = records.map((r) => [
-      r.visual_tag,
-      r.eid ?? "",
-      r.breed ?? "",
-      r.sex ?? "",
-      String(r.weight_kg ?? ""),
-      r.condition ?? "",
-      String(r.paddock_id ?? ""),
-      r.record_date ?? "",
-    ]);
-    downloadCSV("herd-summary.csv", [headers, ...rows]);
-    showSuccess("Herd Summary Report");
-  }, [records, showSuccess]);
-
-  const generateWeightGainAnalysis = useCallback(() => {
-    const headers = ["Month", "Avg Weight (kg)"];
-    const rows = mockWeightHistory.map((w) => [w.date, String(w.avg_weight)]);
-    // Also include individual animal weights
-    const animalHeaders = ["Tag", "Breed", "Sex", "Current Weight (kg)", "Birth Date"];
-    const animalRows = records.map((r) => [
-      r.visual_tag,
-      r.breed ?? "",
-      r.sex ?? "",
-      String(r.weight_kg ?? ""),
-      r.date_of_birth ?? "",
-    ]);
-    downloadCSV("weight-gain-analysis.csv", [
-      headers,
-      ...rows,
-      [],
-      animalHeaders,
-      ...animalRows,
-    ]);
-    showSuccess("Weight Gain Analysis");
-  }, [records, showSuccess]);
-
-  const generateMedicalHistory = useCallback(() => {
-    const headers = [
-      "Batch Name",
-      "Treatment Type",
-      "Medication",
-      "Dosage",
-      "Administered By",
-      "Animal Count",
-      "Status",
-      "Scheduled Date",
-      "Completed Date",
-      "Notes",
+    return [
+      { category: "Cows", count: cows.length, avgWeight: avg(cows) },
+      { category: "Heifers", count: heifers.length, avgWeight: avg(heifers) },
+      { category: "Bulls", count: bulls.length, avgWeight: avg(bulls) },
+      { category: "Steers", count: steers.length, avgWeight: avg(steers) },
+      { category: "Weaners", count: weaners.length, avgWeight: avg(weaners) },
     ];
-    const rows = batches.map((b) => [
-      b.batch_name,
-      b.treatment_type,
-      b.medication,
-      b.dosage,
-      b.administered_by,
-      String(b.animal_count),
-      b.status,
-      b.scheduled_date,
-      b.completed_date ?? "",
-      b.notes ?? "",
-    ]);
-    downloadCSV("medical-history.csv", [headers, ...rows]);
-    showSuccess("Medical Treatment History");
-  }, [batches, showSuccess]);
+  }, [records]);
 
-  const generatePaddockUtilisation = useCallback(() => {
-    const headers = [
-      "Paddock Name",
-      "Area (ha)",
-      "Capacity",
-      "Current Count",
-      "Utilisation %",
-      "Status",
-      "Pasture Type",
-      "Water Source",
-    ];
-    const rows = paddocks.map((p) => [
-      p.name,
-      String(p.area_hectares),
-      String(p.capacity),
-      String(p.current_count),
-      p.capacity > 0 ? String(Math.round((p.current_count / p.capacity) * 100)) : "0",
-      p.status,
-      p.pasture_type,
-      p.water_source ? "Yes" : "No",
-    ]);
-    downloadCSV("paddock-utilisation.csv", [headers, ...rows]);
-    showSuccess("Paddock Utilization Report");
-  }, [paddocks, showSuccess]);
+  const conditionDist = useMemo(() => {
+    const map: Record<string, number> = {};
+    records.forEach((r) => {
+      const c = r.condition ?? "Unknown";
+      map[c] = (map[c] || 0) + 1;
+    });
+    return Object.entries(map).map(([label, count]) => ({ label, count }));
+  }, [records]);
 
-  const generateFinancialSummary = useCallback(() => {
-    const headers = [
-      "Tag",
-      "Buyer",
-      "Sale Price ($)",
-      "Weight at Sale (kg)",
-      "Price per kg ($/kg)",
-      "Status",
-      "Sale Date",
-      "Notes",
-    ];
-    const rows = sales.map((s) => [
-      s.record_visual_tag,
-      s.buyer_name,
-      String(s.sale_price),
-      String(s.weight_at_sale),
-      String(s.price_per_kg),
-      s.status,
-      s.sale_date,
-      s.notes ?? "",
-    ]);
-    const totalCompleted = sales
-      .filter((s) => s.status === "completed")
-      .reduce((sum, s) => sum + s.sale_price, 0);
-    downloadCSV("financial-summary.csv", [
-      headers,
-      ...rows,
-      [],
-      ["Total Completed Revenue", `$${totalCompleted.toFixed(2)}`, "", "", "", "", "", ""],
-    ]);
-    showSuccess("Financial Summary");
-  }, [sales, showSuccess]);
+  // ---- Financial derived ----
+  const financialData = useMemo(() => {
+    const completed = sales.filter((s) => s.status === "completed");
+    const totalRevenue = completed.reduce((sum, s) => sum + s.sale_price, 0);
+    const totalWeight = completed.reduce((sum, s) => sum + s.weight_at_sale, 0);
+    const avgPricePerKg =
+      totalWeight > 0 ? (totalRevenue / totalWeight).toFixed(2) : "0.00";
+    const pending = sales.filter((s) => s.status === "pending");
+    const pendingValue = pending.reduce((sum, s) => sum + s.sale_price, 0);
+    return { completed, totalRevenue, avgPricePerKg, pending, pendingValue };
+  }, [sales]);
 
-  const generateBreedingReport = useCallback(() => {
-    const headers = [
-      "Tag",
-      "Sex",
-      "Breed",
-      "Pregnant",
-      "Mother Tag",
-      "Father Tag",
-      "Date of Birth",
-      "Condition",
-    ];
-    const rows = records.map((r) => [
-      r.visual_tag,
-      r.sex ?? "",
-      r.breed ?? "",
-      r.is_pregnant ? "Yes" : "No",
-      r.mother_visual_tag ?? "",
-      r.father_visual_tag ?? "",
-      r.date_of_birth ?? "",
-      r.condition ?? "",
-    ]);
-    downloadCSV("breeding-report.csv", [headers, ...rows]);
-    showSuccess("Breeding & Pregnancy Report");
-  }, [records, showSuccess]);
+  // ---- Handlers ----
+  const handlePrint = () => {
+    window.print();
+  };
 
-  const generateDownloadAll = useCallback(() => {
-    // Combine all data into one JSON export and also trigger CSVs
-    generateHerdSummary();
-    setTimeout(() => generateMedicalHistory(), 300);
-    setTimeout(() => generatePaddockUtilisation(), 600);
-    setTimeout(() => generateFinancialSummary(), 900);
-    setTimeout(() => generateBreedingReport(), 1200);
-    showSuccess("All Reports");
-  }, [
-    generateHerdSummary,
-    generateMedicalHistory,
-    generatePaddockUtilisation,
-    generateFinancialSummary,
-    generateBreedingReport,
-    showSuccess,
-  ]);
+  const handleClose = () => {
+    setActiveReport(null);
+  };
 
-  const availableReports = [
-    {
-      title: "Herd Summary Report",
-      description: "Overview of current herd size, breed composition, and demographics.",
-      icon: Beef,
-      onGenerate: generateHerdSummary,
-    },
-    {
-      title: "Weight Gain Analysis",
-      description: "Track average daily gain and weight trends across your herd.",
-      icon: TrendingUp,
-      onGenerate: generateWeightGainAnalysis,
-    },
-    {
-      title: "Medical Treatment History",
-      description: "Complete log of vaccinations, treatments, and health records.",
-      icon: Stethoscope,
-      onGenerate: generateMedicalHistory,
-    },
-    {
-      title: "Paddock Utilization Report",
-      description: "Capacity usage, pasture condition, and rotation schedules.",
-      icon: MapPin,
-      onGenerate: generatePaddockUtilisation,
-    },
-    {
-      title: "Financial Summary",
-      description: "Revenue, expenses, and profitability analysis for your operation.",
-      icon: DollarSign,
-      onGenerate: generateFinancialSummary,
-    },
-    {
-      title: "Breeding & Pregnancy Report",
-      description: "Pregnancy rates, breeding records, and calving predictions.",
-      icon: Baby,
-      onGenerate: generateBreedingReport,
-    },
-  ];
+  // ---- Report header shared across all reports ----
+  const ReportHeader = ({ title }: { title: string }) => (
+    <div className="mb-8">
+      <div className="flex items-center justify-between mb-4">
+        <div>
+          <h1 className="text-2xl font-bold">{title}</h1>
+          <p className="text-sm text-white/50 print:text-gray-500 mt-1">
+            Generated: {todayFormatted()}
+          </p>
+        </div>
+        <div className="text-right">
+          <p className="font-semibold text-white print:text-black">
+            {FARM.name}
+          </p>
+          <p className="text-sm text-white/50 print:text-gray-500">
+            {FARM.address}
+          </p>
+          <p className="text-sm text-white/50 print:text-gray-500">
+            PIC: {FARM.pic}
+          </p>
+        </div>
+      </div>
+      <div className="border-b border-white/10 print:border-gray-300" />
+    </div>
+  );
 
-  return (
-    <div className="space-y-6">
-      {/* Header */}
-      <div className="animate-fade-in-up">
-        <h1 className="text-2xl font-bold text-white">Reports & Analytics</h1>
-        <p className="text-white/50 mt-1">Insights and data analysis</p>
+  // ---- Table helper ----
+  const Table = ({
+    headers,
+    rows,
+  }: {
+    headers: string[];
+    rows: (string | number)[][];
+  }) => (
+    <div className="overflow-x-auto">
+      <table className="w-full text-sm text-left">
+        <thead>
+          <tr className="border-b border-white/10 print:border-gray-300">
+            {headers.map((h) => (
+              <th
+                key={h}
+                className="py-2 px-3 font-semibold text-white/70 print:text-black print:bg-gray-100"
+              >
+                {h}
+              </th>
+            ))}
+          </tr>
+        </thead>
+        <tbody>
+          {rows.map((row, i) => (
+            <tr
+              key={i}
+              className="border-b border-white/5 print:border-gray-200"
+            >
+              {row.map((cell, j) => (
+                <td
+                  key={j}
+                  className="py-2 px-3 text-white/80 print:text-black"
+                >
+                  {cell}
+                </td>
+              ))}
+            </tr>
+          ))}
+        </tbody>
+      </table>
+    </div>
+  );
+
+  // ---- Section divider ----
+  const SectionTitle = ({ children }: { children: React.ReactNode }) => (
+    <h2 className="text-lg font-semibold text-white print:text-black mt-8 mb-3">
+      {children}
+    </h2>
+  );
+
+  const SubSection = ({ children }: { children: React.ReactNode }) => (
+    <h3 className="text-base font-semibold text-white/80 print:text-black mt-6 mb-2">
+      {children}
+    </h3>
+  );
+
+  // ===========================================================================
+  // REPORT CONTENT RENDERERS
+  // ===========================================================================
+
+  const renderHerdSummary = () => (
+    <>
+      <ReportHeader title="Herd Summary Report" />
+
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
+        <div className="p-3 rounded-lg bg-white/5 print:bg-gray-50 print:border print:border-gray-200">
+          <p className="text-xs text-white/50 print:text-gray-500">Total Head</p>
+          <p className="text-xl font-bold text-white print:text-black">{stats.total_livestock}</p>
+        </div>
+        <div className="p-3 rounded-lg bg-white/5 print:bg-gray-50 print:border print:border-gray-200">
+          <p className="text-xs text-white/50 print:text-gray-500">Males</p>
+          <p className="text-xl font-bold text-white print:text-black">{stats.total_male}</p>
+        </div>
+        <div className="p-3 rounded-lg bg-white/5 print:bg-gray-50 print:border print:border-gray-200">
+          <p className="text-xs text-white/50 print:text-gray-500">Females</p>
+          <p className="text-xl font-bold text-white print:text-black">{stats.total_female}</p>
+        </div>
+        <div className="p-3 rounded-lg bg-white/5 print:bg-gray-50 print:border print:border-gray-200">
+          <p className="text-xs text-white/50 print:text-gray-500">Avg Weight</p>
+          <p className="text-xl font-bold text-white print:text-black">{stats.avg_weight_kg} kg</p>
+        </div>
       </div>
 
-      {/* Success toast */}
-      {successReport && (
-        <div className="animate-fade-in-up fixed bottom-6 left-1/2 -translate-x-1/2 z-50 pointer-events-none">
-          <div className="flex items-center gap-2 px-4 py-3 rounded-xl bg-emerald-500/90 text-white text-sm font-medium shadow-lg backdrop-blur-sm">
-            <CheckCircle2 className="w-4 h-4 flex-shrink-0" />
-            {successReport} exported successfully
+      <SectionTitle>Head Count by Category</SectionTitle>
+      <Table
+        headers={["Category", "Count", "Avg Weight (kg)"]}
+        rows={herdCategoryData.map((c) => [c.category, c.count, c.avgWeight])}
+      />
+
+      <SectionTitle>Breed Distribution</SectionTitle>
+      <Table
+        headers={["Breed", "Count", "Percentage"]}
+        rows={mockBreedDistribution.map((b) => [
+          b.breed,
+          b.count,
+          `${b.percentage}%`,
+        ])}
+      />
+
+      <SectionTitle>Average Weights by Category</SectionTitle>
+      <Table
+        headers={["Category", "Avg Weight (kg)", "Head Count"]}
+        rows={herdCategoryData.map((c) => [c.category, c.avgWeight, c.count])}
+      />
+
+      <SectionTitle>Condition Score Distribution</SectionTitle>
+      <Table
+        headers={["Condition", "Count", "Percentage"]}
+        rows={conditionDist.map((c) => [
+          c.label,
+          c.count,
+          `${((c.count / records.length) * 100).toFixed(1)}%`,
+        ])}
+      />
+    </>
+  );
+
+  const renderWeightGain = () => (
+    <>
+      <ReportHeader title="Weight Gain Analysis" />
+
+      <SectionTitle>Monthly Average Weight Trend</SectionTitle>
+      <Table
+        headers={["Month", "Avg Weight (kg)"]}
+        rows={mockWeightHistory.map((w) => [w.date, w.avg_weight])}
+      />
+
+      <SectionTitle>Individual Animal Weights</SectionTitle>
+      <Table
+        headers={["Tag", "Breed", "Sex", "Current Weight (kg)", "Condition"]}
+        rows={records.map((r) => [
+          r.visual_tag,
+          r.breed ?? "-",
+          r.sex ?? "-",
+          r.weight_kg ?? "-",
+          r.condition ?? "-",
+        ])}
+      />
+
+      <div className="mt-6 p-4 rounded-lg bg-white/5 print:bg-gray-50 print:border print:border-gray-200">
+        <h3 className="font-semibold text-white print:text-black mb-2">Summary Statistics</h3>
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
+          <div>
+            <p className="text-white/50 print:text-gray-500">Total Animals</p>
+            <p className="font-bold text-white print:text-black">{records.length}</p>
+          </div>
+          <div>
+            <p className="text-white/50 print:text-gray-500">Avg Weight</p>
+            <p className="font-bold text-white print:text-black">{stats.avg_weight_kg} kg</p>
+          </div>
+          <div>
+            <p className="text-white/50 print:text-gray-500">Heaviest</p>
+            <p className="font-bold text-white print:text-black">
+              {Math.max(...records.map((r) => r.weight_kg ?? 0))} kg
+            </p>
+          </div>
+          <div>
+            <p className="text-white/50 print:text-gray-500">Lightest</p>
+            <p className="font-bold text-white print:text-black">
+              {Math.min(...records.map((r) => r.weight_kg ?? 9999))} kg
+            </p>
           </div>
         </div>
-      )}
+      </div>
+    </>
+  );
 
-      {/* KPI Summary Row */}
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-3 md:gap-4">
-        {[
-          {
-            label: "Total Head",
-            value: stats.total_livestock.toLocaleString(),
-            icon: Beef,
-            trend: null,
-            delay: 50,
-          },
-          {
-            label: "Avg Daily Gain",
-            value: "+0.8 kg/day",
-            icon: TrendingUp,
-            trend: "+5% vs last month",
-            delay: 100,
-          },
-          {
-            label: "Mortality Rate",
-            value: "0.4%",
-            icon: Activity,
-            trend: null,
-            delay: 150,
-          },
-          {
-            label: "Pregnancy Rate",
-            value: "42%",
-            icon: Heart,
-            trend: null,
-            delay: 200,
-          },
-        ].map((kpi) => (
+  const renderMedical = () => (
+    <>
+      <ReportHeader title="Medical & Treatment Report" />
+
+      <div className="grid grid-cols-2 md:grid-cols-3 gap-4 mb-6">
+        <div className="p-3 rounded-lg bg-white/5 print:bg-gray-50 print:border print:border-gray-200">
+          <p className="text-xs text-white/50 print:text-gray-500">Total Batches</p>
+          <p className="text-xl font-bold text-white print:text-black">{batches.length}</p>
+        </div>
+        <div className="p-3 rounded-lg bg-white/5 print:bg-gray-50 print:border print:border-gray-200">
+          <p className="text-xs text-white/50 print:text-gray-500">Active</p>
+          <p className="text-xl font-bold text-white print:text-black">
+            {batches.filter((b) => b.status === "active").length}
+          </p>
+        </div>
+        <div className="p-3 rounded-lg bg-white/5 print:bg-gray-50 print:border print:border-gray-200">
+          <p className="text-xs text-white/50 print:text-gray-500">Completed</p>
+          <p className="text-xl font-bold text-white print:text-black">
+            {batches.filter((b) => b.status === "completed").length}
+          </p>
+        </div>
+      </div>
+
+      <SectionTitle>Treatment Records</SectionTitle>
+      <Table
+        headers={[
+          "Batch Name",
+          "Type",
+          "Medication",
+          "Dosage",
+          "Vet/Admin",
+          "Animals",
+          "Status",
+          "Date",
+        ]}
+        rows={batches.map((b) => [
+          b.batch_name,
+          b.treatment_type,
+          b.medication,
+          b.dosage,
+          b.administered_by,
+          b.animal_count,
+          b.status,
+          b.completed_date ?? b.scheduled_date,
+        ])}
+      />
+
+      <SectionTitle>Treatment Notes</SectionTitle>
+      <div className="space-y-3">
+        {batches.map((b) => (
           <div
-            key={kpi.label}
-            className="animate-fade-in-up"
-            style={{ animationDelay: `${kpi.delay}ms` }}
+            key={b.id}
+            className="p-3 rounded-lg bg-white/5 print:bg-gray-50 print:border print:border-gray-200"
           >
-            <GlassCard>
-              <div className="flex items-start justify-between">
-                <div>
-                  <p className="text-sm text-white/50 mb-1">{kpi.label}</p>
-                  <p className="text-2xl font-bold text-white">{kpi.value}</p>
-                  {kpi.trend && (
-                    <p className="text-xs text-emerald-400 mt-1 flex items-center gap-1">
-                      <TrendingUp className="w-3 h-3" /> {kpi.trend}
-                    </p>
-                  )}
-                </div>
-                <div className="w-10 h-10 rounded-xl bg-white/10 flex items-center justify-center">
-                  <kpi.icon className="w-5 h-5 text-white/70" />
-                </div>
-              </div>
-            </GlassCard>
+            <p className="font-semibold text-white print:text-black text-sm">
+              {b.batch_name}
+            </p>
+            <p className="text-sm text-white/60 print:text-gray-600 mt-1">
+              {b.notes ?? "No notes"}
+            </p>
           </div>
         ))}
       </div>
+    </>
+  );
 
-      {/* Herd Composition */}
-      <div
-        className="animate-fade-in-up"
-        style={{ animationDelay: "250ms" } as React.CSSProperties}
-      >
-        <GlassCard>
-          <div className="flex items-center gap-2 mb-5">
-            <BarChart3 className="w-5 h-5 text-white/70" />
-            <h2 className="text-lg font-semibold text-white">Herd Composition</h2>
-          </div>
-          <div className="space-y-4">
-            {mockBreedDistribution.map((breed) => (
-              <div key={breed.breed}>
-                <div className="flex items-center justify-between mb-1.5">
-                  <span className="text-sm font-medium text-white/80">{breed.breed}</span>
-                  <span className="text-sm text-white/50">
-                    {breed.count} head ({breed.percentage}%)
-                  </span>
-                </div>
-                <div className="w-full h-3 rounded-full bg-white/10 overflow-hidden">
-                  <div
-                    className={`h-full rounded-full ${breedColors[breed.breed] || "bg-white/40"} transition-all duration-700`}
-                    style={{ width: `${breed.percentage}%` }}
-                  />
-                </div>
-              </div>
-            ))}
-          </div>
-        </GlassCard>
-      </div>
+  const renderFinancial = () => (
+    <>
+      <ReportHeader title="Financial Summary" />
 
-      {/* Weight Trends & Condition Score side by side on desktop */}
-      <div className="grid md:grid-cols-2 gap-4">
-        {/* Weight Trends */}
-        <div
-          className="animate-fade-in-up"
-          style={{ animationDelay: "300ms" } as React.CSSProperties}
-        >
-          <GlassCard>
-            <div className="flex items-center gap-2 mb-5">
-              <TrendingUp className="w-5 h-5 text-white/70" />
-              <h2 className="text-lg font-semibold text-white">Weight Trends</h2>
-            </div>
-            <p className="text-xs text-white/40 mb-4">6-month average weight (kg)</p>
-            <div className="flex items-end gap-2 h-40">
-              {mockWeightHistory.map((entry) => {
-                const normalised =
-                  ((entry.avg_weight - minWeight + 10) / (weightRange + 20)) * 100;
-                return (
-                  <div key={entry.date} className="flex-1 flex flex-col items-center gap-1">
-                    <span className="text-xs text-white/60 font-medium">{entry.avg_weight}</span>
-                    <div
-                      className="w-full rounded-t-md bg-blue-500/60 transition-all duration-500"
-                      style={{ height: `${Math.max(normalised, 15)}%` }}
-                    />
-                    <span className="text-xs text-white/40">{entry.date}</span>
-                  </div>
-                );
-              })}
-            </div>
-          </GlassCard>
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
+        <div className="p-3 rounded-lg bg-white/5 print:bg-gray-50 print:border print:border-gray-200">
+          <p className="text-xs text-white/50 print:text-gray-500">Total Revenue</p>
+          <p className="text-xl font-bold text-emerald-400 print:text-black">
+            ${financialData.totalRevenue.toLocaleString()}
+          </p>
         </div>
-
-        {/* Condition Score Distribution */}
-        <div
-          className="animate-fade-in-up"
-          style={{ animationDelay: "350ms" } as React.CSSProperties}
-        >
-          <GlassCard>
-            <div className="flex items-center gap-2 mb-5">
-              <Activity className="w-5 h-5 text-white/70" />
-              <h2 className="text-lg font-semibold text-white">Condition Score Distribution</h2>
-            </div>
-            <div className="space-y-4">
-              {conditionScores.map((score) => (
-                <div key={score.label}>
-                  <div className="flex items-center justify-between mb-1.5">
-                    <span className="text-sm font-medium text-white/80">{score.label}</span>
-                    <span className="text-sm text-white/50">{score.count} animals</span>
-                  </div>
-                  <div className="w-full h-3 rounded-full bg-white/10 overflow-hidden">
-                    <div
-                      className={`h-full rounded-full ${score.color} transition-all duration-700`}
-                      style={{ width: `${(score.count / maxCondition) * 100}%` }}
-                    />
-                  </div>
-                </div>
-              ))}
-            </div>
-          </GlassCard>
+        <div className="p-3 rounded-lg bg-white/5 print:bg-gray-50 print:border print:border-gray-200">
+          <p className="text-xs text-white/50 print:text-gray-500">Avg $/kg</p>
+          <p className="text-xl font-bold text-white print:text-black">
+            ${financialData.avgPricePerKg}
+          </p>
+        </div>
+        <div className="p-3 rounded-lg bg-white/5 print:bg-gray-50 print:border print:border-gray-200">
+          <p className="text-xs text-white/50 print:text-gray-500">Completed Sales</p>
+          <p className="text-xl font-bold text-white print:text-black">
+            {financialData.completed.length}
+          </p>
+        </div>
+        <div className="p-3 rounded-lg bg-white/5 print:bg-gray-50 print:border print:border-gray-200">
+          <p className="text-xs text-white/50 print:text-gray-500">Pending Value</p>
+          <p className="text-xl font-bold text-amber-400 print:text-black">
+            ${financialData.pendingValue.toLocaleString()}
+          </p>
         </div>
       </div>
 
-      {/* Available Reports */}
-      <div
-        className="animate-fade-in-up"
-        style={{ animationDelay: "400ms" } as React.CSSProperties}
-      >
-        <div className="flex items-center justify-between mb-4">
-          <h2 className="text-lg font-semibold text-white">Available Reports</h2>
-          <GlassButton
-            variant="primary"
-            size="sm"
-            icon={<Download className="w-4 h-4" />}
-            onClick={generateDownloadAll}
-          >
-            Download All
-          </GlassButton>
+      <SectionTitle>Completed Sales</SectionTitle>
+      <Table
+        headers={["Tag", "Buyer", "Sale Price", "Weight (kg)", "$/kg", "Date"]}
+        rows={financialData.completed.map((s) => [
+          s.record_visual_tag,
+          s.buyer_name,
+          `$${s.sale_price.toLocaleString()}`,
+          s.weight_at_sale,
+          `$${s.price_per_kg.toFixed(2)}`,
+          s.sale_date,
+        ])}
+      />
+
+      <SectionTitle>Pending Sales</SectionTitle>
+      <Table
+        headers={["Tag", "Buyer", "Sale Price", "Weight (kg)", "$/kg", "Date", "Notes"]}
+        rows={financialData.pending.map((s) => [
+          s.record_visual_tag,
+          s.buyer_name,
+          `$${s.sale_price.toLocaleString()}`,
+          s.weight_at_sale,
+          `$${s.price_per_kg.toFixed(2)}`,
+          s.sale_date,
+          s.notes ?? "-",
+        ])}
+      />
+    </>
+  );
+
+  const renderBiosecurity = () => (
+    <>
+      <ReportHeader title="Biosecurity Plan" />
+
+      <SectionTitle>1. Property Details</SectionTitle>
+      <Table
+        headers={["Item", "Detail"]}
+        rows={[
+          ["Property Name", FARM.name],
+          ["Address", FARM.address],
+          ["PIC Number", FARM.pic],
+          ["Owner / Manager", FARM.owner],
+          ["Contact Phone", FARM.phone],
+          ["Property Size", "215 hectares"],
+          ["Enterprise Type", "Beef Cattle - Breeding & Fattening"],
+          ["Total Head", String(stats.total_livestock)],
+        ]}
+      />
+
+      <SectionTitle>2. Visitor Log Requirements</SectionTitle>
+      <div className="p-4 rounded-lg bg-white/5 print:bg-gray-50 print:border print:border-gray-200 text-sm text-white/80 print:text-black space-y-2">
+        <p>All visitors to the property must:</p>
+        <ul className="list-disc ml-5 space-y-1">
+          <li>Sign the visitor log at the main gate before entry</li>
+          <li>Declare any recent livestock contact within the past 7 days</li>
+          <li>Wear clean footwear or use boot wash facilities provided</li>
+          <li>Stay on designated vehicle tracks unless escorted</li>
+          <li>Not bring dogs or other animals onto the property without prior approval</li>
+        </ul>
+      </div>
+
+      <SectionTitle>3. Quarantine Procedures</SectionTitle>
+      <div className="p-4 rounded-lg bg-white/5 print:bg-gray-50 print:border print:border-gray-200 text-sm text-white/80 print:text-black space-y-2">
+        <ul className="list-disc ml-5 space-y-1">
+          <li>All incoming cattle must be isolated in Holding Yards (Paddock 4) for a minimum of 14 days</li>
+          <li>Incoming animals to be inspected for signs of disease, parasites, and injury on arrival</li>
+          <li>Drench and vaccinate all incoming stock before introduction to the main herd</li>
+          <li>Maintain separate equipment for quarantine animals where practical</li>
+          <li>Record all introductions in the property register with date, source, and PIC of origin</li>
+          <li>Any animal showing signs of notifiable disease must be reported to the DPI immediately</li>
+        </ul>
+      </div>
+
+      <SectionTitle>4. Vaccination Schedule</SectionTitle>
+      <Table
+        headers={["Vaccination", "Frequency", "Target Group", "Last Administered"]}
+        rows={[
+          ["Bovilis MH+IBR", "Annual (Spring)", "All breeders", "March 2026"],
+          ["Ultravac 7in1", "Annual (Autumn)", "Whole herd", "February 2026"],
+          ["Pestigard + 5in1", "Weaning", "Weaners", "February 2026"],
+          ["Botulism (Longrange)", "Every 2 years", "Whole herd", "October 2025"],
+          ["Vibriosis", "Pre-joining", "Bulls", "September 2025"],
+        ]}
+      />
+
+      <SectionTitle>5. Chemical Usage Register</SectionTitle>
+      <Table
+        headers={["Chemical", "Purpose", "WHP/ESI", "Last Used", "Administered By"]}
+        rows={[
+          ["Ivermectin Plus", "Parasite control", "42 days meat / 28 days ESI", "March 2026", "Dr. Sarah Mitchell"],
+          ["Oxytetracycline LA", "Antibiotic treatment", "28 days meat / 35 days ESI", "March 2026", "Dr. James Cooper"],
+          ["Coopers Tik-Guard", "Tick control pour-on", "14 days meat / 0 days ESI", "February 2026", "Tim Dickinson"],
+        ]}
+      />
+
+      <SectionTitle>6. Emergency Contacts</SectionTitle>
+      <Table
+        headers={["Contact", "Name", "Phone"]}
+        rows={[
+          ["Primary Veterinarian", "Dr. Sarah Mitchell", "0412 987 654"],
+          ["Secondary Veterinarian", "Dr. James Cooper", "0423 456 789"],
+          ["Property Owner", "Tim Dickinson", FARM.phone],
+          ["NSW DPI Emergency", "Animal Health Hotline", "1800 675 888"],
+          ["Local Land Services", "Northern Rivers LLS", "02 6623 3900"],
+          ["Fire & Rescue", "Nimbin RFS", "000"],
+        ]}
+      />
+    </>
+  );
+
+  const renderSalesHistory = () => (
+    <>
+      <ReportHeader title="Sales History" />
+
+      <div className="grid grid-cols-2 md:grid-cols-3 gap-4 mb-6">
+        <div className="p-3 rounded-lg bg-white/5 print:bg-gray-50 print:border print:border-gray-200">
+          <p className="text-xs text-white/50 print:text-gray-500">Total Sales</p>
+          <p className="text-xl font-bold text-white print:text-black">{sales.length}</p>
         </div>
+        <div className="p-3 rounded-lg bg-white/5 print:bg-gray-50 print:border print:border-gray-200">
+          <p className="text-xs text-white/50 print:text-gray-500">Total Value</p>
+          <p className="text-xl font-bold text-emerald-400 print:text-black">
+            ${sales.reduce((s, r) => s + r.sale_price, 0).toLocaleString()}
+          </p>
+        </div>
+        <div className="p-3 rounded-lg bg-white/5 print:bg-gray-50 print:border print:border-gray-200">
+          <p className="text-xs text-white/50 print:text-gray-500">Total Weight Sold</p>
+          <p className="text-xl font-bold text-white print:text-black">
+            {sales.reduce((s, r) => s + r.weight_at_sale, 0).toLocaleString()} kg
+          </p>
+        </div>
+      </div>
+
+      <SectionTitle>All Sales Records</SectionTitle>
+      <Table
+        headers={[
+          "Tag",
+          "Buyer",
+          "Contact",
+          "Sale Price",
+          "Weight (kg)",
+          "$/kg",
+          "Status",
+          "Date",
+          "Notes",
+        ]}
+        rows={sales.map((s) => [
+          s.record_visual_tag,
+          s.buyer_name,
+          s.buyer_contact,
+          `$${s.sale_price.toLocaleString()}`,
+          s.weight_at_sale,
+          `$${s.price_per_kg.toFixed(2)}`,
+          s.status,
+          s.sale_date,
+          s.notes ?? "-",
+        ])}
+      />
+
+      <SectionTitle>Sales by Buyer</SectionTitle>
+      {(() => {
+        const grouped: Record<string, { count: number; total: number }> = {};
+        sales.forEach((s) => {
+          if (!grouped[s.buyer_name])
+            grouped[s.buyer_name] = { count: 0, total: 0 };
+          grouped[s.buyer_name].count++;
+          grouped[s.buyer_name].total += s.sale_price;
+        });
+        return (
+          <Table
+            headers={["Buyer", "No. Sales", "Total Value"]}
+            rows={Object.entries(grouped).map(([buyer, d]) => [
+              buyer,
+              d.count,
+              `$${d.total.toLocaleString()}`,
+            ])}
+          />
+        );
+      })()}
+    </>
+  );
+
+  // ---- Select renderer by report type ----
+  const renderReport = () => {
+    switch (activeReport) {
+      case "herd-summary":
+        return renderHerdSummary();
+      case "weight-gain":
+        return renderWeightGain();
+      case "medical":
+        return renderMedical();
+      case "financial":
+        return renderFinancial();
+      case "biosecurity":
+        return renderBiosecurity();
+      case "sales-history":
+        return renderSalesHistory();
+      default:
+        return null;
+    }
+  };
+
+  // ===========================================================================
+  // RENDER
+  // ===========================================================================
+  return (
+    <>
+      {/* Inject print CSS */}
+      <style dangerouslySetInnerHTML={{ __html: PRINT_CSS }} />
+
+      <div className="space-y-6">
+        {/* Header */}
+        <div className="animate-fade-in-up">
+          <h1 className="text-2xl font-bold text-white">Reports</h1>
+          <p className="text-white/50 mt-1">
+            Generate and download professional farm reports
+          </p>
+        </div>
+
+        {/* Report type cards */}
         <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
-          {availableReports.map((report) => (
-            <GlassCard key={report.title} className="flex flex-col">
-              <div className="flex items-start gap-3 mb-4">
-                <div className="w-10 h-10 rounded-xl bg-white/10 flex items-center justify-center flex-shrink-0">
-                  <report.icon className="w-5 h-5 text-white/70" />
-                </div>
-                <div className="flex-1 min-w-0">
-                  <h3 className="font-semibold text-white text-sm">{report.title}</h3>
-                  <p className="text-xs text-white/50 mt-1 leading-relaxed">
-                    {report.description}
-                  </p>
-                </div>
+          {REPORT_CARDS.map((card, idx) => {
+            const isActive = activeReport === card.id;
+            return (
+              <div
+                key={card.id}
+                className="animate-fade-in-up"
+                style={{ animationDelay: `${idx * 50}ms` }}
+              >
+                <GlassCard
+                  className={`flex flex-col cursor-pointer transition-all duration-200 hover:scale-[1.02] ${
+                    isActive
+                      ? "ring-2 ring-blue-400/60 bg-white/15"
+                      : "hover:bg-white/10"
+                  }`}
+                  onClick={() =>
+                    setActiveReport(isActive ? null : card.id)
+                  }
+                >
+                  <div className="flex items-start gap-3 mb-3">
+                    <div
+                      className={`w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0 ${
+                        isActive ? "bg-blue-500/30" : "bg-white/10"
+                      }`}
+                    >
+                      <card.icon
+                        className={`w-5 h-5 ${
+                          isActive ? "text-blue-300" : "text-white/70"
+                        }`}
+                      />
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-center gap-2">
+                        <h3 className="font-semibold text-white text-sm">
+                          {card.title}
+                        </h3>
+                        {isActive && (
+                          <GlassBadge variant="info">Active</GlassBadge>
+                        )}
+                      </div>
+                      <p className="text-xs text-white/50 mt-1 leading-relaxed">
+                        {card.description}
+                      </p>
+                    </div>
+                  </div>
+                  <div className="mt-auto pt-2">
+                    <div
+                      className={`w-full text-center py-2 rounded-xl text-sm font-semibold transition-colors ${
+                        isActive
+                          ? "bg-blue-500/20 text-blue-300"
+                          : "bg-white/5 text-white/60"
+                      }`}
+                    >
+                      {isActive ? "Viewing Report" : "Generate Report"}
+                    </div>
+                  </div>
+                </GlassCard>
               </div>
-              <div className="mt-auto pt-2">
+            );
+          })}
+        </div>
+
+        {/* Inline report display */}
+        {activeReport && (
+          <div
+            className="animate-fade-in-up"
+            style={{ animationDelay: "100ms" }}
+          >
+            <GlassCard className="relative">
+              {/* Action buttons */}
+              <div className="flex items-center gap-2 mb-6 no-print">
+                <GlassButton
+                  variant="primary"
+                  size="sm"
+                  icon={<Printer className="w-4 h-4" />}
+                  onClick={handlePrint}
+                >
+                  Download PDF
+                </GlassButton>
                 <GlassButton
                   variant="default"
                   size="sm"
-                  className="w-full"
-                  icon={
-                    successReport === report.title ? (
-                      <CheckCircle2 className="w-4 h-4 text-emerald-400" />
-                    ) : (
-                      <Download className="w-4 h-4" />
-                    )
-                  }
-                  onClick={report.onGenerate}
+                  icon={<X className="w-4 h-4" />}
+                  onClick={handleClose}
                 >
-                  {successReport === report.title ? "Exported!" : "Generate"}
+                  Close Report
                 </GlassButton>
               </div>
+
+              {/* Printable report content */}
+              <div id="report-printable" ref={reportRef}>
+                {renderReport()}
+              </div>
             </GlassCard>
-          ))}
-        </div>
+          </div>
+        )}
       </div>
-    </div>
+    </>
   );
 }

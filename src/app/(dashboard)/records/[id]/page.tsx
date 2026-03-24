@@ -35,6 +35,9 @@ import {
   Download,
   Eye,
   ImageIcon,
+  Video,
+  Play,
+  ShieldCheck,
 } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
@@ -48,6 +51,7 @@ type TabKey =
   | "history"
   | "progeny"
   | "photo"
+  | "video"
   | "papers";
 
 /* ───────────── Table row for Record Details tab ───────────── */
@@ -328,6 +332,7 @@ export default function RecordDetailPage({
     { key: "history", label: "Record History", icon: History },
     { key: "progeny", label: "Progeny", icon: Baby },
     { key: "photo", label: "Photo", icon: Camera },
+    { key: "video", label: "Video", icon: Video },
     { key: "papers", label: "Papers", icon: ScrollText },
   ];
 
@@ -1328,6 +1333,188 @@ export default function RecordDetailPage({
                   <p className="text-[10px]">Upload Photo</p>
                 </div>
               ))}
+            </div>
+          </GlassCard>
+        </div>
+      )}
+
+      {/* ════════════════ TAB: Video (Facial Recognition) ════════════════ */}
+      {activeTab === "video" && (
+        <div
+          className="space-y-4 animate-fade-in-up"
+          style={{ animationDelay: "75ms" } as React.CSSProperties}
+        >
+          {/* Header */}
+          <GlassCard>
+            <div className="flex items-center justify-between mb-4">
+              <div className="flex items-center gap-3">
+                <h2 className="text-sm font-semibold text-white/60 uppercase tracking-wider">
+                  Facial Recognition
+                </h2>
+                <GlassBadge variant="success">AI Enabled</GlassBadge>
+              </div>
+              <GlassButton size="sm" icon={<Video className="w-4 h-4" />}>
+                Capture New Video
+              </GlassButton>
+            </div>
+
+            {/* Mock video player */}
+            <div className="relative aspect-video rounded-xl overflow-hidden border border-white/10 bg-black/60 flex items-center justify-center cursor-pointer group mb-2">
+              <div className="absolute inset-0 bg-gradient-to-b from-transparent via-transparent to-black/40" />
+              <div className="w-16 h-16 rounded-full bg-white/15 backdrop-blur flex items-center justify-center group-hover:bg-white/25 transition-all">
+                <Play className="w-8 h-8 text-white ml-1" />
+              </div>
+              <div className="absolute bottom-3 left-4 text-xs text-white/50">
+                Last capture: 2 days ago
+              </div>
+              <div className="absolute bottom-3 right-4 text-xs text-white/40 font-mono">
+                00:00 / 00:32
+              </div>
+            </div>
+          </GlassCard>
+
+          {/* Video Thumbnails */}
+          <GlassCard>
+            <h3 className="text-xs font-semibold text-white/40 uppercase tracking-wider mb-3">
+              Recent Captures
+            </h3>
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+              {[
+                { date: "2026-03-22 09:15am", duration: "0:32" },
+                { date: "2026-03-15 14:30pm", duration: "0:45" },
+                { date: "2026-03-08 11:20am", duration: "0:28" },
+                { date: "2026-02-28 16:05pm", duration: "0:38" },
+              ].map((vid, i) => (
+                <div
+                  key={i}
+                  className="relative aspect-video rounded-lg overflow-hidden border border-white/10 bg-black/50 flex items-center justify-center cursor-pointer group hover:border-white/20 transition-all"
+                >
+                  <div className="w-8 h-8 rounded-full bg-white/10 flex items-center justify-center group-hover:bg-white/20 transition-all">
+                    <Play className="w-4 h-4 text-white/70 ml-0.5" />
+                  </div>
+                  <div className="absolute bottom-1.5 left-2 text-[10px] text-white/40">
+                    {vid.date}
+                  </div>
+                  <div className="absolute top-1.5 right-2 text-[10px] text-white/40 font-mono bg-black/40 px-1 rounded">
+                    {vid.duration}
+                  </div>
+                </div>
+              ))}
+            </div>
+          </GlassCard>
+
+          {/* AI Analysis */}
+          <GlassCard>
+            <div className="flex items-center gap-3 mb-4">
+              <div className="w-10 h-10 rounded-xl bg-emerald-500/20 flex items-center justify-center flex-shrink-0">
+                <Fingerprint className="w-5 h-5 text-emerald-400" />
+              </div>
+              <div>
+                <h2 className="text-sm font-semibold text-white/60 uppercase tracking-wider">
+                  AI Analysis
+                </h2>
+                <p className="text-xs text-white/40">Facial recognition results from latest capture</p>
+              </div>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              {/* Identification */}
+              <div className="space-y-3">
+                <h3 className="text-xs font-semibold text-white/40 uppercase tracking-wider">
+                  Identification
+                </h3>
+                <table className="w-full">
+                  <tbody>
+                    <FieldRow label="Match Confidence" value={<span className="text-emerald-400 font-semibold">98.7%</span>} labelVariant="green" />
+                    <FieldRow label="Biometric ID" value={<span className="font-mono text-xs">BIO-AU0142-2026</span>} labelVariant="green" />
+                    <FieldRow label="Last Verified" value="2 days ago" />
+                  </tbody>
+                </table>
+              </div>
+
+              {/* Health Indicators */}
+              <div className="space-y-3">
+                <h3 className="text-xs font-semibold text-white/40 uppercase tracking-wider">
+                  Health Indicators Detected
+                </h3>
+                <div className="flex flex-wrap gap-2">
+                  {["Normal gait", "Clear eyes", "No visible injuries"].map((indicator) => (
+                    <div
+                      key={indicator}
+                      className="flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-emerald-500/10 border border-emerald-500/20"
+                    >
+                      <CheckCircle className="w-3 h-3 text-emerald-400" />
+                      <span className="text-xs text-emerald-300">{indicator}</span>
+                    </div>
+                  ))}
+                </div>
+                <div className="mt-3">
+                  <h3 className="text-xs font-semibold text-white/40 uppercase tracking-wider mb-2">
+                    Behavior Notes
+                  </h3>
+                  <p className="text-sm text-white/70">
+                    Calm temperament, feeding normally
+                  </p>
+                </div>
+              </div>
+            </div>
+          </GlassCard>
+
+          {/* Recognition History */}
+          <GlassCard>
+            <h2 className="text-sm font-semibold text-white/60 uppercase tracking-wider mb-4">
+              Recognition History
+            </h2>
+            <div className="overflow-x-auto">
+              <table className="w-full">
+                <thead>
+                  <tr className="border-b border-white/10">
+                    <th className="text-left px-4 py-2 text-xs uppercase tracking-wider text-white/50 font-semibold">
+                      Date
+                    </th>
+                    <th className="text-left px-4 py-2 text-xs uppercase tracking-wider text-white/50 font-semibold">
+                      Location
+                    </th>
+                    <th className="text-left px-4 py-2 text-xs uppercase tracking-wider text-white/50 font-semibold">
+                      Confidence
+                    </th>
+                    <th className="text-left px-4 py-2 text-xs uppercase tracking-wider text-white/50 font-semibold">
+                      Match Status
+                    </th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {[
+                    { date: "2026-03-22", location: "Paddock 5 - Gate Cam", confidence: "98.7%", status: "Verified" as const },
+                    { date: "2026-03-15", location: "Yards - Crush Cam", confidence: "97.2%", status: "Verified" as const },
+                    { date: "2026-03-08", location: "Paddock 5 - Gate Cam", confidence: "95.4%", status: "Verified" as const },
+                    { date: "2026-02-28", location: "Paddock 3 - Water Trough", confidence: "89.1%", status: "Pending" as const },
+                    { date: "2026-02-15", location: "Yards - Crush Cam", confidence: "99.1%", status: "Verified" as const },
+                  ].map((entry, i) => (
+                    <tr key={i} className="border-b border-white/5">
+                      <td className="px-4 py-3 text-sm text-white/70">{entry.date}</td>
+                      <td className="px-4 py-3 text-sm text-white/50">{entry.location}</td>
+                      <td className="px-4 py-3">
+                        <span className={`text-sm font-medium ${
+                          parseFloat(entry.confidence) >= 95
+                            ? "text-emerald-400"
+                            : parseFloat(entry.confidence) >= 90
+                              ? "text-blue-400"
+                              : "text-amber-400"
+                        }`}>
+                          {entry.confidence}
+                        </span>
+                      </td>
+                      <td className="px-4 py-3">
+                        <GlassBadge variant={entry.status === "Verified" ? "success" : "warning"}>
+                          {entry.status === "Verified" && <ShieldCheck className="w-3 h-3 mr-1 inline" />}
+                          {entry.status}
+                        </GlassBadge>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
             </div>
           </GlassCard>
         </div>
