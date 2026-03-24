@@ -45,6 +45,8 @@ const primaryNav = [
   { href: "/markets", label: "Markets", icon: TrendingUp },
   { href: "/finance", label: "Finance", icon: Wallet },
   { href: "/reports", label: "Reports", icon: BarChart3 },
+  { href: "/ai-advisor", label: "AI", icon: Sparkles },
+  { href: "/scanner", label: "Scan", icon: ScanLine },
 ];
 
 const moreMenuItems = [
