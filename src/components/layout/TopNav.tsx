@@ -72,16 +72,25 @@ export function TopNav() {
   const pathname = usePathname();
   const [profileOpen, setProfileOpen] = useState(false);
   const [megaMenuOpen, setMegaMenuOpen] = useState(false);
+  const [themeOpen, setThemeOpen] = useState(false);
   const [theme, setTheme] = useState<"dark" | "light">("dark");
+  const [brightness, setBrightness] = useState(100);
   const profileRef = useRef<HTMLDivElement>(null);
   const megaMenuRef = useRef<HTMLDivElement>(null);
+  const themeRef = useRef<HTMLDivElement>(null);
 
-  // Load theme from localStorage on mount
+  // Load theme and brightness from localStorage on mount
   useEffect(() => {
     const saved = localStorage.getItem("lsp-theme") as "dark" | "light" | null;
     if (saved) {
       setTheme(saved);
       document.documentElement.setAttribute("data-theme", saved);
+    }
+    const savedBrightness = localStorage.getItem("lsp-brightness");
+    if (savedBrightness) {
+      const val = parseInt(savedBrightness);
+      setBrightness(val);
+      document.documentElement.style.filter = `brightness(${val / 100})`;
     }
   }, []);
 
@@ -92,6 +101,12 @@ export function TopNav() {
     localStorage.setItem("lsp-theme", next);
   };
 
+  const handleBrightness = (val: number) => {
+    setBrightness(val);
+    document.documentElement.style.filter = `brightness(${val / 100})`;
+    localStorage.setItem("lsp-brightness", String(val));
+  };
+
   // Close dropdowns when clicking outside
   useEffect(() => {
     function handleClickOutside(event: MouseEvent) {
@@ -100,6 +115,9 @@ export function TopNav() {
       }
       if (megaMenuRef.current && !megaMenuRef.current.contains(event.target as Node)) {
         setMegaMenuOpen(false);
+      }
+      if (themeRef.current && !themeRef.current.contains(event.target as Node)) {
+        setThemeOpen(false);
       }
     }
     document.addEventListener("mousedown", handleClickOutside);
@@ -158,19 +176,74 @@ export function TopNav() {
             </button>
           )}
 
-          {/* Theme Toggle */}
-          <button
-            onClick={toggleTheme}
-            className="p-2 rounded-xl transition-colors hover:bg-white/10"
-            aria-label={theme === "dark" ? "Switch to light mode" : "Switch to dark mode"}
-            title={theme === "dark" ? "Light mode" : "Dark mode"}
-          >
-            {theme === "dark" ? (
-              <Sun className="w-5 h-5 text-amber-300/80" />
-            ) : (
-              <Moon className="w-5 h-5 text-indigo-500/80" />
+          {/* Theme & Brightness */}
+          <div className="relative" ref={themeRef}>
+            <button
+              onClick={() => { setThemeOpen(!themeOpen); setProfileOpen(false); setMegaMenuOpen(false); }}
+              className={cn(
+                "p-2 rounded-xl transition-colors",
+                themeOpen ? "bg-white/20" : "hover:bg-white/10"
+              )}
+              aria-label="Display settings"
+              title="Display settings"
+            >
+              {theme === "dark" ? (
+                <Sun className="w-5 h-5 text-amber-300/80" />
+              ) : (
+                <Moon className="w-5 h-5 text-indigo-500/80" />
+              )}
+            </button>
+
+            {themeOpen && (
+              <div className="absolute right-0 mt-2 w-56 glass-sm p-3 animate-fade-in-up z-50">
+                <p className="text-xs font-semibold text-white/50 uppercase tracking-wider mb-3">Display</p>
+
+                {/* Theme toggle */}
+                <button
+                  onClick={toggleTheme}
+                  className="flex items-center justify-between w-full px-3 py-2 rounded-lg hover:bg-white/10 transition-colors mb-2"
+                >
+                  <span className="text-sm text-white/80">
+                    {theme === "dark" ? "Switch to Light" : "Switch to Dark"}
+                  </span>
+                  {theme === "dark" ? (
+                    <Sun className="w-4 h-4 text-amber-300" />
+                  ) : (
+                    <Moon className="w-4 h-4 text-indigo-400" />
+                  )}
+                </button>
+
+                {/* Brightness slider */}
+                <div className="px-3 py-2">
+                  <div className="flex items-center justify-between mb-2">
+                    <span className="text-xs text-white/50">Brightness</span>
+                    <span className="text-xs text-white/70 font-medium">{brightness}%</span>
+                  </div>
+                  <input
+                    type="range"
+                    min="50"
+                    max="150"
+                    value={brightness}
+                    onChange={(e) => handleBrightness(parseInt(e.target.value))}
+                    className="w-full h-1.5 rounded-full appearance-none cursor-pointer"
+                    style={{
+                      background: `linear-gradient(to right, rgba(255,255,255,0.3) 0%, rgba(255,255,255,0.3) ${((brightness - 50) / 100) * 100}%, rgba(255,255,255,0.1) ${((brightness - 50) / 100) * 100}%, rgba(255,255,255,0.1) 100%)`,
+                    }}
+                  />
+                  <div className="flex justify-between mt-1">
+                    <span className="text-[10px] text-white/30">Darker</span>
+                    <button
+                      onClick={() => handleBrightness(100)}
+                      className="text-[10px] text-white/50 hover:text-white/80"
+                    >
+                      Reset
+                    </button>
+                    <span className="text-[10px] text-white/30">Lighter</span>
+                  </div>
+                </div>
+              </div>
             )}
-          </button>
+          </div>
 
           {/* More Mega Menu Toggle */}
           <button
