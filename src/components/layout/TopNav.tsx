@@ -75,6 +75,8 @@ export function TopNav() {
   const [themeOpen, setThemeOpen] = useState(false);
   const [theme, setTheme] = useState<"dark" | "light">("dark");
   const [brightness, setBrightness] = useState(100);
+  const [customColor, setCustomColor] = useState("#000040");
+  const [showColorPicker, setShowColorPicker] = useState(false);
   const profileRef = useRef<HTMLDivElement>(null);
   const megaMenuRef = useRef<HTMLDivElement>(null);
   const themeRef = useRef<HTMLDivElement>(null);
@@ -92,7 +94,27 @@ export function TopNav() {
       setBrightness(val);
       document.documentElement.style.filter = `brightness(${val / 100})`;
     }
+    const savedColor = localStorage.getItem("lsp-custom-bg");
+    if (savedColor) {
+      setCustomColor(savedColor);
+    }
   }, []);
+
+  const applyCustomColor = (color: string) => {
+    setCustomColor(color);
+    localStorage.setItem("lsp-custom-bg", color);
+    document.documentElement.setAttribute("data-theme", "dark");
+    setTheme("dark");
+    localStorage.setItem("lsp-theme", "dark");
+    document.documentElement.style.setProperty("--bg-custom", color);
+    document.body.style.background = `linear-gradient(135deg, ${color} 0%, ${color}dd 50%, ${color}bb 100%)`;
+  };
+
+  const resetCustomColor = () => {
+    localStorage.removeItem("lsp-custom-bg");
+    document.body.style.background = "";
+    document.documentElement.style.removeProperty("--bg-custom");
+  };
 
   const toggleTheme = () => {
     const next = theme === "dark" ? "light" : "dark";
@@ -241,6 +263,77 @@ export function TopNav() {
                     <span className="text-[10px] text-white/30">Lighter</span>
                   </div>
                 </div>
+
+                {/* Divider */}
+                <div className="border-t border-white/10 my-2" />
+
+                {/* Custom Colour */}
+                <button
+                  onClick={() => setShowColorPicker(!showColorPicker)}
+                  className="flex items-center justify-between w-full px-3 py-2 rounded-lg hover:bg-white/10 transition-colors"
+                >
+                  <span className="text-sm text-white/80">Custom Background</span>
+                  <div className="w-5 h-5 rounded-full border-2 border-white/30" style={{ backgroundColor: customColor }} />
+                </button>
+
+                {showColorPicker && (
+                  <div className="px-3 py-2 space-y-2">
+                    {/* Colour presets */}
+                    <div className="flex gap-1.5 flex-wrap">
+                      {[
+                        { color: "#000040", label: "Navy" },
+                        { color: "#1a1a2e", label: "Midnight" },
+                        { color: "#0d1b2a", label: "Ocean" },
+                        { color: "#1b2838", label: "Steam" },
+                        { color: "#2d1b69", label: "Purple" },
+                        { color: "#0a3622", label: "Forest" },
+                        { color: "#3d0c02", label: "Wine" },
+                        { color: "#1a1a1a", label: "Carbon" },
+                      ].map((preset) => (
+                        <button
+                          key={preset.color}
+                          onClick={() => applyCustomColor(preset.color)}
+                          className="w-7 h-7 rounded-lg border-2 transition-all hover:scale-110"
+                          style={{
+                            backgroundColor: preset.color,
+                            borderColor: customColor === preset.color ? "white" : "rgba(255,255,255,0.2)",
+                          }}
+                          title={preset.label}
+                        />
+                      ))}
+                    </div>
+
+                    {/* Colour wheel + hex input */}
+                    <div className="flex items-center gap-2">
+                      <input
+                        type="color"
+                        value={customColor}
+                        onChange={(e) => applyCustomColor(e.target.value)}
+                        className="w-8 h-8 rounded-lg cursor-pointer border-0 bg-transparent"
+                        title="Pick any colour"
+                      />
+                      <input
+                        type="text"
+                        value={customColor}
+                        onChange={(e) => {
+                          const v = e.target.value;
+                          setCustomColor(v);
+                          if (/^#[0-9a-fA-F]{6}$/.test(v)) applyCustomColor(v);
+                        }}
+                        className="flex-1 bg-white/10 border border-white/20 rounded-lg px-2 py-1 text-xs text-white/80 font-mono"
+                        placeholder="#000040"
+                      />
+                    </div>
+
+                    {/* Reset button */}
+                    <button
+                      onClick={() => { resetCustomColor(); setCustomColor("#000040"); }}
+                      className="text-[10px] text-white/50 hover:text-white/80 w-full text-center py-1"
+                    >
+                      Reset to Default
+                    </button>
+                  </div>
+                )}
               </div>
             )}
           </div>
