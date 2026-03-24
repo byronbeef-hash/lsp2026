@@ -120,7 +120,7 @@ const sideNavItems: NavItem[] = [
 
 export function SideNav() {
   const pathname = usePathname();
-  const [collapsed, setCollapsed] = useState(false);
+  const [collapsed, setCollapsed] = useState(true);
   const [expandedItems, setExpandedItems] = useState<Set<string>>(new Set());
 
   // Auto-expand active parent on mount
@@ -154,27 +154,35 @@ export function SideNav() {
   };
 
   return (
-    <aside
-      className={cn(
-        "hidden md:flex flex-col fixed left-4 top-[76px] bottom-4 z-30 glass-sm rounded-2xl transition-all duration-300 overflow-hidden",
-        collapsed ? "w-16" : "w-56"
+    <>
+      {/* Floating expand tab — visible when sidebar is hidden */}
+      {collapsed && (
+        <button
+          onClick={() => setCollapsed(false)}
+          className="hidden md:flex fixed left-0 top-1/2 -translate-y-1/2 z-30 items-center justify-center w-6 h-14 rounded-r-xl glass-sm hover:bg-white/15 transition-all duration-200 group"
+          title="Open sidebar"
+        >
+          <PanelLeftOpen className="w-3.5 h-3.5 text-white/50 group-hover:text-white/80 transition-colors" />
+        </button>
       )}
-    >
-      {/* Collapse toggle */}
-      <button
-        onClick={() => setCollapsed(!collapsed)}
-        className="flex items-center justify-center p-3 border-b border-white/10 hover:bg-white/10 transition-colors shrink-0"
-        title={collapsed ? "Expand sidebar" : "Collapse sidebar"}
-      >
-        {collapsed ? (
-          <PanelLeftOpen className="w-4 h-4 text-white/60" />
-        ) : (
-          <PanelLeftClose className="w-4 h-4 text-white/60" />
-        )}
-      </button>
 
-      {/* Nav items */}
-      <div className="flex-1 overflow-y-auto py-2 px-2 space-y-0.5">
+      <aside
+        className={cn(
+          "hidden md:flex flex-col fixed left-4 top-[76px] bottom-4 z-30 glass-sm rounded-2xl transition-all duration-300 overflow-hidden",
+          collapsed ? "w-0 opacity-0 pointer-events-none -left-4" : "w-56 opacity-100"
+        )}
+      >
+        {/* Collapse toggle — top of sidebar */}
+        <button
+          onClick={() => setCollapsed(true)}
+          className="flex items-center justify-center p-3 border-b border-white/10 hover:bg-white/10 transition-colors shrink-0"
+          title="Hide sidebar"
+        >
+          <PanelLeftClose className="w-4 h-4 text-white/60" />
+        </button>
+
+        {/* Nav items */}
+        <div className="flex-1 overflow-y-auto py-2 px-2 space-y-0.5">
         {sideNavItems.map((item) => {
           const Icon = item.icon;
           const active = isItemActive(item);
@@ -243,5 +251,6 @@ export function SideNav() {
         })}
       </div>
     </aside>
+    </>
   );
 }
