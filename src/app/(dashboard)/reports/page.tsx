@@ -23,6 +23,13 @@ import {
   X,
   FileText,
   Printer,
+  Heart,
+  Leaf,
+  Wrench,
+  AlertCircle,
+  ArrowDown,
+  ArrowUp,
+  ChevronRight,
 } from "lucide-react";
 
 // ---------------------------------------------------------------------------
@@ -732,6 +739,72 @@ export default function ReportsPage() {
   };
 
   // ===========================================================================
+  // FARM HEALTH DASHBOARD DATA
+  // ===========================================================================
+  const overallScore = 82;
+  const subScores = [
+    { label: "Herd Health", score: 85, icon: Heart, color: "from-emerald-400 to-emerald-600", bg: "bg-emerald-500" },
+    { label: "Pasture Condition", score: 72, icon: Leaf, color: "from-amber-400 to-amber-600", bg: "bg-amber-500" },
+    { label: "Financial Performance", score: 78, icon: DollarSign, color: "from-blue-400 to-blue-600", bg: "bg-blue-500" },
+    { label: "Biosecurity Compliance", score: 90, icon: ShieldCheck, color: "from-violet-400 to-violet-600", bg: "bg-violet-500" },
+    { label: "Infrastructure", score: 68, icon: Wrench, color: "from-orange-400 to-orange-600", bg: "bg-orange-500" },
+  ];
+
+  const keyMetrics = [
+    { label: "Mortality Rate", value: "1.2%", trend: "down" as const, trendGood: true, badge: null },
+    { label: "Calving Rate", value: "92%", trend: null, trendGood: true, badge: "Excellent" },
+    { label: "Avg Daily Gain", value: "0.85 kg/d", trend: "up" as const, trendGood: true, badge: null },
+    { label: "Feed Conversion", value: "7.2:1", trend: null, trendGood: true, badge: null },
+    { label: "Days to Market", value: "420 days", trend: "down" as const, trendGood: true, badge: null },
+    { label: "Revenue/Head", value: "$2,271", trend: "up" as const, trendGood: true, badge: null },
+  ];
+
+  const alerts = [
+    { text: "2 animals overdue for vaccination", priority: "High" as const, color: "bg-red-500/20 text-red-300 border-red-500/30" },
+    { text: "Back Block paddock below minimum biomass", priority: "Medium" as const, color: "bg-amber-500/20 text-amber-300 border-amber-500/30" },
+    { text: "3 fence sections need repair", priority: "Medium" as const, color: "bg-amber-500/20 text-amber-300 border-amber-500/30" },
+    { text: "Annual biosecurity plan review due in 14 days", priority: "Low" as const, color: "bg-blue-500/20 text-blue-300 border-blue-500/30" },
+  ];
+
+  // Sparkline data (6 months, normalised 0-1)
+  const trendData = {
+    weightGain: [0.3, 0.4, 0.45, 0.55, 0.7, 0.85],   // trending up
+    mortality:  [0.8, 0.7, 0.55, 0.4, 0.25, 0.15],     // trending down (good)
+    nyciPrice:  [0.2, 0.35, 0.3, 0.5, 0.65, 0.8],      // trending up
+  };
+
+  // Circular gauge helpers
+  const gaugeRadius = 70;
+  const gaugeStroke = 10;
+  const gaugeCircumference = 2 * Math.PI * gaugeRadius;
+  const gaugeArc = gaugeCircumference * 0.75; // 270 degree arc
+  const gaugeDashOffset = gaugeArc - (gaugeArc * overallScore) / 100;
+  const gaugeRotation = 135; // start from bottom-left
+
+  function getScoreLabel(score: number) {
+    if (score >= 90) return { text: "Excellent", color: "text-emerald-400" };
+    if (score >= 75) return { text: "Good", color: "text-emerald-400" };
+    if (score >= 60) return { text: "Fair", color: "text-amber-400" };
+    return { text: "Needs Attention", color: "text-red-400" };
+  }
+
+  const scoreLabel = getScoreLabel(overallScore);
+
+  function Sparkline({ data, color }: { data: number[]; color: string }) {
+    return (
+      <div className="flex items-end gap-[3px] h-6">
+        {data.map((v, i) => (
+          <div
+            key={i}
+            className={`w-[5px] rounded-full ${color} transition-all duration-300`}
+            style={{ height: `${Math.max(v * 100, 8)}%`, opacity: 0.4 + v * 0.6 }}
+          />
+        ))}
+      </div>
+    );
+  }
+
+  // ===========================================================================
   // RENDER
   // ===========================================================================
   return (
@@ -747,6 +820,181 @@ export default function ReportsPage() {
             Generate and download professional farm reports
           </p>
         </div>
+
+        {/* ================================================================= */}
+        {/* FARM HEALTH DASHBOARD                                             */}
+        {/* ================================================================= */}
+        <div className="animate-fade-in-up" style={{ animationDelay: "50ms" }}>
+          <GlassCard>
+            <div className="flex items-center gap-2 mb-6">
+              <div className="w-8 h-8 rounded-lg bg-emerald-500/20 flex items-center justify-center">
+                <Heart className="w-4 h-4 text-emerald-400" />
+              </div>
+              <h2 className="text-lg font-semibold text-white">Farm Health Dashboard</h2>
+              <GlassBadge variant="success">Live</GlassBadge>
+            </div>
+
+            {/* Score Gauge + Sub-scores row */}
+            <div className="flex flex-col lg:flex-row gap-8 mb-8">
+              {/* Circular Gauge */}
+              <div className="flex flex-col items-center justify-center flex-shrink-0">
+                <div className="relative w-[180px] h-[180px]">
+                  <svg viewBox="0 0 160 160" className="w-full h-full">
+                    <defs>
+                      <linearGradient id="healthGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+                        <stop offset="0%" stopColor="#34d399" />
+                        <stop offset="50%" stopColor="#3b82f6" />
+                        <stop offset="100%" stopColor="#8b5cf6" />
+                      </linearGradient>
+                    </defs>
+                    {/* Background arc */}
+                    <circle
+                      cx="80" cy="80" r={gaugeRadius}
+                      fill="none"
+                      stroke="rgba(255,255,255,0.08)"
+                      strokeWidth={gaugeStroke}
+                      strokeDasharray={`${gaugeArc} ${gaugeCircumference - gaugeArc}`}
+                      strokeLinecap="round"
+                      transform={`rotate(${gaugeRotation} 80 80)`}
+                    />
+                    {/* Score arc */}
+                    <circle
+                      cx="80" cy="80" r={gaugeRadius}
+                      fill="none"
+                      stroke="url(#healthGradient)"
+                      strokeWidth={gaugeStroke}
+                      strokeDasharray={gaugeArc}
+                      strokeDashoffset={gaugeDashOffset}
+                      strokeLinecap="round"
+                      transform={`rotate(${gaugeRotation} 80 80)`}
+                      className="transition-all duration-1000"
+                    />
+                  </svg>
+                  {/* Center text */}
+                  <div className="absolute inset-0 flex flex-col items-center justify-center">
+                    <span className="text-4xl font-bold text-white">{overallScore}</span>
+                    <span className="text-xs text-white/40 -mt-0.5">/ 100</span>
+                    <span className={`text-sm font-semibold mt-1 ${scoreLabel.color}`}>{scoreLabel.text}</span>
+                  </div>
+                </div>
+                <p className="text-xs text-white/40 mt-2 text-center">Overall Farm Health Score</p>
+              </div>
+
+              {/* Sub-score bars */}
+              <div className="flex-1 space-y-4 justify-center flex flex-col">
+                {subScores.map((s) => (
+                  <div key={s.label}>
+                    <div className="flex items-center justify-between mb-1.5">
+                      <div className="flex items-center gap-2">
+                        <s.icon className="w-3.5 h-3.5 text-white/50" />
+                        <span className="text-sm text-white/80">{s.label}</span>
+                      </div>
+                      <span className="text-sm font-semibold text-white">{s.score}<span className="text-white/40 font-normal">/100</span></span>
+                    </div>
+                    <div className="h-2 w-full rounded-full bg-white/10 overflow-hidden">
+                      <div
+                        className={`h-full rounded-full bg-gradient-to-r ${s.color} transition-all duration-700`}
+                        style={{ width: `${s.score}%` }}
+                      />
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            {/* Key Metrics Row */}
+            <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3 mb-8">
+              {keyMetrics.map((m) => (
+                <div
+                  key={m.label}
+                  className="rounded-xl bg-white/[0.06] backdrop-blur-sm border border-white/[0.08] p-3 text-center"
+                >
+                  <p className="text-[11px] text-white/40 mb-1 truncate">{m.label}</p>
+                  <p className="text-lg font-bold text-white">{m.value}</p>
+                  <div className="flex items-center justify-center gap-1 mt-1">
+                    {m.trend === "down" && (
+                      <ArrowDown className={`w-3 h-3 ${m.trendGood ? "text-emerald-400" : "text-red-400"}`} />
+                    )}
+                    {m.trend === "up" && (
+                      <ArrowUp className={`w-3 h-3 ${m.trendGood ? "text-emerald-400" : "text-red-400"}`} />
+                    )}
+                    {m.badge && (
+                      <span className="text-[10px] font-semibold bg-emerald-500/20 text-emerald-300 px-1.5 py-0.5 rounded-full border border-emerald-500/20">
+                        {m.badge}
+                      </span>
+                    )}
+                  </div>
+                </div>
+              ))}
+            </div>
+
+            {/* Alerts & Actions + Trend Indicators side by side */}
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+              {/* Alerts & Actions */}
+              <div className="lg:col-span-2">
+                <h3 className="text-sm font-semibold text-white/60 uppercase tracking-wider mb-3">Alerts & Actions</h3>
+                <div className="space-y-2">
+                  {alerts.map((a, i) => (
+                    <div
+                      key={i}
+                      className="flex items-center gap-3 rounded-xl bg-white/[0.04] border border-white/[0.06] px-4 py-3 hover:bg-white/[0.07] transition-colors"
+                    >
+                      <AlertCircle className={`w-4 h-4 flex-shrink-0 ${
+                        a.priority === "High" ? "text-red-400" : a.priority === "Medium" ? "text-amber-400" : "text-blue-400"
+                      }`} />
+                      <span className="text-sm text-white/80 flex-1">{a.text}</span>
+                      <span className={`text-[10px] font-semibold px-2 py-0.5 rounded-full border ${a.color}`}>
+                        {a.priority}
+                      </span>
+                      <ChevronRight className="w-4 h-4 text-white/20" />
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              {/* Trend Indicators */}
+              <div>
+                <h3 className="text-sm font-semibold text-white/60 uppercase tracking-wider mb-3">6-Month Trends</h3>
+                <div className="space-y-4">
+                  <div className="rounded-xl bg-white/[0.04] border border-white/[0.06] p-4">
+                    <div className="flex items-center justify-between mb-2">
+                      <span className="text-xs text-white/50">Weight Gain</span>
+                      <div className="flex items-center gap-1">
+                        <ArrowUp className="w-3 h-3 text-emerald-400" />
+                        <span className="text-[10px] text-emerald-400 font-semibold">Trending Up</span>
+                      </div>
+                    </div>
+                    <Sparkline data={trendData.weightGain} color="bg-emerald-400" />
+                  </div>
+                  <div className="rounded-xl bg-white/[0.04] border border-white/[0.06] p-4">
+                    <div className="flex items-center justify-between mb-2">
+                      <span className="text-xs text-white/50">Mortality Rate</span>
+                      <div className="flex items-center gap-1">
+                        <ArrowDown className="w-3 h-3 text-emerald-400" />
+                        <span className="text-[10px] text-emerald-400 font-semibold">Trending Down</span>
+                      </div>
+                    </div>
+                    <Sparkline data={trendData.mortality} color="bg-blue-400" />
+                  </div>
+                  <div className="rounded-xl bg-white/[0.04] border border-white/[0.06] p-4">
+                    <div className="flex items-center justify-between mb-2">
+                      <span className="text-xs text-white/50">NYCI Price</span>
+                      <div className="flex items-center gap-1">
+                        <ArrowUp className="w-3 h-3 text-emerald-400" />
+                        <span className="text-[10px] text-emerald-400 font-semibold">Trending Up</span>
+                      </div>
+                    </div>
+                    <Sparkline data={trendData.nyciPrice} color="bg-violet-400" />
+                  </div>
+                </div>
+              </div>
+            </div>
+          </GlassCard>
+        </div>
+
+        {/* ================================================================= */}
+        {/* REPORT CARDS                                                      */}
+        {/* ================================================================= */}
 
         {/* Report type cards */}
         <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">

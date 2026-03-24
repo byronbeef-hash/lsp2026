@@ -315,11 +315,11 @@ function GreetingWidget() {
   return (
     <div className="animate-fade-in-up">
       <div className="flex flex-col sm:flex-row sm:items-end sm:justify-between gap-4">
-        <div>
+        <div className="flex items-baseline justify-between w-full sm:w-auto sm:gap-6">
           <h1 className="text-2xl md:text-3xl font-bold text-white">
-            {getGreeting()}
+            {getGreeting()}, Brad
           </h1>
-          <p className="text-white/50 mt-1">{formatDate(new Date())}</p>
+          <p className="text-white/50 text-sm md:text-base whitespace-nowrap">{formatDate(new Date())}</p>
         </div>
         <div className="flex items-center gap-3">
           <div className="flex items-center gap-4 glass-sm px-4 py-2.5">
