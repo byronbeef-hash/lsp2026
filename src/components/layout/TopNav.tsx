@@ -77,6 +77,7 @@ export function TopNav() {
   const [brightness, setBrightness] = useState(100);
   const [customColor, setCustomColor] = useState("#000040");
   const [showColorPicker, setShowColorPicker] = useState(false);
+  const [glassOpacity, setGlassOpacity] = useState(70);
   const profileRef = useRef<HTMLDivElement>(null);
   const megaMenuRef = useRef<HTMLDivElement>(null);
   const themeRef = useRef<HTMLDivElement>(null);
@@ -98,7 +99,26 @@ export function TopNav() {
     if (savedColor) {
       setCustomColor(savedColor);
     }
+    const savedOpacity = localStorage.getItem("lsp-glass-opacity");
+    if (savedOpacity) {
+      const val = parseInt(savedOpacity);
+      setGlassOpacity(val);
+      applyGlassOpacity(val);
+    }
   }, []);
+
+  const applyGlassOpacity = (val: number) => {
+    const opacity = val / 100;
+    document.documentElement.style.setProperty("--glass-bg", `rgba(0, 0, 40, ${opacity})`);
+    document.documentElement.style.setProperty("--glass-bg-hover", `rgba(0, 0, 50, ${Math.min(opacity + 0.1, 1)})`);
+    document.documentElement.style.setProperty("--glass-bg-active", `rgba(0, 0, 60, ${Math.min(opacity + 0.15, 1)})`);
+  };
+
+  const handleGlassOpacity = (val: number) => {
+    setGlassOpacity(val);
+    applyGlassOpacity(val);
+    localStorage.setItem("lsp-glass-opacity", String(val));
+  };
 
   const applyCustomColor = (color: string) => {
     setCustomColor(color);
@@ -264,6 +284,35 @@ export function TopNav() {
                   </div>
                 </div>
 
+                {/* Panel Opacity slider */}
+                <div className="px-3 py-2">
+                  <div className="flex items-center justify-between mb-2">
+                    <span className="text-xs text-white/50">Panel Opacity</span>
+                    <span className="text-xs text-white/70 font-medium">{glassOpacity}%</span>
+                  </div>
+                  <input
+                    type="range"
+                    min="20"
+                    max="100"
+                    value={glassOpacity}
+                    onChange={(e) => handleGlassOpacity(parseInt(e.target.value))}
+                    className="w-full h-1.5 rounded-full appearance-none cursor-pointer"
+                    style={{
+                      background: `linear-gradient(to right, rgba(255,255,255,0.3) 0%, rgba(255,255,255,0.3) ${((glassOpacity - 20) / 80) * 100}%, rgba(255,255,255,0.1) ${((glassOpacity - 20) / 80) * 100}%, rgba(255,255,255,0.1) 100%)`,
+                    }}
+                  />
+                  <div className="flex justify-between mt-1">
+                    <span className="text-[10px] text-white/30">Glass</span>
+                    <button
+                      onClick={() => handleGlassOpacity(70)}
+                      className="text-[10px] text-white/50 hover:text-white/80"
+                    >
+                      Reset
+                    </button>
+                    <span className="text-[10px] text-white/30">Solid</span>
+                  </div>
+                </div>
+
                 {/* Divider */}
                 <div className="border-t border-white/10 my-2" />
 
@@ -422,7 +471,7 @@ export function TopNav() {
 
       {/* Mega Menu — slides down below nav */}
       {megaMenuOpen && (
-        <div className="glass-nav mt-2 px-4 lg:px-6 py-4 animate-fade-in-up">
+        <div className="mt-2 px-4 lg:px-6 py-4 animate-fade-in-up rounded-2xl" style={{ background: "rgba(0, 0, 40, 0.95)", backdropFilter: "blur(20px)", border: "1px solid rgba(255,255,255,0.1)" }}>
           <div className="grid grid-cols-4 lg:grid-cols-6 gap-2">
             {megaMenuItems.map((item) => {
               const Icon = item.icon;

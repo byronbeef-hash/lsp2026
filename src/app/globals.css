@@ -18,9 +18,9 @@
   --chart-bar-fill: rgba(0, 0, 200, 0.6);
 
   /* Glass Tokens */
-  --glass-bg: rgba(255, 255, 255, 0.12);
-  --glass-bg-hover: rgba(255, 255, 255, 0.18);
-  --glass-bg-active: rgba(255, 255, 255, 0.24);
+  --glass-bg: rgba(0, 0, 40, 0.7);
+  --glass-bg-hover: rgba(0, 0, 50, 0.8);
+  --glass-bg-active: rgba(0, 0, 60, 0.85);
   --glass-border: rgba(255, 255, 255, 0.18);
   --glass-border-hover: rgba(255, 255, 255, 0.3);
   --glass-blur: 16px;
@@ -228,7 +228,7 @@ body {
 }
 
 .glass-nav {
-  background: rgba(255, 255, 255, 0.15);
+  background: rgba(0, 0, 40, 0.85);
   backdrop-filter: blur(20px);
   -webkit-backdrop-filter: blur(20px);
   border: 1px solid rgba(255, 255, 255, 0.2);
