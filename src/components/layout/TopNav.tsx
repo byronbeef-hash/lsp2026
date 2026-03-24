@@ -223,8 +223,8 @@ export function TopNav() {
             {profileOpen && (
               <div className="absolute right-0 mt-2 w-56 glass-sm p-2 animate-fade-in-up">
                 <div className="px-3 py-2 mb-1 border-b border-white/10">
-                  <p className="text-sm font-medium text-white">Tim Dickinson</p>
-                  <p className="text-xs text-white/50">tim@livestock.com.au</p>
+                  <p className="text-sm font-medium text-white">Demo User</p>
+                  <p className="text-xs text-white/50">info@agrieid.com</p>
                 </div>
                 <Link
                   href="/settings"

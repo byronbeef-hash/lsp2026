@@ -321,7 +321,7 @@ function GreetingWidget() {
       <div className="flex flex-col sm:flex-row sm:items-end sm:justify-between gap-4">
         <div>
           <h1 className="text-2xl md:text-3xl font-bold text-white">
-            {getGreeting()}, Tim
+            {getGreeting()}
           </h1>
           <p className="text-white/50 mt-1">{formatDate(new Date())}</p>
         </div>
