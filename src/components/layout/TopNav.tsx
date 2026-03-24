@@ -32,6 +32,8 @@ import {
   Sparkles,
   RotateCw,
   X,
+  Sun,
+  Moon,
 } from "lucide-react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
@@ -70,8 +72,25 @@ export function TopNav() {
   const pathname = usePathname();
   const [profileOpen, setProfileOpen] = useState(false);
   const [megaMenuOpen, setMegaMenuOpen] = useState(false);
+  const [theme, setTheme] = useState<"dark" | "light">("dark");
   const profileRef = useRef<HTMLDivElement>(null);
   const megaMenuRef = useRef<HTMLDivElement>(null);
+
+  // Load theme from localStorage on mount
+  useEffect(() => {
+    const saved = localStorage.getItem("lsp-theme") as "dark" | "light" | null;
+    if (saved) {
+      setTheme(saved);
+      document.documentElement.setAttribute("data-theme", saved);
+    }
+  }, []);
+
+  const toggleTheme = () => {
+    const next = theme === "dark" ? "light" : "dark";
+    setTheme(next);
+    document.documentElement.setAttribute("data-theme", next);
+    localStorage.setItem("lsp-theme", next);
+  };
 
   // Close dropdowns when clicking outside
   useEffect(() => {
@@ -138,6 +157,20 @@ export function TopNav() {
               <Settings2 className="w-5 h-5 text-white/70" />
             </button>
           )}
+
+          {/* Theme Toggle */}
+          <button
+            onClick={toggleTheme}
+            className="p-2 rounded-xl transition-colors hover:bg-white/10"
+            aria-label={theme === "dark" ? "Switch to light mode" : "Switch to dark mode"}
+            title={theme === "dark" ? "Light mode" : "Dark mode"}
+          >
+            {theme === "dark" ? (
+              <Sun className="w-5 h-5 text-amber-300/80" />
+            ) : (
+              <Moon className="w-5 h-5 text-indigo-500/80" />
+            )}
+          </button>
 
           {/* More Mega Menu Toggle */}
           <button

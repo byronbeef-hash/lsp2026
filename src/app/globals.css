@@ -52,6 +52,94 @@
   --color-accent: var(--brand-yellow);
 }
 
+/* ─── LIGHT / NEUTRAL THEME ──────────────────────────────── */
+
+[data-theme="light"] {
+  --glass-bg: rgba(0, 0, 0, 0.05);
+  --glass-bg-hover: rgba(0, 0, 0, 0.08);
+  --glass-bg-active: rgba(0, 0, 0, 0.12);
+  --glass-border: rgba(0, 0, 0, 0.1);
+  --glass-border-hover: rgba(0, 0, 0, 0.18);
+  --glass-shadow: 0 4px 24px rgba(0, 0, 0, 0.06);
+  --glass-shadow-lg: 0 8px 32px rgba(0, 0, 0, 0.1);
+  --glass-highlight: inset 0 1px 0 rgba(255, 255, 255, 0.6);
+  --glass-highlight-strong: inset 0 1px 0 rgba(255, 255, 255, 0.8);
+
+  --text-primary: rgba(0, 0, 0, 0.88);
+  --text-secondary: rgba(0, 0, 0, 0.6);
+  --text-tertiary: rgba(0, 0, 0, 0.4);
+  --text-on-glass: rgba(0, 0, 0, 0.85);
+  --text-heading: #1a1a1a;
+
+  --bg-gradient: linear-gradient(135deg, #f5f0e8 0%, #ede6d8 30%, #e8e0d0 60%, #f0e8da 100%);
+  --bg-gradient-dark: linear-gradient(135deg, #ece5d5 0%, #e5dcc8 50%, #ece5d5 100%);
+}
+
+[data-theme="light"] body {
+  background: var(--bg-gradient);
+}
+
+[data-theme="light"] .glass-nav {
+  background: rgba(255, 255, 255, 0.7);
+  border: 1px solid rgba(0, 0, 0, 0.08);
+}
+
+[data-theme="light"] .glass-sm {
+  background: rgba(255, 255, 255, 0.5);
+  border: 1px solid rgba(0, 0, 0, 0.08);
+}
+
+[data-theme="light"] .glass {
+  background: rgba(255, 255, 255, 0.5);
+  border: 1px solid rgba(0, 0, 0, 0.08);
+}
+
+[data-theme="light"] .glass-input {
+  background: rgba(255, 255, 255, 0.6);
+  border: 1px solid rgba(0, 0, 0, 0.12);
+  color: var(--text-primary);
+}
+
+[data-theme="light"] .glass-input:focus {
+  border-color: rgba(0, 0, 0, 0.25);
+  box-shadow: 0 0 0 3px rgba(0, 0, 0, 0.08);
+}
+
+[data-theme="light"] .glass-btn {
+  background: rgba(255, 255, 255, 0.6);
+  border: 1px solid rgba(0, 0, 0, 0.1);
+  color: var(--text-primary);
+}
+
+[data-theme="light"] .glass-btn-primary {
+  background: rgba(0, 0, 128, 0.15);
+  border-color: rgba(0, 0, 128, 0.2);
+  color: #000060;
+}
+
+/* Override Tailwind text-white classes in light mode */
+[data-theme="light"] .text-white { color: rgba(0, 0, 0, 0.88); }
+[data-theme="light"] .text-white\/95 { color: rgba(0, 0, 0, 0.85); }
+[data-theme="light"] .text-white\/90 { color: rgba(0, 0, 0, 0.8); }
+[data-theme="light"] .text-white\/80 { color: rgba(0, 0, 0, 0.7); }
+[data-theme="light"] .text-white\/70 { color: rgba(0, 0, 0, 0.6); }
+[data-theme="light"] .text-white\/60 { color: rgba(0, 0, 0, 0.5); }
+[data-theme="light"] .text-white\/50 { color: rgba(0, 0, 0, 0.4); }
+[data-theme="light"] .text-white\/40 { color: rgba(0, 0, 0, 0.35); }
+[data-theme="light"] .text-white\/30 { color: rgba(0, 0, 0, 0.25); }
+
+/* Override bg-white/X classes */
+[data-theme="light"] .bg-white\/5 { background-color: rgba(0, 0, 0, 0.03); }
+[data-theme="light"] .bg-white\/8 { background-color: rgba(0, 0, 0, 0.04); }
+[data-theme="light"] .bg-white\/10 { background-color: rgba(0, 0, 0, 0.05); }
+[data-theme="light"] .bg-white\/15 { background-color: rgba(0, 0, 0, 0.08); }
+[data-theme="light"] .bg-white\/20 { background-color: rgba(0, 0, 0, 0.1); }
+
+/* Border overrides */
+[data-theme="light"] .border-white\/5 { border-color: rgba(0, 0, 0, 0.05); }
+[data-theme="light"] .border-white\/10 { border-color: rgba(0, 0, 0, 0.08); }
+[data-theme="light"] .border-white\/20 { border-color: rgba(0, 0, 0, 0.1); }
+
 /* ─── BASE STYLES ────────────────────────────────────────── */
 
 html {
@@ -66,6 +154,7 @@ body {
   font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Display', 'Segoe UI', system-ui, sans-serif;
   min-height: 100vh;
   overflow-x: hidden;
+  transition: background 0.3s ease, color 0.3s ease;
 }
 
 /* ─── GLASS UTILITIES ────────────────────────────────────── */
