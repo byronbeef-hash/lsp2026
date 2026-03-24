@@ -738,14 +738,14 @@ export default function RecordDetailPage({
                             y1={y}
                             x2="780"
                             y2={y}
-                            stroke="rgba(255,255,255,0.06)"
+                            style={{ stroke: "var(--chart-grid)" }}
                             strokeWidth="1"
                           />
                           <text
                             x="52"
                             y={y + 4}
                             textAnchor="end"
-                            fill="rgba(255,255,255,0.3)"
+                            style={{ fill: "var(--chart-text-muted)" }}
                             fontSize="10"
                           >
                             {val}
@@ -841,7 +841,7 @@ export default function RecordDetailPage({
                             cy={y}
                             r="5"
                             fill={dotColor}
-                            stroke="#000030"
+                            style={{ stroke: "var(--chart-dot-stroke)" }}
                             strokeWidth="2"
                           />
                           {/* Weight label above dot */}
@@ -849,7 +849,7 @@ export default function RecordDetailPage({
                             x={x}
                             y={y - 12}
                             textAnchor="middle"
-                            fill="white"
+                            style={{ fill: "var(--chart-text)" }}
                             fontSize="10"
                             fontWeight="600"
                           >
@@ -873,7 +873,7 @@ export default function RecordDetailPage({
                             x={x}
                             y={282}
                             textAnchor="middle"
-                            fill="rgba(255,255,255,0.3)"
+                            style={{ fill: "var(--chart-text-muted)" }}
                             fontSize="9"
                           >
                             {new Date(entry.date).toLocaleDateString(
@@ -890,7 +890,7 @@ export default function RecordDetailPage({
                       x="10"
                       y="150"
                       textAnchor="middle"
-                      fill="rgba(255,255,255,0.2)"
+                      style={{ fill: "var(--chart-text-muted)" }}
                       fontSize="9"
                       transform="rotate(-90, 10, 150)"
                     >

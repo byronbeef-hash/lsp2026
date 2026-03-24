@@ -252,13 +252,9 @@ function WeightChart() {
             <span className="text-xs text-white/70 font-medium">{item.avg_weight}</span>
             <div className="w-full flex items-end justify-center" style={{ height: "100px" }}>
               <div
-                className="w-full max-w-[40px] rounded-t-lg transition-all duration-500"
+                className={`w-full max-w-[40px] rounded-t-lg transition-all duration-500 ${i === data.length - 1 ? "chart-bar-active" : "chart-bar"}`}
                 style={{
                   height: `${heightPct}%`,
-                  background:
-                    i === data.length - 1
-                      ? "linear-gradient(to top, rgba(0, 0, 128, 0.8), rgba(59, 130, 246, 0.6))"
-                      : "linear-gradient(to top, rgba(255, 255, 255, 0.1), rgba(255, 255, 255, 0.25))",
                   animationDelay: `${i * 100 + 300}ms`,
                 }}
               />

@@ -9,6 +9,14 @@
   --brand-navy-light: #1a40bf;
   --brand-yellow: #FFDE00;
 
+  /* Chart Colors */
+  --chart-text: white;
+  --chart-text-muted: rgba(255, 255, 255, 0.3);
+  --chart-grid: rgba(255, 255, 255, 0.06);
+  --chart-dot-stroke: #000030;
+  --chart-bar-bg: rgba(0, 0, 128, 0.15);
+  --chart-bar-fill: rgba(0, 0, 200, 0.6);
+
   /* Glass Tokens */
   --glass-bg: rgba(255, 255, 255, 0.12);
   --glass-bg-hover: rgba(255, 255, 255, 0.18);
@@ -55,6 +63,13 @@
 /* ─── LIGHT / NEUTRAL THEME ──────────────────────────────── */
 
 [data-theme="light"] {
+  --chart-text: rgba(0, 0, 0, 0.85);
+  --chart-text-muted: rgba(0, 0, 0, 0.35);
+  --chart-grid: rgba(0, 0, 0, 0.08);
+  --chart-dot-stroke: #f5f0e8;
+  --chart-bar-bg: rgba(0, 0, 128, 0.08);
+  --chart-bar-fill: rgba(0, 0, 200, 0.4);
+
   --glass-bg: rgba(0, 0, 0, 0.05);
   --glass-bg-hover: rgba(0, 0, 0, 0.08);
   --glass-bg-active: rgba(0, 0, 0, 0.12);
@@ -139,6 +154,38 @@
 [data-theme="light"] .border-white\/5 { border-color: rgba(0, 0, 0, 0.05); }
 [data-theme="light"] .border-white\/10 { border-color: rgba(0, 0, 0, 0.08); }
 [data-theme="light"] .border-white\/20 { border-color: rgba(0, 0, 0, 0.1); }
+
+/* Chart bar classes */
+.chart-bar {
+  background: linear-gradient(to top, rgba(255, 255, 255, 0.1), rgba(255, 255, 255, 0.25));
+}
+.chart-bar-active {
+  background: linear-gradient(to top, rgba(0, 0, 128, 0.8), rgba(59, 130, 246, 0.6));
+}
+[data-theme="light"] .chart-bar {
+  background: linear-gradient(to top, rgba(0, 0, 0, 0.08), rgba(0, 0, 0, 0.15));
+}
+[data-theme="light"] .chart-bar-active {
+  background: linear-gradient(to top, rgba(0, 0, 128, 0.5), rgba(59, 130, 246, 0.35));
+}
+
+/* Light mode SVG chart overrides */
+[data-theme="light"] svg text[fill="white"] { fill: rgba(0, 0, 0, 0.85); }
+[data-theme="light"] svg text[fill="rgba(255,255,255,0.3)"] { fill: rgba(0, 0, 0, 0.35); }
+[data-theme="light"] svg text[fill="rgba(255,255,255,0.2)"] { fill: rgba(0, 0, 0, 0.25); }
+[data-theme="light"] svg line[stroke="rgba(255,255,255,0.06)"] { stroke: rgba(0, 0, 0, 0.08); }
+[data-theme="light"] svg circle[stroke="#000030"] { stroke: #f5f0e8; }
+
+/* Light mode chart bar backgrounds */
+[data-theme="light"] .bg-\[rgb\(0\,0\,128\)\] { background-color: rgba(0, 0, 128, 0.3); }
+[data-theme="light"] .bg-\[\#000050\] { background-color: rgba(0, 0, 80, 0.15); }
+[data-theme="light"] .bg-\[\#000030\] { background-color: rgba(0, 0, 50, 0.1); }
+[data-theme="light"] .bg-\[\#000040\] { background-color: rgba(0, 0, 60, 0.12); }
+
+/* Light mode gradient for dashboard weight bars */
+[data-theme="light"] [style*="background: linear-gradient"] {
+  filter: saturate(0.7) brightness(1.1);
+}
 
 /* ─── BASE STYLES ────────────────────────────────────────── */
 
