@@ -261,6 +261,22 @@ export function DashboardWidgets({ widgets, children }: DashboardWidgetsProps) {
       {/* Edit mode listens for custom event from TopNav */}
       <input type="hidden" id="dashboard-edit-mode" data-active={editMode ? "true" : "false"} />
 
+      {/* ── Edit Mode Bar ────────────────────────────────── */}
+      {editMode && (
+        <div className="flex items-center justify-between mb-4 px-4 py-3 rounded-xl animate-fade-in-up" style={{ background: "rgba(0,0,40,0.9)", border: "1px solid rgba(255,255,255,0.15)" }}>
+          <div className="flex items-center gap-2">
+            <GripVertical className="w-4 h-4 text-white/50" />
+            <span className="text-sm font-semibold text-white/80">Editing Dashboard — drag to reorder, hide or remove widgets</span>
+          </div>
+          <button
+            onClick={() => { setEditMode(false); setTrayOpen(false); }}
+            className="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-emerald-500/20 hover:bg-emerald-500/30 text-emerald-300 text-sm font-semibold border border-emerald-500/30 transition-all duration-200"
+          >
+            ✓ Save & Exit
+          </button>
+        </div>
+      )}
+
       {/* ── Widget List ──────────────────────────────────── */}
       <div className="space-y-6">
         {visibleWidgetOrder.map((widgetId) => {

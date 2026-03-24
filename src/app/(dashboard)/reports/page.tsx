@@ -1012,9 +1012,12 @@ export default function ReportsPage() {
                       ? "ring-2 ring-blue-400/60 bg-white/15"
                       : "hover:bg-white/10"
                   }`}
-                  onClick={() =>
-                    setActiveReport(isActive ? null : card.id)
-                  }
+                  onClick={() => {
+                    setActiveReport(isActive ? null : card.id);
+                    if (!isActive) {
+                      setTimeout(() => reportRef.current?.scrollIntoView({ behavior: "smooth", block: "start" }), 100);
+                    }
+                  }}
                 >
                   <div className="flex items-start gap-3 mb-3">
                     <div
@@ -1062,6 +1065,7 @@ export default function ReportsPage() {
         {/* Inline report display */}
         {activeReport && (
           <div
+            ref={reportRef}
             className="animate-fade-in-up"
             style={{ animationDelay: "100ms" }}
           >
