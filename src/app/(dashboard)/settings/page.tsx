@@ -21,6 +21,7 @@ import {
   CheckCircle2,
   AlertCircle,
   X,
+  HelpCircle,
 } from "lucide-react";
 import { useSettingsStore } from "@/stores/settings";
 import { useRecordsStore } from "@/stores/modules";
@@ -397,6 +398,33 @@ export default function SettingsPage() {
               Update Password
             </GlassButton>
           </div>
+        </GlassCard>
+      </div>
+
+      {/* Product Tour */}
+      <div
+        className="animate-fade-in-up"
+        style={{ animationDelay: "225ms" } as React.CSSProperties}
+      >
+        <GlassCard>
+          <div className="flex items-center gap-2 mb-5">
+            <HelpCircle className="w-5 h-5 text-white/70" />
+            <h2 className="text-lg font-semibold text-white">Product Tour</h2>
+          </div>
+          <p className="text-sm text-white/50 mb-4">
+            Re-launch the guided walkthrough to learn about all features.
+          </p>
+          <GlassButton
+            variant="default"
+            icon={<HelpCircle className="w-4 h-4" />}
+            onClick={() => {
+              localStorage.removeItem("livestock-tour-completed");
+              window.dispatchEvent(new Event("restart-product-tour"));
+              showToast("Product tour restarted — navigate to the Dashboard to begin");
+            }}
+          >
+            Restart Product Tour
+          </GlassButton>
         </GlassCard>
       </div>
 
