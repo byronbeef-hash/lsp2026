@@ -38,7 +38,7 @@ const NAVY_DARK: ThemeSettings = {
   accentColor: "#3b82f6",
   bgGradientStart: "#000040",
   bgGradientEnd: "#000080",
-  glassOpacity: 15,
+  glassOpacity: 70,
   navOpacity: 85,
   chartBarColor: "#0000c8",
   sidebarOpacity: 70,
@@ -62,14 +62,14 @@ const ORIGINAL_BLUE: ThemeSettings = {
   id: "builtin-original-blue",
   name: "Original Blue",
   mode: "dark",
-  primaryColor: "#1a0aaf",
-  accentColor: "#4f46e5",
-  bgGradientStart: "#0c0060",
-  bgGradientEnd: "#1a10c0",
-  glassOpacity: 20,
-  navOpacity: 80,
-  chartBarColor: "#4f46e5",
-  sidebarOpacity: 65,
+  primaryColor: "#000080",
+  accentColor: "#3b82f6",
+  bgGradientStart: "#000040",
+  bgGradientEnd: "#1a40bf",
+  glassOpacity: 70,
+  navOpacity: 85,
+  chartBarColor: "#0000c8",
+  sidebarOpacity: 70,
 };
 
 const MIDNIGHT: ThemeSettings = {
@@ -125,13 +125,20 @@ export function applyThemeToDOM(s: ThemeSettings) {
   root.style.setProperty("--theme-bg-end", s.bgGradientEnd);
 
   if (s.mode === "dark") {
-    document.body.style.background = `linear-gradient(135deg, ${s.bgGradientStart} 0%, ${s.bgGradientEnd} 100%)`;
+    // Rich 4-stop gradient for depth (interpolate a mid-point between start and end)
+    const midR = Math.round((gs.r + ge.r) / 2);
+    const midG = Math.round((gs.g + ge.g) / 2);
+    const midB = Math.round((gs.b + ge.b) / 2);
+    const midHex = `#${midR.toString(16).padStart(2,"0")}${midG.toString(16).padStart(2,"0")}${midB.toString(16).padStart(2,"0")}`;
+    document.body.style.background = `linear-gradient(135deg, ${s.bgGradientStart} 0%, ${midHex} 30%, ${s.bgGradientEnd} 70%, ${s.accentColor}33 100%)`;
 
-    // Glass on dark: use primary tint
+    // Glass on dark: translucent cards with depth
     const glassA = s.glassOpacity / 100;
-    root.style.setProperty("--glass-bg", `rgba(${pc.r},${pc.g},${Math.min(pc.b + 40, 255)},${glassA})`);
-    root.style.setProperty("--glass-bg-hover", `rgba(${pc.r},${pc.g},${Math.min(pc.b + 50, 255)},${Math.min(glassA + 0.1, 1)})`);
-    root.style.setProperty("--glass-bg-active", `rgba(${pc.r},${pc.g},${Math.min(pc.b + 60, 255)},${Math.min(glassA + 0.15, 1)})`);
+    root.style.setProperty("--glass-bg", `rgba(${gs.r},${gs.g},${Math.min(gs.b + 30, 255)},${glassA})`);
+    root.style.setProperty("--glass-bg-hover", `rgba(${gs.r},${gs.g},${Math.min(gs.b + 40, 255)},${Math.min(glassA + 0.08, 1)})`);
+    root.style.setProperty("--glass-bg-active", `rgba(${gs.r},${gs.g},${Math.min(gs.b + 50, 255)},${Math.min(glassA + 0.12, 1)})`);
+    root.style.setProperty("--glass-highlight", `inset 0 1px 0 rgba(255, 255, 255, ${0.15 + glassA * 0.15})`);
+    root.style.setProperty("--glass-shadow", `0 4px 24px rgba(0, 0, 0, ${0.1 + glassA * 0.1})`);
 
     // Nav
     const navA = s.navOpacity / 100;
