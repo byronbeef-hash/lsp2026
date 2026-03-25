@@ -47,16 +47,7 @@ type ReportType =
 // Print CSS  (injected once via <style> in the component)
 // ---------------------------------------------------------------------------
 const PRINT_CSS = `
-:root {
-  --chart-text: rgba(255,255,255,0.9);
-  --chart-text-muted: rgba(255,255,255,0.5);
-}
-@media (prefers-color-scheme: light) {
-  :root {
-    --chart-text: rgba(0,0,0,0.85);
-    --chart-text-muted: rgba(0,0,0,0.5);
-  }
-}
+/* chart text colors set by globals.css and theme store */
 @media print {
   :root {
     --chart-text: rgba(0,0,0,0.85) !important;
@@ -113,8 +104,8 @@ const PRINT_CSS = `
 // Farm details constant
 // ---------------------------------------------------------------------------
 const FARM = {
-  name: "Anderson Road Farm",
-  address: "99 Anderson Rd, Nimbin NSW 2480",
+  name: "Nimbin Station",
+  address: "Nimbin NSW 2480",
   owner: "Tim Dickinson",
   pic: "N0012345",
   phone: "0412 345 678",

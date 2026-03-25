@@ -40,8 +40,8 @@ const defaultProfile: ProfileSettings = {
 };
 
 const defaultFarm: FarmSettings = {
-  farmName: "Anderson Road Farm",
-  location: "99 Anderson Rd, Nimbin NSW 2480",
+  farmName: "Nimbin Station",
+  location: "Nimbin NSW 2480",
   farmSize: "215",
 };
 

@@ -287,14 +287,16 @@ export function TopNav() {
           className="hidden md:block fixed top-[88px] left-4 right-4 z-50 animate-fade-in-up rounded-2xl"
           style={{
             background: current.mode === "dark"
-              ? "rgba(10, 10, 30, 0.96)"
-              : "rgba(255, 255, 255, 0.96)",
-            backdropFilter: "blur(24px)",
-            WebkitBackdropFilter: "blur(24px)",
+              ? "rgba(10, 10, 80, 0.55)"
+              : "rgba(255, 255, 255, 0.85)",
+            backdropFilter: "blur(28px)",
+            WebkitBackdropFilter: "blur(28px)",
             border: current.mode === "dark"
-              ? "1px solid rgba(255,255,255,0.12)"
+              ? "1px solid rgba(255,255,255,0.15)"
               : "1px solid rgba(0,0,0,0.1)",
-            boxShadow: "0 12px 40px rgba(0,0,0,0.25)",
+            boxShadow: current.mode === "dark"
+              ? "0 12px 40px rgba(0,0,0,0.3), inset 0 1px 0 rgba(255,255,255,0.15), inset 0 0 30px rgba(100,100,255,0.05)"
+              : "0 12px 40px rgba(0,0,0,0.15)",
           }}
         >
           <div className="px-4 lg:px-6 py-4">

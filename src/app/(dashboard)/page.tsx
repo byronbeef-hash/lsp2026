@@ -642,7 +642,7 @@ function MapWidget() {
           <div>
             <h2 className="text-lg font-semibold text-white">Property Map</h2>
             <p className="text-xs text-white/50 mt-0.5">
-              99 Anderson Rd, Nimbin NSW 2480 &middot; {paddocks.length} paddocks
+              Nimbin NSW 2480 &middot; {paddocks.length} paddocks
             </p>
           </div>
           <Link

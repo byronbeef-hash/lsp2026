@@ -457,7 +457,7 @@ export const mockMedicalBatches: MedicalBatch[] = [
   },
 ];
 
-// All paddocks centered on 99 Anderson Rd, Nimbin (-28.5841, 153.2482)
+// All paddocks centered on Nimbin (-28.5841, 153.2482)
 export const mockPaddocks: Paddock[] = [
   {
     id: 1, uuid: "pad-001", name: "North Paddock", area_hectares: 45,
@@ -531,7 +531,7 @@ export const mockMapMarkers: MapMarker[] = [
   { id: 1, name: "Main Dam", type: "dam", lat: -28.5855, lng: 153.2475, notes: "Capacity ~2ML, fed by creek" },
   { id: 2, name: "North Trough", type: "trough", lat: -28.5800, lng: 153.2490, notes: "Auto-fill from dam pump" },
   { id: 3, name: "South Trough", type: "trough", lat: -28.5910, lng: 153.2500, notes: "Solar pump from bore" },
-  { id: 4, name: "Main Gate", type: "gate", lat: -28.5841, lng: 153.2482, notes: "Property entrance - 99 Anderson Rd" },
+  { id: 4, name: "Main Gate", type: "gate", lat: -28.5841, lng: 153.2482, notes: "Property entrance - Nimbin" },
   { id: 5, name: "Loading Ramp", type: "yard", lat: -28.5848, lng: 153.2490, notes: "Cattle loading facility" },
   { id: 6, name: "Feed Shed", type: "shed", lat: -28.5843, lng: 153.2478, notes: "Grain & pellet storage" },
   { id: 7, name: "Hay Silo", type: "silo", lat: -28.5850, lng: 153.2470, notes: "Round bale storage" },
@@ -574,7 +574,7 @@ export const mockFenceLines: FenceLine[] = [
 
 export const mockPropertyBoundary: PropertyBoundary = {
   id: 1,
-  name: "Anderson Creek Station",
+  name: "Nimbin Station",
   coordinates: [
     [-28.5760, 153.2350],
     [-28.5760, 153.2640],
@@ -585,7 +585,7 @@ export const mockPropertyBoundary: PropertyBoundary = {
     [-28.5870, 153.2350],
   ],
   area_hectares: 215,
-  address: "99 Anderson Road, Nimbin NSW 2480",
+  address: "Nimbin NSW 2480",
 };
 
 export const mockNotifications: Notification[] = [

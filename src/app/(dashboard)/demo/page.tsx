@@ -472,7 +472,7 @@ function StepMaps() {
         <GlassBadge variant="success" className="mb-3">Maps</GlassBadge>
         <h2 className="text-3xl font-bold text-white">Interactive Property Mapping</h2>
         <p className="text-white/50 mt-2 max-w-lg mx-auto">
-          Centered on your property at Anderson Rd, Nimbin NSW
+          Property map centered on Nimbin NSW
         </p>
       </div>
 

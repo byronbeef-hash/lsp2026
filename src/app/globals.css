@@ -29,12 +29,12 @@
   --chart-bar-bg: rgba(0, 0, 128, 0.15);
   --chart-bar-fill: rgba(0, 0, 200, 0.6);
 
-  /* Glass Tokens */
-  --glass-bg: rgba(0, 0, 40, 0.7);
-  --glass-bg-hover: rgba(0, 0, 50, 0.8);
-  --glass-bg-active: rgba(0, 0, 60, 0.85);
-  --glass-border: rgba(255, 255, 255, 0.18);
-  --glass-border-hover: rgba(255, 255, 255, 0.3);
+  /* Glass Tokens — soft translucent blue */
+  --glass-bg: rgba(10, 10, 80, 0.45);
+  --glass-bg-hover: rgba(15, 15, 90, 0.55);
+  --glass-bg-active: rgba(20, 20, 100, 0.6);
+  --glass-border: rgba(255, 255, 255, 0.15);
+  --glass-border-hover: rgba(255, 255, 255, 0.25);
   --glass-blur: 16px;
   --glass-blur-heavy: 40px;
   --glass-radius: 20px;
@@ -43,8 +43,8 @@
   --glass-radius-pill: 9999px;
   --glass-shadow: 0 4px 24px rgba(0, 0, 0, 0.08);
   --glass-shadow-lg: 0 8px 32px rgba(0, 0, 0, 0.12);
-  --glass-highlight: inset 0 1px 0 rgba(255, 255, 255, 0.25);
-  --glass-highlight-strong: inset 0 1px 0 rgba(255, 255, 255, 0.4);
+  --glass-highlight: inset 0 1px 0 rgba(255, 255, 255, 0.2), inset 0 0 20px rgba(100, 100, 255, 0.05);
+  --glass-highlight-strong: inset 0 1px 0 rgba(255, 255, 255, 0.35), inset 0 0 30px rgba(100, 100, 255, 0.08);
 
   /* Text on glass */
   --text-primary: rgba(255, 255, 255, 0.95);
@@ -227,7 +227,8 @@ body {
   -webkit-backdrop-filter: blur(var(--glass-blur));
   border: 1px solid var(--glass-border);
   border-radius: var(--glass-radius);
-  box-shadow: var(--glass-shadow), var(--glass-highlight);
+  box-shadow: var(--glass-shadow), var(--glass-highlight), inset 0 0 40px rgba(255, 255, 255, 0.03);
+  transition: background 0.2s ease, box-shadow 0.2s ease;
 }
 
 .glass-sm {
@@ -236,7 +237,8 @@ body {
   -webkit-backdrop-filter: blur(var(--glass-blur));
   border: 1px solid var(--glass-border);
   border-radius: var(--glass-radius-sm);
-  box-shadow: var(--glass-shadow), var(--glass-highlight);
+  box-shadow: var(--glass-shadow), var(--glass-highlight), inset 0 0 30px rgba(255, 255, 255, 0.02);
+  transition: background 0.2s ease, box-shadow 0.2s ease;
 }
 
 .glass-nav {

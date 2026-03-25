@@ -39,11 +39,11 @@ const NAVY_DARK: ThemeSettings = {
   accentColor: "#3b82f6",
   bgGradientStart: "#000040",
   bgGradientEnd: "#000080",
-  glassOpacity: 70,
-  glassBlur: 16,
-  navOpacity: 85,
+  glassOpacity: 45,
+  glassBlur: 20,
+  navOpacity: 80,
   chartBarColor: "#0000c8",
-  sidebarOpacity: 70,
+  sidebarOpacity: 60,
 };
 
 const LIGHT_NEUTRAL: ThemeSettings = {
@@ -65,15 +65,15 @@ const ORIGINAL_BLUE: ThemeSettings = {
   id: "builtin-original-blue",
   name: "Original Blue",
   mode: "dark",
-  primaryColor: "#000080",
-  accentColor: "#3b82f6",
-  bgGradientStart: "#000040",
-  bgGradientEnd: "#1a40bf",
-  glassOpacity: 70,
-  glassBlur: 20,
-  navOpacity: 85,
-  chartBarColor: "#0000c8",
-  sidebarOpacity: 70,
+  primaryColor: "#1a1aaf",
+  accentColor: "#4f7cff",
+  bgGradientStart: "#0a0a60",
+  bgGradientEnd: "#2040c0",
+  glassOpacity: 40,
+  glassBlur: 24,
+  navOpacity: 75,
+  chartBarColor: "#4f7cff",
+  sidebarOpacity: 55,
 };
 
 const MIDNIGHT: ThemeSettings = {
@@ -137,13 +137,18 @@ export function applyThemeToDOM(s: ThemeSettings) {
     const midHex = `#${midR.toString(16).padStart(2,"0")}${midG.toString(16).padStart(2,"0")}${midB.toString(16).padStart(2,"0")}`;
     document.body.style.background = `linear-gradient(135deg, ${s.bgGradientStart} 0%, ${midHex} 30%, ${s.bgGradientEnd} 70%, ${s.accentColor}33 100%)`;
 
-    // Glass on dark: translucent cards with depth
+    // Glass on dark: soft translucent cards with liquid glass feel
     const glassA = s.glassOpacity / 100;
-    root.style.setProperty("--glass-bg", `rgba(${gs.r},${gs.g},${Math.min(gs.b + 30, 255)},${glassA})`);
-    root.style.setProperty("--glass-bg-hover", `rgba(${gs.r},${gs.g},${Math.min(gs.b + 40, 255)},${Math.min(glassA + 0.08, 1)})`);
-    root.style.setProperty("--glass-bg-active", `rgba(${gs.r},${gs.g},${Math.min(gs.b + 50, 255)},${Math.min(glassA + 0.12, 1)})`);
-    root.style.setProperty("--glass-highlight", `inset 0 1px 0 rgba(255, 255, 255, ${0.15 + glassA * 0.15})`);
-    root.style.setProperty("--glass-shadow", `0 4px 24px rgba(0, 0, 0, ${0.1 + glassA * 0.1})`);
+    // Use a lighter shade of the gradient for cards (shift toward blue/lighter)
+    const cardR = Math.min(gs.r + 10, 255);
+    const cardG = Math.min(gs.g + 10, 255);
+    const cardB = Math.min(gs.b + 40, 255);
+    root.style.setProperty("--glass-bg", `rgba(${cardR},${cardG},${cardB},${glassA})`);
+    root.style.setProperty("--glass-bg-hover", `rgba(${cardR},${cardG},${Math.min(cardB + 10, 255)},${Math.min(glassA + 0.08, 1)})`);
+    root.style.setProperty("--glass-bg-active", `rgba(${cardR},${cardG},${Math.min(cardB + 20, 255)},${Math.min(glassA + 0.12, 1)})`);
+    root.style.setProperty("--glass-border", `rgba(255, 255, 255, ${0.1 + glassA * 0.1})`);
+    root.style.setProperty("--glass-highlight", `inset 0 1px 0 rgba(255, 255, 255, ${0.15 + glassA * 0.12}), inset 0 0 20px rgba(100, 100, 255, ${0.03 + glassA * 0.03})`);
+    root.style.setProperty("--glass-shadow", `0 4px 24px rgba(0, 0, 0, ${0.08 + glassA * 0.08})`);
     root.style.setProperty("--glass-blur", `${s.glassBlur}px`);
     root.style.setProperty("--glass-blur-heavy", `${Math.round(s.glassBlur * 2.5)}px`);
 
