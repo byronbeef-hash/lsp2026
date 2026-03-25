@@ -35,15 +35,15 @@ const NAVY_DARK: ThemeSettings = {
   id: "builtin-navy-dark",
   name: "Navy Dark",
   mode: "dark",
-  primaryColor: "#000080",
-  accentColor: "#3b82f6",
-  bgGradientStart: "#000040",
-  bgGradientEnd: "#000080",
-  glassOpacity: 45,
-  glassBlur: 20,
-  navOpacity: 80,
-  chartBarColor: "#0000c8",
-  sidebarOpacity: 60,
+  primaryColor: "#1a20a0",
+  accentColor: "#4f8cff",
+  bgGradientStart: "#0a0a5c",
+  bgGradientEnd: "#2a50c8",
+  glassOpacity: 28,
+  glassBlur: 24,
+  navOpacity: 70,
+  chartBarColor: "#4f8cff",
+  sidebarOpacity: 50,
 };
 
 const LIGHT_NEUTRAL: ThemeSettings = {
@@ -65,15 +65,15 @@ const ORIGINAL_BLUE: ThemeSettings = {
   id: "builtin-original-blue",
   name: "Original Blue",
   mode: "dark",
-  primaryColor: "#1a1aaf",
-  accentColor: "#4f7cff",
-  bgGradientStart: "#0a0a60",
-  bgGradientEnd: "#2040c0",
-  glassOpacity: 40,
-  glassBlur: 24,
-  navOpacity: 75,
-  chartBarColor: "#4f7cff",
-  sidebarOpacity: 55,
+  primaryColor: "#2030b0",
+  accentColor: "#5a90ff",
+  bgGradientStart: "#101080",
+  bgGradientEnd: "#3060d0",
+  glassOpacity: 25,
+  glassBlur: 28,
+  navOpacity: 65,
+  chartBarColor: "#5a90ff",
+  sidebarOpacity: 45,
 };
 
 const MIDNIGHT: ThemeSettings = {
@@ -137,18 +137,18 @@ export function applyThemeToDOM(s: ThemeSettings) {
     const midHex = `#${midR.toString(16).padStart(2,"0")}${midG.toString(16).padStart(2,"0")}${midB.toString(16).padStart(2,"0")}`;
     document.body.style.background = `linear-gradient(135deg, ${s.bgGradientStart} 0%, ${midHex} 30%, ${s.bgGradientEnd} 70%, ${s.accentColor}33 100%)`;
 
-    // Glass on dark: soft translucent cards with liquid glass feel
+    // Glass on dark: light translucent liquid glass cards
     const glassA = s.glassOpacity / 100;
-    // Use a lighter shade of the gradient for cards (shift toward blue/lighter)
-    const cardR = Math.min(gs.r + 10, 255);
-    const cardG = Math.min(gs.g + 10, 255);
-    const cardB = Math.min(gs.b + 40, 255);
+    // Lighter blue-white tint for frosted glass feel
+    const cardR = Math.min(gs.r + 25, 60);
+    const cardG = Math.min(gs.g + 30, 70);
+    const cardB = Math.min(gs.b + 60, 200);
     root.style.setProperty("--glass-bg", `rgba(${cardR},${cardG},${cardB},${glassA})`);
-    root.style.setProperty("--glass-bg-hover", `rgba(${cardR},${cardG},${Math.min(cardB + 10, 255)},${Math.min(glassA + 0.08, 1)})`);
-    root.style.setProperty("--glass-bg-active", `rgba(${cardR},${cardG},${Math.min(cardB + 20, 255)},${Math.min(glassA + 0.12, 1)})`);
-    root.style.setProperty("--glass-border", `rgba(255, 255, 255, ${0.1 + glassA * 0.1})`);
-    root.style.setProperty("--glass-highlight", `inset 0 1px 0 rgba(255, 255, 255, ${0.15 + glassA * 0.12}), inset 0 0 20px rgba(100, 100, 255, ${0.03 + glassA * 0.03})`);
-    root.style.setProperty("--glass-shadow", `0 4px 24px rgba(0, 0, 0, ${0.08 + glassA * 0.08})`);
+    root.style.setProperty("--glass-bg-hover", `rgba(${cardR + 5},${cardG + 5},${Math.min(cardB + 15, 220)},${Math.min(glassA + 0.06, 1)})`);
+    root.style.setProperty("--glass-bg-active", `rgba(${cardR + 10},${cardG + 10},${Math.min(cardB + 25, 230)},${Math.min(glassA + 0.1, 1)})`);
+    root.style.setProperty("--glass-border", `rgba(255, 255, 255, ${0.08 + glassA * 0.12})`);
+    root.style.setProperty("--glass-highlight", `inset 0 1px 0 rgba(255, 255, 255, ${0.12 + glassA * 0.15}), inset 0 -1px 0 rgba(0, 0, 0, ${0.05 + glassA * 0.05}), inset 0 0 30px rgba(120, 140, 255, ${0.04 + glassA * 0.04})`);
+    root.style.setProperty("--glass-shadow", `0 4px 24px rgba(0, 0, 0, ${0.06 + glassA * 0.06})`);
     root.style.setProperty("--glass-blur", `${s.glassBlur}px`);
     root.style.setProperty("--glass-blur-heavy", `${Math.round(s.glassBlur * 2.5)}px`);
 
