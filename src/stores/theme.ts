@@ -259,42 +259,50 @@ export function applyThemeToDOM(s: ThemeSettings) {
     const chartA = (s.chartSectionOpacity ?? 32) / 100;
     root.style.setProperty("--theme-chart-section-bg", `rgba(${cardR},${cardG},${cardB},${chartA})`);
   } else {
-    // Light mode
-    document.body.style.background = `linear-gradient(135deg, ${s.bgGradientStart} 0%, ${s.bgGradientEnd} 100%)`;
+    // Light mode — gradient background with frosted glass cards
+    const midR = Math.round((gs.r + ge.r) / 2);
+    const midG = Math.round((gs.g + ge.g) / 2);
+    const midB = Math.round((gs.b + ge.b) / 2);
+    const midHex = `#${midR.toString(16).padStart(2,"0")}${midG.toString(16).padStart(2,"0")}${midB.toString(16).padStart(2,"0")}`;
+    document.body.style.background = `linear-gradient(135deg, ${s.bgGradientStart} 0%, ${midHex} 40%, ${s.bgGradientEnd} 100%)`;
 
+    // Glass cards: use white with alpha = opacity slider value
+    // Higher opacity = more solid frosted white, lower = more background visible
     const glassA = s.glassOpacity / 100;
-    root.style.setProperty("--glass-bg", `rgba(0,0,0,${glassA})`);
-    root.style.setProperty("--glass-bg-hover", `rgba(0,0,0,${Math.min(glassA + 0.03, 1)})`);
-    root.style.setProperty("--glass-bg-active", `rgba(0,0,0,${Math.min(glassA + 0.07, 1)})`);
+    root.style.setProperty("--glass-bg", `rgba(255,255,255,${glassA})`);
+    root.style.setProperty("--glass-bg-hover", `rgba(255,255,255,${Math.min(glassA + 0.05, 1)})`);
+    root.style.setProperty("--glass-bg-active", `rgba(255,255,255,${Math.min(glassA + 0.08, 1)})`);
+    root.style.setProperty("--glass-border", `rgba(0,0,0,${0.06 + glassA * 0.06})`);
+    root.style.setProperty("--glass-highlight", `inset 0 1px 0 rgba(255,255,255,${0.4 + glassA * 0.3}), inset 0 -1px 0 rgba(0,0,0,${0.03 + glassA * 0.02})`);
+    root.style.setProperty("--glass-shadow", `0 4px 20px rgba(0,0,0,${0.04 + glassA * 0.04})`);
+    root.style.setProperty("--glass-blur", `${s.glassBlur}px`);
+    root.style.setProperty("--glass-blur-heavy", `${Math.round(s.glassBlur * 2.5)}px`);
 
+    // Nav — use navColor with navOpacity alpha
     const nc = hexToRgb(s.navColor || "#f5f0e8");
     const navA = s.navOpacity / 100;
     root.style.setProperty("--theme-nav-bg", `rgba(${nc.r},${nc.g},${nc.b},${navA})`);
 
+    // Sidebar
     const sc = hexToRgb(s.sidebarColor || "#f5f0e8");
     const sideA = s.sidebarOpacity / 100;
     root.style.setProperty("--theme-sidebar-bg", `rgba(${sc.r},${sc.g},${sc.b},${sideA})`);
 
-    const cc = hexToRgb(s.cardColor || "#ffffff");
+    // Mega menu — frosted white
     const megaA = (s.megaMenuOpacity ?? 60) / 100;
-    root.style.setProperty("--theme-mega-menu-bg", `rgba(${cc.r},${cc.g},${cc.b},${megaA})`);
+    root.style.setProperty("--theme-mega-menu-bg", `rgba(255,255,255,${megaA})`);
 
+    // Dashboard cards — white with card opacity
     const cardA = (s.cardOpacity ?? 45) / 100;
-    root.style.setProperty("--theme-card-bg", `rgba(${cc.r},${cc.g},${cc.b},${cardA})`);
+    root.style.setProperty("--theme-card-bg", `rgba(255,255,255,${cardA})`);
 
-    // Light mode glass uses the card color with opacity
-    root.style.setProperty("--glass-bg", `rgba(${cc.r},${cc.g},${cc.b},${cardA})`);
-    root.style.setProperty("--glass-bg-hover", `rgba(${cc.r},${cc.g},${cc.b},${Math.min(cardA + 0.05, 1)})`);
-    root.style.setProperty("--glass-bg-active", `rgba(${cc.r},${cc.g},${cc.b},${Math.min(cardA + 0.1, 1)})`);
-
+    // Inner bubbles — subtle dark tint for contrast
     const bubbleA = (s.innerBubbleOpacity ?? 25) / 100;
-    root.style.setProperty("--theme-bubble-bg", `rgba(0,0,0,${bubbleA * 0.15})`);
+    root.style.setProperty("--theme-bubble-bg", `rgba(0,0,0,${bubbleA * 0.08})`);
 
+    // Chart sections — white frost
     const chartA = (s.chartSectionOpacity ?? 35) / 100;
-    root.style.setProperty("--theme-chart-section-bg", `rgba(${cc.r},${cc.g},${cc.b},${chartA})`);
-
-    root.style.setProperty("--glass-blur", `${s.glassBlur}px`);
-    root.style.setProperty("--glass-blur-heavy", `${Math.round(s.glassBlur * 2.5)}px`);
+    root.style.setProperty("--theme-chart-section-bg", `rgba(255,255,255,${chartA})`);
   }
 
   // Chart bar

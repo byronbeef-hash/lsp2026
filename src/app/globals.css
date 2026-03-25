@@ -107,21 +107,27 @@
 }
 
 [data-theme="light"] .glass-nav {
-  background: var(--theme-nav-bg, rgba(255, 255, 255, 0.92));
-  border: 1px solid rgba(0, 0, 0, 0.1);
-  backdrop-filter: blur(16px);
+  background: var(--theme-nav-bg);
+  border: 1px solid var(--glass-border);
+  backdrop-filter: blur(var(--glass-blur-heavy, 20px));
+  -webkit-backdrop-filter: blur(var(--glass-blur-heavy, 20px));
+  box-shadow: var(--glass-shadow), var(--glass-highlight);
 }
 
 [data-theme="light"] .glass-sm {
-  background: rgba(255, 255, 255, 0.88);
-  border: 1px solid rgba(0, 0, 0, 0.12);
-  backdrop-filter: blur(12px);
+  background: var(--glass-bg);
+  border: 1px solid var(--glass-border);
+  backdrop-filter: blur(var(--glass-blur, 12px));
+  -webkit-backdrop-filter: blur(var(--glass-blur, 12px));
+  box-shadow: var(--glass-shadow), var(--glass-highlight);
 }
 
 [data-theme="light"] .glass {
-  background: rgba(255, 255, 255, 0.82);
-  border: 1px solid rgba(0, 0, 0, 0.1);
-  backdrop-filter: blur(12px);
+  background: var(--glass-bg);
+  border: 1px solid var(--glass-border);
+  backdrop-filter: blur(var(--glass-blur, 12px));
+  -webkit-backdrop-filter: blur(var(--glass-blur, 12px));
+  box-shadow: var(--glass-shadow), var(--glass-highlight);
 }
 
 [data-theme="light"] .glass-input {
