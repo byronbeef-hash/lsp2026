@@ -9,6 +9,18 @@
   --brand-navy-light: #1a40bf;
   --brand-yellow: #FFDE00;
 
+  /* Theme system — overridden at runtime by theme store */
+  --theme-primary: #000080;
+  --theme-primary-rgb: 0,0,128;
+  --theme-accent: #3b82f6;
+  --theme-accent-rgb: 59,130,246;
+  --theme-bg-start: #000040;
+  --theme-bg-end: #000080;
+  --theme-nav-bg: rgba(0, 0, 40, 0.85);
+  --theme-sidebar-bg: rgba(0, 0, 40, 0.7);
+  --theme-chart-bar: #0000c8;
+  --theme-chart-bar-rgb: 0,0,200;
+
   /* Chart Colors */
   --chart-text: white;
   --chart-text-muted: rgba(255, 255, 255, 0.3);
@@ -95,7 +107,7 @@
 }
 
 [data-theme="light"] .glass-nav {
-  background: rgba(255, 255, 255, 0.92);
+  background: var(--theme-nav-bg, rgba(255, 255, 255, 0.92));
   border: 1px solid rgba(0, 0, 0, 0.1);
   backdrop-filter: blur(16px);
 }
@@ -228,12 +240,13 @@ body {
 }
 
 .glass-nav {
-  background: rgba(0, 0, 40, 0.85);
+  background: var(--theme-nav-bg, rgba(0, 0, 40, 0.85));
   backdrop-filter: blur(20px);
   -webkit-backdrop-filter: blur(20px);
   border: 1px solid rgba(255, 255, 255, 0.2);
   border-radius: var(--glass-radius-lg);
   box-shadow: var(--glass-shadow-lg), var(--glass-highlight-strong);
+  transition: background 0.3s ease;
 }
 
 .glass-sheet {
@@ -336,12 +349,27 @@ body {
   100% { background-position: 200% 0; }
 }
 
+@keyframes slideInRight {
+  from {
+    opacity: 0;
+    transform: translateX(100%);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
 .animate-fade-in-up {
   animation: fadeInUp 0.4s cubic-bezier(0.32, 0.72, 0, 1) forwards;
 }
 
 .animate-slide-up {
   animation: slideUp 0.4s cubic-bezier(0.32, 0.72, 0, 1) forwards;
+}
+
+.animate-slide-in-right {
+  animation: slideInRight 0.3s cubic-bezier(0.32, 0.72, 0, 1) forwards;
 }
 
 .skeleton {
