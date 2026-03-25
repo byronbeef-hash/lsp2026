@@ -4,7 +4,6 @@ import { ReactNode } from "react";
 import { TopNav } from "./TopNav";
 import { BottomNav } from "./BottomNav";
 import { SideNav } from "./SideNav";
-import { ProductTour } from "@/components/ProductTour";
 
 interface AppShellProps {
   children: ReactNode;
@@ -22,7 +21,6 @@ export function AppShell({ children }: AppShellProps) {
         {children}
       </main>
 
-      <ProductTour />
     </div>
   );
 }

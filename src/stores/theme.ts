@@ -58,6 +58,20 @@ const LIGHT_NEUTRAL: ThemeSettings = {
   sidebarOpacity: 88,
 };
 
+const ORIGINAL_BLUE: ThemeSettings = {
+  id: "builtin-original-blue",
+  name: "Original Blue",
+  mode: "dark",
+  primaryColor: "#1a0aaf",
+  accentColor: "#4f46e5",
+  bgGradientStart: "#0c0060",
+  bgGradientEnd: "#1a10c0",
+  glassOpacity: 20,
+  navOpacity: 80,
+  chartBarColor: "#4f46e5",
+  sidebarOpacity: 65,
+};
+
 const MIDNIGHT: ThemeSettings = {
   id: "builtin-midnight",
   name: "Midnight",
@@ -72,7 +86,7 @@ const MIDNIGHT: ThemeSettings = {
   sidebarOpacity: 85,
 };
 
-export const BUILTIN_PRESETS: ThemeSettings[] = [NAVY_DARK, LIGHT_NEUTRAL, MIDNIGHT];
+export const BUILTIN_PRESETS: ThemeSettings[] = [NAVY_DARK, ORIGINAL_BLUE, LIGHT_NEUTRAL, MIDNIGHT];
 const BUILTIN_IDS = new Set(BUILTIN_PRESETS.map((p) => p.id));
 const MAX_USER_PRESETS = 5;
 
