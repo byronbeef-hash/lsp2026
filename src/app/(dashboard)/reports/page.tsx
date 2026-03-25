@@ -47,7 +47,21 @@ type ReportType =
 // Print CSS  (injected once via <style> in the component)
 // ---------------------------------------------------------------------------
 const PRINT_CSS = `
+:root {
+  --chart-text: rgba(255,255,255,0.9);
+  --chart-text-muted: rgba(255,255,255,0.5);
+}
+@media (prefers-color-scheme: light) {
+  :root {
+    --chart-text: rgba(0,0,0,0.85);
+    --chart-text-muted: rgba(0,0,0,0.5);
+  }
+}
 @media print {
+  :root {
+    --chart-text: rgba(0,0,0,0.85) !important;
+    --chart-text-muted: rgba(0,0,0,0.5) !important;
+  }
   /* hide everything except the report */
   body * { visibility: hidden !important; }
   #report-printable, #report-printable * { visibility: visible !important; }
@@ -70,6 +84,9 @@ const PRINT_CSS = `
   #report-printable li,
   #report-printable span {
     color: black !important;
+  }
+  #report-printable svg text {
+    fill: black !important;
   }
   #report-printable table {
     border-collapse: collapse !important;
@@ -167,6 +184,397 @@ const REPORT_CARDS: {
     icon: ReceiptText,
   },
 ];
+
+// ---------------------------------------------------------------------------
+// Chart colour palette
+// ---------------------------------------------------------------------------
+const CHART_COLORS = [
+  "#3b82f6", // blue
+  "#10b981", // emerald
+  "#f59e0b", // amber
+  "#f43f5e", // rose
+  "#8b5cf6", // purple
+  "#06b6d4", // cyan
+  "#ec4899", // pink
+  "#14b8a6", // teal
+];
+
+// ---------------------------------------------------------------------------
+// SVG Pie Chart Component
+// ---------------------------------------------------------------------------
+function PieChart({
+  data,
+  size = 200,
+}: {
+  data: { label: string; value: number; color?: string }[];
+  size?: number;
+}) {
+  const total = data.reduce((s, d) => s + d.value, 0);
+  if (total === 0) return null;
+  const cx = size / 2;
+  const cy = size / 2;
+  const r = size / 2 - 4;
+
+  let cumulativeAngle = -90; // start from top
+  const slices = data.map((d, i) => {
+    const pct = d.value / total;
+    const angle = pct * 360;
+    const startAngle = cumulativeAngle;
+    const endAngle = cumulativeAngle + angle;
+    cumulativeAngle = endAngle;
+
+    const startRad = (startAngle * Math.PI) / 180;
+    const endRad = (endAngle * Math.PI) / 180;
+    const x1 = cx + r * Math.cos(startRad);
+    const y1 = cy + r * Math.sin(startRad);
+    const x2 = cx + r * Math.cos(endRad);
+    const y2 = cy + r * Math.sin(endRad);
+    const largeArc = angle > 180 ? 1 : 0;
+
+    const midRad = ((startAngle + angle / 2) * Math.PI) / 180;
+    const labelR = r * 0.65;
+    const lx = cx + labelR * Math.cos(midRad);
+    const ly = cy + labelR * Math.sin(midRad);
+
+    const color = d.color || CHART_COLORS[i % CHART_COLORS.length];
+    const pathD =
+      data.length === 1
+        ? `M ${cx} ${cy - r} A ${r} ${r} 0 1 1 ${cx - 0.001} ${cy - r} Z`
+        : `M ${cx} ${cy} L ${x1} ${y1} A ${r} ${r} 0 ${largeArc} 1 ${x2} ${y2} Z`;
+
+    return { pathD, color, pct, lx, ly, label: d.label };
+  });
+
+  const legendY = size + 12;
+
+  return (
+    <div className="flex flex-col items-center">
+      <svg
+        viewBox={`0 0 ${size} ${size + data.length * 20 + 16}`}
+        width={size}
+        className="max-w-full"
+      >
+        <defs>
+          {slices.map((s, i) => (
+            <linearGradient
+              key={`pg-${i}`}
+              id={`pie-grad-${i}`}
+              x1="0%"
+              y1="0%"
+              x2="100%"
+              y2="100%"
+            >
+              <stop offset="0%" stopColor={s.color} stopOpacity="1" />
+              <stop offset="100%" stopColor={s.color} stopOpacity="0.7" />
+            </linearGradient>
+          ))}
+        </defs>
+        {slices.map((s, i) => (
+          <path
+            key={i}
+            d={s.pathD}
+            fill={`url(#pie-grad-${i})`}
+            stroke="rgba(0,0,0,0.2)"
+            strokeWidth="1"
+          />
+        ))}
+        {slices.map((s, i) =>
+          s.pct >= 0.06 ? (
+            <text
+              key={`t-${i}`}
+              x={s.lx}
+              y={s.ly}
+              textAnchor="middle"
+              dominantBaseline="central"
+              fill="white"
+              fontSize="11"
+              fontWeight="700"
+              style={{ textShadow: "0 1px 3px rgba(0,0,0,0.5)" }}
+            >
+              {(s.pct * 100).toFixed(0)}%
+            </text>
+          ) : null,
+        )}
+        {/* Legend */}
+        {data.map((d, i) => {
+          const ly = legendY + i * 20;
+          const color = d.color || CHART_COLORS[i % CHART_COLORS.length];
+          return (
+            <g key={`leg-${i}`}>
+              <rect
+                x={10}
+                y={ly}
+                width={12}
+                height={12}
+                rx={3}
+                fill={color}
+              />
+              <text
+                x={28}
+                y={ly + 10}
+                fill="var(--chart-text)"
+                fontSize="11"
+                className="print:fill-black"
+              >
+                {d.label} ({(d.value / total * 100).toFixed(1)}%)
+              </text>
+            </g>
+          );
+        })}
+      </svg>
+    </div>
+  );
+}
+
+// ---------------------------------------------------------------------------
+// SVG Vertical Bar Chart Component
+// ---------------------------------------------------------------------------
+function BarChart({
+  data,
+  width = 360,
+  height = 200,
+  barColor,
+}: {
+  data: { label: string; value: number; color?: string }[];
+  width?: number;
+  height?: number;
+  barColor?: string;
+}) {
+  if (data.length === 0) return null;
+  const maxVal = Math.max(...data.map((d) => d.value));
+  const padLeft = 44;
+  const padRight = 12;
+  const padTop = 20;
+  const padBottom = 40;
+  const chartW = width - padLeft - padRight;
+  const chartH = height - padTop - padBottom;
+  const barW = Math.min(40, (chartW / data.length) * 0.6);
+  const gap = chartW / data.length;
+
+  // Grid lines
+  const gridLines = 4;
+  const gridStep = maxVal / gridLines;
+
+  return (
+    <div className="flex justify-center">
+      <svg viewBox={`0 0 ${width} ${height}`} width={width} className="max-w-full">
+        <defs>
+          {data.map((d, i) => {
+            const c = d.color || barColor || CHART_COLORS[i % CHART_COLORS.length];
+            return (
+              <linearGradient key={`bg-${i}`} id={`bar-grad-${i}`} x1="0" y1="0" x2="0" y2="1">
+                <stop offset="0%" stopColor={c} stopOpacity="1" />
+                <stop offset="100%" stopColor={c} stopOpacity="0.6" />
+              </linearGradient>
+            );
+          })}
+        </defs>
+        {/* Grid lines */}
+        {Array.from({ length: gridLines + 1 }).map((_, i) => {
+          const y = padTop + chartH - (i / gridLines) * chartH;
+          const val = Math.round(gridStep * i);
+          return (
+            <g key={`grid-${i}`}>
+              <line x1={padLeft} y1={y} x2={width - padRight} y2={y} stroke="rgba(255,255,255,0.08)" strokeWidth="1" />
+              <text x={padLeft - 6} y={y + 4} textAnchor="end" fill="var(--chart-text-muted)" fontSize="9" className="print:fill-gray-500">
+                {val}
+              </text>
+            </g>
+          );
+        })}
+        {/* Bars */}
+        {data.map((d, i) => {
+          const barH = maxVal > 0 ? (d.value / maxVal) * chartH : 0;
+          const x = padLeft + gap * i + (gap - barW) / 2;
+          const y = padTop + chartH - barH;
+          return (
+            <g key={i}>
+              <rect x={x} y={y} width={barW} height={barH} rx={4} fill={`url(#bar-grad-${i})`} />
+              <text
+                x={x + barW / 2}
+                y={y - 6}
+                textAnchor="middle"
+                fill="var(--chart-text)"
+                fontSize="10"
+                fontWeight="700"
+                className="print:fill-black"
+              >
+                {d.value}
+              </text>
+              <text
+                x={x + barW / 2}
+                y={height - padBottom + 14}
+                textAnchor="middle"
+                fill="var(--chart-text-muted)"
+                fontSize="9"
+                className="print:fill-gray-500"
+              >
+                {d.label}
+              </text>
+            </g>
+          );
+        })}
+      </svg>
+    </div>
+  );
+}
+
+// ---------------------------------------------------------------------------
+// SVG Horizontal Bar Chart Component
+// ---------------------------------------------------------------------------
+function HBarChart({
+  data,
+  width = 360,
+  height,
+}: {
+  data: { label: string; value: number; color?: string }[];
+  width?: number;
+  height?: number;
+}) {
+  if (data.length === 0) return null;
+  const maxVal = Math.max(...data.map((d) => d.value));
+  const barH = 28;
+  const gap = 8;
+  const padLeft = 90;
+  const padRight = 50;
+  const padTop = 8;
+  const computedH = height || padTop + data.length * (barH + gap);
+  const chartW = width - padLeft - padRight;
+
+  return (
+    <div className="flex justify-center">
+      <svg viewBox={`0 0 ${width} ${computedH}`} width={width} className="max-w-full">
+        <defs>
+          {data.map((d, i) => {
+            const c = d.color || CHART_COLORS[i % CHART_COLORS.length];
+            return (
+              <linearGradient key={`hbg-${i}`} id={`hbar-grad-${i}`} x1="0" y1="0" x2="1" y2="0">
+                <stop offset="0%" stopColor={c} stopOpacity="0.7" />
+                <stop offset="100%" stopColor={c} stopOpacity="1" />
+              </linearGradient>
+            );
+          })}
+        </defs>
+        {data.map((d, i) => {
+          const y = padTop + i * (barH + gap);
+          const w = maxVal > 0 ? (d.value / maxVal) * chartW : 0;
+          return (
+            <g key={i}>
+              {/* Background track */}
+              <rect x={padLeft} y={y} width={chartW} height={barH} rx={4} fill="rgba(255,255,255,0.05)" />
+              {/* Value bar */}
+              <rect x={padLeft} y={y} width={w} height={barH} rx={4} fill={`url(#hbar-grad-${i})`} />
+              {/* Label */}
+              <text x={padLeft - 8} y={y + barH / 2 + 4} textAnchor="end" fill="var(--chart-text)" fontSize="11" className="print:fill-black">
+                {d.label}
+              </text>
+              {/* Value */}
+              <text x={padLeft + w + 8} y={y + barH / 2 + 4} textAnchor="start" fill="var(--chart-text)" fontSize="11" fontWeight="700" className="print:fill-black">
+                {d.value}
+              </text>
+            </g>
+          );
+        })}
+      </svg>
+    </div>
+  );
+}
+
+// ---------------------------------------------------------------------------
+// SVG Area Chart Component (for weight trend)
+// ---------------------------------------------------------------------------
+function AreaChart({
+  data,
+  width = 400,
+  height = 200,
+  color = "#3b82f6",
+}: {
+  data: { label: string; value: number }[];
+  width?: number;
+  height?: number;
+  color?: string;
+}) {
+  if (data.length === 0) return null;
+  const padLeft = 50;
+  const padRight = 16;
+  const padTop = 20;
+  const padBottom = 36;
+  const chartW = width - padLeft - padRight;
+  const chartH = height - padTop - padBottom;
+  const minVal = Math.min(...data.map((d) => d.value)) * 0.95;
+  const maxVal = Math.max(...data.map((d) => d.value)) * 1.02;
+  const range = maxVal - minVal || 1;
+
+  const points = data.map((d, i) => {
+    const x = padLeft + (i / (data.length - 1)) * chartW;
+    const y = padTop + chartH - ((d.value - minVal) / range) * chartH;
+    return { x, y, label: d.label, value: d.value };
+  });
+
+  const lineD = points.map((p, i) => `${i === 0 ? "M" : "L"} ${p.x} ${p.y}`).join(" ");
+  const areaD = `${lineD} L ${points[points.length - 1].x} ${padTop + chartH} L ${points[0].x} ${padTop + chartH} Z`;
+
+  // Grid
+  const gridLines = 4;
+
+  return (
+    <div className="flex justify-center">
+      <svg viewBox={`0 0 ${width} ${height}`} width={width} className="max-w-full">
+        <defs>
+          <linearGradient id="area-fill" x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0%" stopColor={color} stopOpacity="0.4" />
+            <stop offset="100%" stopColor={color} stopOpacity="0.05" />
+          </linearGradient>
+        </defs>
+        {/* Grid */}
+        {Array.from({ length: gridLines + 1 }).map((_, i) => {
+          const y = padTop + chartH - (i / gridLines) * chartH;
+          const val = Math.round(minVal + (range * i) / gridLines);
+          return (
+            <g key={`ag-${i}`}>
+              <line x1={padLeft} y1={y} x2={width - padRight} y2={y} stroke="rgba(255,255,255,0.08)" strokeWidth="1" />
+              <text x={padLeft - 8} y={y + 4} textAnchor="end" fill="var(--chart-text-muted)" fontSize="9" className="print:fill-gray-500">
+                {val}
+              </text>
+            </g>
+          );
+        })}
+        {/* Area fill */}
+        <path d={areaD} fill="url(#area-fill)" />
+        {/* Line */}
+        <path d={lineD} fill="none" stroke={color} strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" />
+        {/* Dots and labels */}
+        {points.map((p, i) => (
+          <g key={i}>
+            <circle cx={p.x} cy={p.y} r={4} fill={color} stroke="rgba(0,0,0,0.3)" strokeWidth="1" />
+            <text x={p.x} y={p.y - 10} textAnchor="middle" fill="var(--chart-text)" fontSize="9" fontWeight="700" className="print:fill-black">
+              {p.value}
+            </text>
+            <text x={p.x} y={height - padBottom + 16} textAnchor="middle" fill="var(--chart-text-muted)" fontSize="9" className="print:fill-gray-500">
+              {p.label}
+            </text>
+          </g>
+        ))}
+      </svg>
+    </div>
+  );
+}
+
+// ---------------------------------------------------------------------------
+// Chart Section Wrapper
+// ---------------------------------------------------------------------------
+function ChartSection({ title, children }: { title: string; children: React.ReactNode }) {
+  return (
+    <div className="mb-8 rounded-2xl bg-white/[0.04] print:bg-gray-50 border border-white/[0.08] print:border-gray-200 p-5">
+      <h3 className="text-sm font-semibold text-white/60 print:text-gray-500 uppercase tracking-wider mb-4">
+        {title}
+      </h3>
+      <div className="flex flex-col md:flex-row gap-8 items-start justify-center">
+        {children}
+      </div>
+    </div>
+  );
+}
 
 // ---------------------------------------------------------------------------
 // Component
@@ -337,6 +745,30 @@ export default function ReportsPage() {
     <>
       <ReportHeader title="Herd Summary Report" />
 
+      <ChartSection title="Visual Overview">
+        <div className="flex-1 flex flex-col items-center">
+          <p className="text-xs text-white/50 print:text-gray-500 mb-2 font-medium">Breed Distribution</p>
+          <PieChart
+            data={mockBreedDistribution.map((b) => ({ label: b.breed, value: b.count }))}
+            size={210}
+          />
+        </div>
+        <div className="flex-1 flex flex-col items-center">
+          <p className="text-xs text-white/50 print:text-gray-500 mb-2 font-medium">Head Count by Category</p>
+          <BarChart
+            data={[
+              { label: "Cows", value: 120, color: "#3b82f6" },
+              { label: "Bulls", value: 5, color: "#10b981" },
+              { label: "Weaners", value: 100, color: "#f59e0b" },
+              { label: "Steers", value: 48, color: "#f43f5e" },
+              { label: "Heifers", value: 52, color: "#8b5cf6" },
+            ]}
+            width={340}
+            height={210}
+          />
+        </div>
+      </ChartSection>
+
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
         <div className="p-3 rounded-lg bg-white/5 print:bg-gray-50 print:border print:border-gray-200">
           <p className="text-xs text-white/50 print:text-gray-500">Total Head</p>
@@ -394,6 +826,41 @@ export default function ReportsPage() {
     <>
       <ReportHeader title="Weight Gain Analysis" />
 
+      <ChartSection title="Weight Trends & Distribution">
+        <div className="flex-1 flex flex-col items-center">
+          <p className="text-xs text-white/50 print:text-gray-500 mb-2 font-medium">Monthly Avg Weight (kg)</p>
+          <AreaChart
+            data={[
+              { label: "Aug", value: 420 },
+              { label: "Sep", value: 435 },
+              { label: "Oct", value: 445 },
+              { label: "Nov", value: 455 },
+              { label: "Dec", value: 462 },
+              { label: "Jan", value: 468 },
+              { label: "Feb", value: 474 },
+              { label: "Mar", value: 480 },
+            ]}
+            width={380}
+            height={220}
+            color="#3b82f6"
+          />
+        </div>
+        <div className="flex-1 flex flex-col items-center">
+          <p className="text-xs text-white/50 print:text-gray-500 mb-2 font-medium">Weight Distribution (head)</p>
+          <BarChart
+            data={[
+              { label: "300-350", value: 15, color: "#06b6d4" },
+              { label: "350-400", value: 25, color: "#3b82f6" },
+              { label: "400-450", value: 40, color: "#10b981" },
+              { label: "450-500", value: 30, color: "#f59e0b" },
+              { label: "500+", value: 15, color: "#8b5cf6" },
+            ]}
+            width={340}
+            height={220}
+          />
+        </div>
+      </ChartSection>
+
       <SectionTitle>Monthly Average Weight Trend</SectionTitle>
       <Table
         headers={["Month", "Avg Weight (kg)"]}
@@ -443,6 +910,32 @@ export default function ReportsPage() {
   const renderMedical = () => (
     <>
       <ReportHeader title="Medical & Treatment Report" />
+
+      <ChartSection title="Treatment Overview">
+        <div className="flex-1 flex flex-col items-center">
+          <p className="text-xs text-white/50 print:text-gray-500 mb-2 font-medium">Treatment Types</p>
+          <PieChart
+            data={[
+              { label: "Vaccination", value: 45, color: "#3b82f6" },
+              { label: "Drench", value: 25, color: "#10b981" },
+              { label: "Examination", value: 15, color: "#f59e0b" },
+              { label: "Treatment", value: 15, color: "#f43f5e" },
+            ]}
+            size={210}
+          />
+        </div>
+        <div className="flex-1 flex flex-col items-center">
+          <p className="text-xs text-white/50 print:text-gray-500 mb-2 font-medium">Batch Status</p>
+          <HBarChart
+            data={[
+              { label: "Active", value: batches.filter((b) => b.status === "active").length || 3, color: "#3b82f6" },
+              { label: "Completed", value: batches.filter((b) => b.status === "completed").length || 5, color: "#10b981" },
+              { label: "Scheduled", value: batches.filter((b) => b.status === "scheduled").length || 2, color: "#f59e0b" },
+            ]}
+            width={340}
+          />
+        </div>
+      </ChartSection>
 
       <div className="grid grid-cols-2 md:grid-cols-3 gap-4 mb-6">
         <div className="p-3 rounded-lg bg-white/5 print:bg-gray-50 print:border print:border-gray-200">
@@ -509,6 +1002,37 @@ export default function ReportsPage() {
   const renderFinancial = () => (
     <>
       <ReportHeader title="Financial Summary" />
+
+      <ChartSection title="Financial Overview">
+        <div className="flex-1 flex flex-col items-center">
+          <p className="text-xs text-white/50 print:text-gray-500 mb-2 font-medium">Monthly Revenue</p>
+          <BarChart
+            data={[
+              { label: "Oct", value: 12400 },
+              { label: "Nov", value: 18600 },
+              { label: "Dec", value: 9200 },
+              { label: "Jan", value: 22100 },
+              { label: "Feb", value: 15800 },
+              { label: "Mar", value: 19500 },
+            ]}
+            width={360}
+            height={220}
+            barColor="#10b981"
+          />
+        </div>
+        <div className="flex-1 flex flex-col items-center">
+          <p className="text-xs text-white/50 print:text-gray-500 mb-2 font-medium">Revenue by Buyer</p>
+          <PieChart
+            data={[
+              { label: "JBS Australia", value: 38200, color: "#3b82f6" },
+              { label: "Teys Australia", value: 24800, color: "#10b981" },
+              { label: "NH Foods", value: 18600, color: "#f59e0b" },
+              { label: "Private Buyers", value: 16000, color: "#8b5cf6" },
+            ]}
+            size={210}
+          />
+        </div>
+      </ChartSection>
 
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
         <div className="p-3 rounded-lg bg-white/5 print:bg-gray-50 print:border print:border-gray-200">
@@ -649,6 +1173,37 @@ export default function ReportsPage() {
   const renderSalesHistory = () => (
     <>
       <ReportHeader title="Sales History" />
+
+      <ChartSection title="Sales Overview">
+        <div className="flex-1 flex flex-col items-center">
+          <p className="text-xs text-white/50 print:text-gray-500 mb-2 font-medium">Sales by Month (head)</p>
+          <BarChart
+            data={[
+              { label: "Oct", value: 8, color: "#3b82f6" },
+              { label: "Nov", value: 12, color: "#3b82f6" },
+              { label: "Dec", value: 5, color: "#3b82f6" },
+              { label: "Jan", value: 15, color: "#3b82f6" },
+              { label: "Feb", value: 10, color: "#3b82f6" },
+              { label: "Mar", value: 14, color: "#3b82f6" },
+            ]}
+            width={340}
+            height={210}
+            barColor="#3b82f6"
+          />
+        </div>
+        <div className="flex-1 flex flex-col items-center">
+          <p className="text-xs text-white/50 print:text-gray-500 mb-2 font-medium">Sales by Category</p>
+          <PieChart
+            data={[
+              { label: "Steers", value: 42, color: "#3b82f6" },
+              { label: "Heifers", value: 28, color: "#10b981" },
+              { label: "Cows", value: 20, color: "#f59e0b" },
+              { label: "Bulls", value: 10, color: "#f43f5e" },
+            ]}
+            size={210}
+          />
+        </div>
+      </ChartSection>
 
       <div className="grid grid-cols-2 md:grid-cols-3 gap-4 mb-6">
         <div className="p-3 rounded-lg bg-white/5 print:bg-gray-50 print:border print:border-gray-200">
