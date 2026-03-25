@@ -370,8 +370,8 @@ export function ThemeCustomizer({ open, onClose }: ThemeCustomizerProps) {
 
           {/* ── Glass Opacity ──────────────────────────── */}
           <section>
-            <h3 className="text-xs font-semibold text-white/40 uppercase tracking-wider mb-3">Opacity Controls</h3>
-            <div className="space-y-4">
+            <h3 className="text-xs font-semibold text-white/40 uppercase tracking-wider mb-3">Global</h3>
+            <div className="space-y-3">
               <SliderControl
                 label="Liquid Glass Blur"
                 value={current.glassBlur}
@@ -380,25 +380,57 @@ export function ThemeCustomizer({ open, onClose }: ThemeCustomizerProps) {
                 onChange={(v) => updateSetting("glassBlur", v)}
               />
               <SliderControl
-                label="Glass / Card Opacity"
+                label="Default Glass Opacity"
                 value={current.glassOpacity}
                 min={0}
                 max={100}
                 onChange={(v) => updateSetting("glassOpacity", v)}
               />
+            </div>
+
+            <h3 className="text-xs font-semibold text-white/40 uppercase tracking-wider mb-3 mt-5">Per Section</h3>
+            <div className="space-y-3">
               <SliderControl
-                label="Nav Bar Opacity"
+                label="Top Nav Bar"
                 value={current.navOpacity}
-                min={30}
+                min={10}
                 max={100}
                 onChange={(v) => updateSetting("navOpacity", v)}
               />
               <SliderControl
-                label="Sidebar Opacity"
+                label="Mega Menu"
+                value={current.megaMenuOpacity ?? 55}
+                min={10}
+                max={100}
+                onChange={(v) => updateSetting("megaMenuOpacity", v)}
+              />
+              <SliderControl
+                label="Side Menu"
                 value={current.sidebarOpacity}
-                min={20}
+                min={10}
                 max={100}
                 onChange={(v) => updateSetting("sidebarOpacity", v)}
+              />
+              <SliderControl
+                label="Dashboard Cards"
+                value={current.cardOpacity ?? current.glassOpacity}
+                min={0}
+                max={100}
+                onChange={(v) => updateSetting("cardOpacity", v)}
+              />
+              <SliderControl
+                label="Inner Bubbles"
+                value={current.innerBubbleOpacity ?? 20}
+                min={0}
+                max={100}
+                onChange={(v) => updateSetting("innerBubbleOpacity", v)}
+              />
+              <SliderControl
+                label="Chart Sections"
+                value={current.chartSectionOpacity ?? 32}
+                min={0}
+                max={100}
+                onChange={(v) => updateSetting("chartSectionOpacity", v)}
               />
             </div>
           </section>

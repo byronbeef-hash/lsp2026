@@ -17,8 +17,8 @@ export function AppShell({ children }: AppShellProps) {
       <SideNav />
       <BottomNav />
 
-      {/* Main content — full width since sidebar is hidden by default */}
-      <main className="pt-6 md:pt-24 pb-28 md:pb-8 px-4 md:px-6 max-w-7xl mx-auto">
+      {/* Main content — centered, expands to fill available width */}
+      <main className="pt-6 md:pt-24 pb-28 md:pb-8 px-4 md:px-8 lg:px-12 max-w-[1600px] mx-auto">
         {children}
       </main>
 

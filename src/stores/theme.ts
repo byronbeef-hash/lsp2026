@@ -10,11 +10,20 @@ export interface ThemeSettings {
   accentColor: string;
   bgGradientStart: string;
   bgGradientEnd: string;
+  // Global glass defaults
   glassOpacity: number; // 0-100
   glassBlur: number; // 0-40 (px) — liquid glass feel
-  navOpacity: number; // 0-100
   chartBarColor: string;
+  // Per-section controls
+  navOpacity: number; // 0-100
+  navColor: string; // hex color for nav tint
+  megaMenuOpacity: number; // 0-100
   sidebarOpacity: number; // 0-100
+  sidebarColor: string; // hex color for sidebar tint
+  cardOpacity: number; // 0-100 — dashboard stat cards
+  cardColor: string; // hex color for card tint
+  innerBubbleOpacity: number; // 0-100 — inner items (herd breakdown, sub-cards)
+  chartSectionOpacity: number; // 0-100 — chart/graph sections
 }
 
 interface ThemeStore {
@@ -41,9 +50,16 @@ const NAVY_DARK: ThemeSettings = {
   bgGradientEnd: "#2a50c8",
   glassOpacity: 28,
   glassBlur: 24,
-  navOpacity: 70,
   chartBarColor: "#4f8cff",
+  navOpacity: 70,
+  navColor: "#0a0a5c",
+  megaMenuOpacity: 55,
   sidebarOpacity: 50,
+  sidebarColor: "#0a0a5c",
+  cardOpacity: 28,
+  cardColor: "#1e2878",
+  innerBubbleOpacity: 20,
+  chartSectionOpacity: 32,
 };
 
 const LIGHT_NEUTRAL: ThemeSettings = {
@@ -56,9 +72,16 @@ const LIGHT_NEUTRAL: ThemeSettings = {
   bgGradientEnd: "#e8e0d0",
   glassOpacity: 8,
   glassBlur: 12,
-  navOpacity: 92,
   chartBarColor: "#92400e",
+  navOpacity: 92,
+  navColor: "#ffffff",
+  megaMenuOpacity: 85,
   sidebarOpacity: 88,
+  sidebarColor: "#ffffff",
+  cardOpacity: 8,
+  cardColor: "#ffffff",
+  innerBubbleOpacity: 5,
+  chartSectionOpacity: 10,
 };
 
 const ORIGINAL_BLUE: ThemeSettings = {
@@ -71,9 +94,16 @@ const ORIGINAL_BLUE: ThemeSettings = {
   bgGradientEnd: "#3060d0",
   glassOpacity: 25,
   glassBlur: 28,
-  navOpacity: 65,
   chartBarColor: "#5a90ff",
+  navOpacity: 65,
+  navColor: "#101080",
+  megaMenuOpacity: 50,
   sidebarOpacity: 45,
+  sidebarColor: "#101080",
+  cardOpacity: 25,
+  cardColor: "#2038a0",
+  innerBubbleOpacity: 18,
+  chartSectionOpacity: 30,
 };
 
 const MIDNIGHT: ThemeSettings = {
@@ -86,9 +116,16 @@ const MIDNIGHT: ThemeSettings = {
   bgGradientEnd: "#1a1a2e",
   glassOpacity: 40,
   glassBlur: 24,
-  navOpacity: 92,
   chartBarColor: "#6366f1",
+  navOpacity: 92,
+  navColor: "#0a0a0a",
+  megaMenuOpacity: 80,
   sidebarOpacity: 85,
+  sidebarColor: "#0a0a0a",
+  cardOpacity: 40,
+  cardColor: "#1a1a2e",
+  innerBubbleOpacity: 30,
+  chartSectionOpacity: 45,
 };
 
 export const BUILTIN_PRESETS: ThemeSettings[] = [NAVY_DARK, ORIGINAL_BLUE, LIGHT_NEUTRAL, MIDNIGHT];
@@ -152,13 +189,31 @@ export function applyThemeToDOM(s: ThemeSettings) {
     root.style.setProperty("--glass-blur", `${s.glassBlur}px`);
     root.style.setProperty("--glass-blur-heavy", `${Math.round(s.glassBlur * 2.5)}px`);
 
-    // Nav
+    // Per-section controls
+    const nc = hexToRgb(s.navColor || s.bgGradientStart);
     const navA = s.navOpacity / 100;
-    root.style.setProperty("--theme-nav-bg", `rgba(${gs.r},${gs.g},${gs.b},${navA})`);
+    root.style.setProperty("--theme-nav-bg", `rgba(${nc.r},${nc.g},${nc.b},${navA})`);
 
-    // Sidebar
+    const sc = hexToRgb(s.sidebarColor || s.bgGradientStart);
     const sideA = s.sidebarOpacity / 100;
-    root.style.setProperty("--theme-sidebar-bg", `rgba(${gs.r},${gs.g},${gs.b},${sideA})`);
+    root.style.setProperty("--theme-sidebar-bg", `rgba(${sc.r},${sc.g},${sc.b},${sideA})`);
+
+    // Mega menu
+    const megaA = (s.megaMenuOpacity ?? 55) / 100;
+    root.style.setProperty("--theme-mega-menu-bg", `rgba(${cardR},${cardG},${cardB},${megaA})`);
+
+    // Card-specific opacity (for stat cards on dashboard)
+    const ccc = hexToRgb(s.cardColor || s.primaryColor);
+    const cardA = (s.cardOpacity ?? s.glassOpacity) / 100;
+    root.style.setProperty("--theme-card-bg", `rgba(${ccc.r},${ccc.g},${ccc.b},${cardA})`);
+
+    // Inner bubble opacity (sub-items inside cards)
+    const bubbleA = (s.innerBubbleOpacity ?? 20) / 100;
+    root.style.setProperty("--theme-bubble-bg", `rgba(255,255,255,${bubbleA * 0.5})`);
+
+    // Chart section opacity
+    const chartA = (s.chartSectionOpacity ?? 32) / 100;
+    root.style.setProperty("--theme-chart-section-bg", `rgba(${cardR},${cardG},${cardB},${chartA})`);
   } else {
     // Light mode
     document.body.style.background = `linear-gradient(135deg, ${s.bgGradientStart} 0%, ${s.bgGradientEnd} 100%)`;
@@ -168,11 +223,25 @@ export function applyThemeToDOM(s: ThemeSettings) {
     root.style.setProperty("--glass-bg-hover", `rgba(0,0,0,${Math.min(glassA + 0.03, 1)})`);
     root.style.setProperty("--glass-bg-active", `rgba(0,0,0,${Math.min(glassA + 0.07, 1)})`);
 
+    const nc = hexToRgb(s.navColor || "#ffffff");
     const navA = s.navOpacity / 100;
-    root.style.setProperty("--theme-nav-bg", `rgba(255,255,255,${navA})`);
+    root.style.setProperty("--theme-nav-bg", `rgba(${nc.r},${nc.g},${nc.b},${navA})`);
 
+    const sc = hexToRgb(s.sidebarColor || "#ffffff");
     const sideA = s.sidebarOpacity / 100;
-    root.style.setProperty("--theme-sidebar-bg", `rgba(255,255,255,${sideA})`);
+    root.style.setProperty("--theme-sidebar-bg", `rgba(${sc.r},${sc.g},${sc.b},${sideA})`);
+
+    const megaA = (s.megaMenuOpacity ?? 85) / 100;
+    root.style.setProperty("--theme-mega-menu-bg", `rgba(255,255,255,${megaA})`);
+
+    const cardA = (s.cardOpacity ?? 8) / 100;
+    root.style.setProperty("--theme-card-bg", `rgba(255,255,255,${cardA})`);
+
+    const bubbleA = (s.innerBubbleOpacity ?? 5) / 100;
+    root.style.setProperty("--theme-bubble-bg", `rgba(0,0,0,${bubbleA})`);
+
+    const chartA = (s.chartSectionOpacity ?? 10) / 100;
+    root.style.setProperty("--theme-chart-section-bg", `rgba(255,255,255,${chartA})`);
   }
 
   // Chart bar
@@ -210,10 +279,8 @@ function saveToStorage(state: { current: ThemeSettings; presets: ThemeSettings[]
 function getInitialState() {
   const stored = loadFromStorage();
   const userPresets = (stored.presets ?? []).filter((p) => !BUILTIN_IDS.has(p.id));
-  // Merge stored current with defaults to ensure new fields (like glassBlur) are present
+  // Merge stored current with defaults to ensure new fields are present
   const current = stored.current ? { ...NAVY_DARK, ...stored.current } : { ...NAVY_DARK };
-  // Ensure glassBlur exists (added after initial release)
-  if (current.glassBlur === undefined) current.glassBlur = 16;
   return {
     current,
     presets: [...BUILTIN_PRESETS, ...userPresets],
