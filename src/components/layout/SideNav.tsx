@@ -121,6 +121,11 @@ const sideNavItems: NavItem[] = [
 export function SideNav() {
   const pathname = usePathname();
   const [collapsed, setCollapsed] = useState(true);
+
+  // Sync sidebar state to body data attribute so AppShell can respond
+  useEffect(() => {
+    document.body.setAttribute("data-sidebar", collapsed ? "closed" : "open");
+  }, [collapsed]);
   const [expandedItems, setExpandedItems] = useState<Set<string>>(new Set());
 
   // Auto-expand active parent on mount
@@ -168,8 +173,8 @@ export function SideNav() {
 
       <aside
         className={cn(
-          "hidden md:flex flex-col fixed left-4 top-[96px] bottom-4 z-30 glass-sm rounded-2xl transition-all duration-300 overflow-hidden",
-          collapsed ? "w-0 opacity-0 pointer-events-none -left-4" : "w-48 opacity-100"
+          "hidden md:flex flex-col fixed left-4 top-[100px] bottom-4 z-30 glass-sm rounded-2xl transition-all duration-300 overflow-hidden",
+          collapsed ? "w-0 opacity-0 pointer-events-none -left-4" : "w-56 opacity-100"
         )}
       >
         {/* Collapse toggle — top of sidebar */}

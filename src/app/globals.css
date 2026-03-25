@@ -219,6 +219,13 @@ body {
   transition: background 0.3s ease, color 0.3s ease;
 }
 
+/* ─── SIDEBAR CONTENT SHIFT ──────────────────────────────── */
+@media (min-width: 768px) {
+  body[data-sidebar="open"] .sidebar-content {
+    margin-left: 240px;
+  }
+}
+
 /* ─── GLASS UTILITIES ────────────────────────────────────── */
 
 .glass {

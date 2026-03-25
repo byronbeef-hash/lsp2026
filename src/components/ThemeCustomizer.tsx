@@ -388,50 +388,61 @@ export function ThemeCustomizer({ open, onClose }: ThemeCustomizerProps) {
               />
             </div>
 
-            <h3 className="text-xs font-semibold text-white/40 uppercase tracking-wider mb-3 mt-5">Per Section</h3>
-            <div className="space-y-3">
-              <SliderControl
-                label="Top Nav Bar"
-                value={current.navOpacity}
-                min={10}
-                max={100}
-                onChange={(v) => updateSetting("navOpacity", v)}
-              />
-              <SliderControl
-                label="Mega Menu"
-                value={current.megaMenuOpacity ?? 55}
-                min={10}
-                max={100}
-                onChange={(v) => updateSetting("megaMenuOpacity", v)}
-              />
-              <SliderControl
-                label="Side Menu"
-                value={current.sidebarOpacity}
-                min={10}
-                max={100}
-                onChange={(v) => updateSetting("sidebarOpacity", v)}
-              />
-              <SliderControl
-                label="Dashboard Cards"
-                value={current.cardOpacity ?? current.glassOpacity}
-                min={0}
-                max={100}
-                onChange={(v) => updateSetting("cardOpacity", v)}
-              />
-              <SliderControl
-                label="Inner Bubbles"
-                value={current.innerBubbleOpacity ?? 20}
-                min={0}
-                max={100}
-                onChange={(v) => updateSetting("innerBubbleOpacity", v)}
-              />
-              <SliderControl
-                label="Chart Sections"
-                value={current.chartSectionOpacity ?? 32}
-                min={0}
-                max={100}
-                onChange={(v) => updateSetting("chartSectionOpacity", v)}
-              />
+            <h3 className="text-xs font-semibold text-white/40 uppercase tracking-wider mb-3 mt-5">Per Section — Opacity & Color</h3>
+            <div className="space-y-4">
+              {/* Nav Bar */}
+              <div>
+                <div className="flex items-center gap-2 mb-1">
+                  <span className="text-xs text-white/50 flex-1">Top Nav Bar</span>
+                  <input type="color" value={current.navColor || current.bgGradientStart} onChange={(e) => updateSetting("navColor", e.target.value)} className="w-5 h-5 rounded cursor-pointer border-0 bg-transparent" title="Nav color" />
+                </div>
+                <SliderControl label="" value={current.navOpacity} min={10} max={100} onChange={(v) => updateSetting("navOpacity", v)} />
+              </div>
+
+              {/* Mega Menu */}
+              <div>
+                <span className="text-xs text-white/50">Mega Menu</span>
+                <SliderControl label="" value={current.megaMenuOpacity ?? 55} min={10} max={100} onChange={(v) => updateSetting("megaMenuOpacity", v)} />
+              </div>
+
+              {/* Side Menu */}
+              <div>
+                <div className="flex items-center gap-2 mb-1">
+                  <span className="text-xs text-white/50 flex-1">Side Menu</span>
+                  <input type="color" value={current.sidebarColor || current.bgGradientStart} onChange={(e) => updateSetting("sidebarColor", e.target.value)} className="w-5 h-5 rounded cursor-pointer border-0 bg-transparent" title="Sidebar color" />
+                </div>
+                <SliderControl label="" value={current.sidebarOpacity} min={10} max={100} onChange={(v) => updateSetting("sidebarOpacity", v)} />
+              </div>
+
+              {/* Dashboard Cards */}
+              <div>
+                <div className="flex items-center gap-2 mb-1">
+                  <span className="text-xs text-white/50 flex-1">Dashboard Cards</span>
+                  <input type="color" value={current.cardColor || current.primaryColor} onChange={(e) => updateSetting("cardColor", e.target.value)} className="w-5 h-5 rounded cursor-pointer border-0 bg-transparent" title="Card color" />
+                </div>
+                <SliderControl label="" value={current.cardOpacity ?? current.glassOpacity} min={0} max={100} onChange={(v) => updateSetting("cardOpacity", v)} />
+              </div>
+
+              {/* Inner Bubbles */}
+              <div>
+                <span className="text-xs text-white/50">Inner Bubbles</span>
+                <SliderControl label="" value={current.innerBubbleOpacity ?? 20} min={0} max={100} onChange={(v) => updateSetting("innerBubbleOpacity", v)} />
+              </div>
+
+              {/* Chart Sections */}
+              <div>
+                <span className="text-xs text-white/50">Chart Sections</span>
+                <SliderControl label="" value={current.chartSectionOpacity ?? 32} min={0} max={100} onChange={(v) => updateSetting("chartSectionOpacity", v)} />
+              </div>
+
+              {/* Background */}
+              <div>
+                <div className="flex items-center gap-2 mb-1">
+                  <span className="text-xs text-white/50 flex-1">Page Background</span>
+                  <input type="color" value={current.bgGradientStart} onChange={(e) => updateSetting("bgGradientStart", e.target.value)} className="w-5 h-5 rounded cursor-pointer border-0 bg-transparent" title="BG start" />
+                  <input type="color" value={current.bgGradientEnd} onChange={(e) => updateSetting("bgGradientEnd", e.target.value)} className="w-5 h-5 rounded cursor-pointer border-0 bg-transparent" title="BG end" />
+                </div>
+              </div>
             </div>
           </section>
 
