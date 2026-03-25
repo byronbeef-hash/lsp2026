@@ -373,6 +373,13 @@ export function ThemeCustomizer({ open, onClose }: ThemeCustomizerProps) {
             <h3 className="text-xs font-semibold text-white/40 uppercase tracking-wider mb-3">Opacity Controls</h3>
             <div className="space-y-4">
               <SliderControl
+                label="Liquid Glass Blur"
+                value={current.glassBlur}
+                min={0}
+                max={40}
+                onChange={(v) => updateSetting("glassBlur", v)}
+              />
+              <SliderControl
                 label="Glass / Card Opacity"
                 value={current.glassOpacity}
                 min={0}

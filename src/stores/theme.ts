@@ -11,6 +11,7 @@ export interface ThemeSettings {
   bgGradientStart: string;
   bgGradientEnd: string;
   glassOpacity: number; // 0-100
+  glassBlur: number; // 0-40 (px) — liquid glass feel
   navOpacity: number; // 0-100
   chartBarColor: string;
   sidebarOpacity: number; // 0-100
@@ -39,6 +40,7 @@ const NAVY_DARK: ThemeSettings = {
   bgGradientStart: "#000040",
   bgGradientEnd: "#000080",
   glassOpacity: 70,
+  glassBlur: 16,
   navOpacity: 85,
   chartBarColor: "#0000c8",
   sidebarOpacity: 70,
@@ -53,6 +55,7 @@ const LIGHT_NEUTRAL: ThemeSettings = {
   bgGradientStart: "#f5f0e8",
   bgGradientEnd: "#e8e0d0",
   glassOpacity: 8,
+  glassBlur: 12,
   navOpacity: 92,
   chartBarColor: "#92400e",
   sidebarOpacity: 88,
@@ -67,6 +70,7 @@ const ORIGINAL_BLUE: ThemeSettings = {
   bgGradientStart: "#000040",
   bgGradientEnd: "#1a40bf",
   glassOpacity: 70,
+  glassBlur: 20,
   navOpacity: 85,
   chartBarColor: "#0000c8",
   sidebarOpacity: 70,
@@ -81,6 +85,7 @@ const MIDNIGHT: ThemeSettings = {
   bgGradientStart: "#0a0a0a",
   bgGradientEnd: "#1a1a2e",
   glassOpacity: 40,
+  glassBlur: 24,
   navOpacity: 92,
   chartBarColor: "#6366f1",
   sidebarOpacity: 85,
@@ -139,6 +144,8 @@ export function applyThemeToDOM(s: ThemeSettings) {
     root.style.setProperty("--glass-bg-active", `rgba(${gs.r},${gs.g},${Math.min(gs.b + 50, 255)},${Math.min(glassA + 0.12, 1)})`);
     root.style.setProperty("--glass-highlight", `inset 0 1px 0 rgba(255, 255, 255, ${0.15 + glassA * 0.15})`);
     root.style.setProperty("--glass-shadow", `0 4px 24px rgba(0, 0, 0, ${0.1 + glassA * 0.1})`);
+    root.style.setProperty("--glass-blur", `${s.glassBlur}px`);
+    root.style.setProperty("--glass-blur-heavy", `${Math.round(s.glassBlur * 2.5)}px`);
 
     // Nav
     const navA = s.navOpacity / 100;
