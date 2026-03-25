@@ -190,8 +190,10 @@ function loadFromStorage(): { current?: ThemeSettings; presets?: ThemeSettings[]
 
 function saveToStorage(state: { current: ThemeSettings; presets: ThemeSettings[]; activePresetId: string | null }) {
   try {
+    // Ensure all fields are present before saving
+    const currentWithDefaults = { ...NAVY_DARK, ...state.current };
     localStorage.setItem(STORAGE_KEY, JSON.stringify({
-      current: state.current,
+      current: currentWithDefaults,
       presets: state.presets.filter((p) => !BUILTIN_IDS.has(p.id)), // only save user presets
       activePresetId: state.activePresetId,
     }));
@@ -203,8 +205,12 @@ function saveToStorage(state: { current: ThemeSettings; presets: ThemeSettings[]
 function getInitialState() {
   const stored = loadFromStorage();
   const userPresets = (stored.presets ?? []).filter((p) => !BUILTIN_IDS.has(p.id));
+  // Merge stored current with defaults to ensure new fields (like glassBlur) are present
+  const current = stored.current ? { ...NAVY_DARK, ...stored.current } : { ...NAVY_DARK };
+  // Ensure glassBlur exists (added after initial release)
+  if (current.glassBlur === undefined) current.glassBlur = 16;
   return {
-    current: stored.current ?? { ...NAVY_DARK },
+    current,
     presets: [...BUILTIN_PRESETS, ...userPresets],
     activePresetId: stored.activePresetId ?? NAVY_DARK.id,
   };
