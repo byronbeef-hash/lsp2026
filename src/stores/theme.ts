@@ -64,24 +64,24 @@ const NAVY_DARK: ThemeSettings = {
 
 const LIGHT_NEUTRAL: ThemeSettings = {
   id: "builtin-light-neutral",
-  name: "Light Neutral",
+  name: "Sand",
   mode: "light",
-  primaryColor: "#92400e",
-  accentColor: "#d97706",
-  bgGradientStart: "#f5f0e8",
-  bgGradientEnd: "#e8e0d0",
-  glassOpacity: 8,
-  glassBlur: 12,
-  chartBarColor: "#92400e",
-  navOpacity: 92,
-  navColor: "#ffffff",
-  megaMenuOpacity: 85,
-  sidebarOpacity: 88,
-  sidebarColor: "#ffffff",
-  cardOpacity: 8,
-  cardColor: "#ffffff",
-  innerBubbleOpacity: 5,
-  chartSectionOpacity: 10,
+  primaryColor: "#8b7355",
+  accentColor: "#c4956a",
+  bgGradientStart: "#f2e8d8",
+  bgGradientEnd: "#e8d8c4",
+  glassOpacity: 50,
+  glassBlur: 18,
+  chartBarColor: "#b08860",
+  navOpacity: 65,
+  navColor: "#f0e6d4",
+  megaMenuOpacity: 60,
+  sidebarOpacity: 55,
+  sidebarColor: "#ece0d0",
+  cardOpacity: 45,
+  cardColor: "#faf4ea",
+  innerBubbleOpacity: 30,
+  chartSectionOpacity: 40,
 };
 
 const ORIGINAL_BLUE: ThemeSettings = {
@@ -128,7 +128,51 @@ const MIDNIGHT: ThemeSettings = {
   chartSectionOpacity: 45,
 };
 
-export const BUILTIN_PRESETS: ThemeSettings[] = [NAVY_DARK, ORIGINAL_BLUE, LIGHT_NEUTRAL, MIDNIGHT];
+const BEACH: ThemeSettings = {
+  id: "builtin-beach",
+  name: "Beach",
+  mode: "light",
+  primaryColor: "#3a7ca5",
+  accentColor: "#5ba4c9",
+  bgGradientStart: "#d4e8f0",
+  bgGradientEnd: "#f0e4d0",
+  glassOpacity: 40,
+  glassBlur: 20,
+  chartBarColor: "#5ba4c9",
+  navOpacity: 60,
+  navColor: "#dceef5",
+  megaMenuOpacity: 55,
+  sidebarOpacity: 50,
+  sidebarColor: "#e0eff5",
+  cardOpacity: 40,
+  cardColor: "#f0f7fa",
+  innerBubbleOpacity: 25,
+  chartSectionOpacity: 35,
+};
+
+const SUNSET: ThemeSettings = {
+  id: "builtin-sunset",
+  name: "Sunset",
+  mode: "light",
+  primaryColor: "#b05a3a",
+  accentColor: "#d4845c",
+  bgGradientStart: "#f5d5c8",
+  bgGradientEnd: "#e8c8e0",
+  glassOpacity: 38,
+  glassBlur: 22,
+  chartBarColor: "#d4845c",
+  navOpacity: 55,
+  navColor: "#f8ddd0",
+  megaMenuOpacity: 50,
+  sidebarOpacity: 48,
+  sidebarColor: "#f0d0c8",
+  cardOpacity: 38,
+  cardColor: "#faf0ec",
+  innerBubbleOpacity: 22,
+  chartSectionOpacity: 32,
+};
+
+export const BUILTIN_PRESETS: ThemeSettings[] = [NAVY_DARK, ORIGINAL_BLUE, LIGHT_NEUTRAL, BEACH, SUNSET, MIDNIGHT];
 const BUILTIN_IDS = new Set(BUILTIN_PRESETS.map((p) => p.id));
 const MAX_USER_PRESETS = 5;
 
@@ -223,25 +267,34 @@ export function applyThemeToDOM(s: ThemeSettings) {
     root.style.setProperty("--glass-bg-hover", `rgba(0,0,0,${Math.min(glassA + 0.03, 1)})`);
     root.style.setProperty("--glass-bg-active", `rgba(0,0,0,${Math.min(glassA + 0.07, 1)})`);
 
-    const nc = hexToRgb(s.navColor || "#ffffff");
+    const nc = hexToRgb(s.navColor || "#f5f0e8");
     const navA = s.navOpacity / 100;
     root.style.setProperty("--theme-nav-bg", `rgba(${nc.r},${nc.g},${nc.b},${navA})`);
 
-    const sc = hexToRgb(s.sidebarColor || "#ffffff");
+    const sc = hexToRgb(s.sidebarColor || "#f5f0e8");
     const sideA = s.sidebarOpacity / 100;
     root.style.setProperty("--theme-sidebar-bg", `rgba(${sc.r},${sc.g},${sc.b},${sideA})`);
 
-    const megaA = (s.megaMenuOpacity ?? 85) / 100;
-    root.style.setProperty("--theme-mega-menu-bg", `rgba(255,255,255,${megaA})`);
+    const cc = hexToRgb(s.cardColor || "#ffffff");
+    const megaA = (s.megaMenuOpacity ?? 60) / 100;
+    root.style.setProperty("--theme-mega-menu-bg", `rgba(${cc.r},${cc.g},${cc.b},${megaA})`);
 
-    const cardA = (s.cardOpacity ?? 8) / 100;
-    root.style.setProperty("--theme-card-bg", `rgba(255,255,255,${cardA})`);
+    const cardA = (s.cardOpacity ?? 45) / 100;
+    root.style.setProperty("--theme-card-bg", `rgba(${cc.r},${cc.g},${cc.b},${cardA})`);
 
-    const bubbleA = (s.innerBubbleOpacity ?? 5) / 100;
-    root.style.setProperty("--theme-bubble-bg", `rgba(0,0,0,${bubbleA})`);
+    // Light mode glass uses the card color with opacity
+    root.style.setProperty("--glass-bg", `rgba(${cc.r},${cc.g},${cc.b},${cardA})`);
+    root.style.setProperty("--glass-bg-hover", `rgba(${cc.r},${cc.g},${cc.b},${Math.min(cardA + 0.05, 1)})`);
+    root.style.setProperty("--glass-bg-active", `rgba(${cc.r},${cc.g},${cc.b},${Math.min(cardA + 0.1, 1)})`);
 
-    const chartA = (s.chartSectionOpacity ?? 10) / 100;
-    root.style.setProperty("--theme-chart-section-bg", `rgba(255,255,255,${chartA})`);
+    const bubbleA = (s.innerBubbleOpacity ?? 25) / 100;
+    root.style.setProperty("--theme-bubble-bg", `rgba(0,0,0,${bubbleA * 0.15})`);
+
+    const chartA = (s.chartSectionOpacity ?? 35) / 100;
+    root.style.setProperty("--theme-chart-section-bg", `rgba(${cc.r},${cc.g},${cc.b},${chartA})`);
+
+    root.style.setProperty("--glass-blur", `${s.glassBlur}px`);
+    root.style.setProperty("--glass-blur-heavy", `${Math.round(s.glassBlur * 2.5)}px`);
   }
 
   // Chart bar
