@@ -258,6 +258,13 @@ export function TopNav() {
                   >
                     <Building2 className="w-4 h-4" /> Farms
                   </Link>
+                  <Link
+                    href="/analytics"
+                    className="flex items-center gap-3 px-3 py-2 rounded-lg text-sm text-white/70 hover:bg-white/10 hover:text-white transition-colors"
+                    onClick={() => setProfileOpen(false)}
+                  >
+                    <BarChart3 className="w-4 h-4" /> Analytics
+                  </Link>
                   <div className="border-t border-white/10 mt-1 pt-1">
                     <button
                       className="flex items-center gap-3 px-3 py-2 rounded-lg text-sm text-red-300/80 hover:bg-red-500/10 transition-colors w-full"

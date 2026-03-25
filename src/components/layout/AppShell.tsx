@@ -4,6 +4,7 @@ import { ReactNode } from "react";
 import { TopNav } from "./TopNav";
 import { BottomNav } from "./BottomNav";
 import { SideNav } from "./SideNav";
+import { Analytics } from "@/components/Analytics";
 
 interface AppShellProps {
   children: ReactNode;
@@ -21,6 +22,7 @@ export function AppShell({ children }: AppShellProps) {
         {children}
       </main>
 
+      <Analytics />
     </div>
   );
 }
