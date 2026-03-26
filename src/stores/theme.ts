@@ -172,7 +172,29 @@ const SUNSET: ThemeSettings = {
   chartSectionOpacity: 32,
 };
 
-export const BUILTIN_PRESETS: ThemeSettings[] = [NAVY_DARK, ORIGINAL_BLUE, LIGHT_NEUTRAL, BEACH, SUNSET, MIDNIGHT];
+const OCEAN: ThemeSettings = {
+  id: "builtin-ocean",
+  name: "Ocean",
+  mode: "dark",
+  primaryColor: "#0a2e5c",
+  accentColor: "#5bb8f0",
+  bgGradientStart: "#b8d8f0",
+  bgGradientEnd: "#d0e8f8",
+  glassOpacity: 35,
+  glassBlur: 20,
+  chartBarColor: "#4a9ed6",
+  navOpacity: 80,
+  navColor: "#0a2450",
+  megaMenuOpacity: 75,
+  sidebarOpacity: 70,
+  sidebarColor: "#0c2a58",
+  cardOpacity: 35,
+  cardColor: "#c0ddf0",
+  innerBubbleOpacity: 25,
+  chartSectionOpacity: 30,
+};
+
+export const BUILTIN_PRESETS: ThemeSettings[] = [NAVY_DARK, ORIGINAL_BLUE, OCEAN, LIGHT_NEUTRAL, BEACH, SUNSET, MIDNIGHT];
 const BUILTIN_IDS = new Set(BUILTIN_PRESETS.map((p) => p.id));
 const MAX_USER_PRESETS = 5;
 

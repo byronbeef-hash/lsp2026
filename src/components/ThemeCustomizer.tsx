@@ -65,24 +65,57 @@ function ColorSwatches({
   value: string;
   onChange: (v: string) => void;
 }) {
+  const [hexInput, setHexInput] = useState(value);
+  // Sync hex input when value changes externally
+  useEffect(() => { setHexInput(value); }, [value]);
+
   return (
-    <div className="flex gap-1.5 flex-wrap">
-      {colors.map((c) => (
-        <button
-          key={c.value}
-          onClick={() => onChange(c.value)}
-          className="w-7 h-7 rounded-lg border-2 transition-all hover:scale-110 relative"
-          style={{
-            backgroundColor: c.value,
-            borderColor: value === c.value ? "white" : "rgba(255,255,255,0.15)",
+    <div className="space-y-2">
+      <div className="flex gap-1.5 flex-wrap items-center">
+        {/* Native color picker circle */}
+        <label className="relative w-7 h-7 rounded-full border-2 border-white/20 cursor-pointer overflow-hidden hover:scale-110 transition-all shrink-0" title="Pick any colour">
+          <input
+            type="color"
+            value={value}
+            onChange={(e) => { onChange(e.target.value); setHexInput(e.target.value); }}
+            className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
+          />
+          <div className="w-full h-full rounded-full" style={{ background: `conic-gradient(red, yellow, lime, aqua, blue, magenta, red)` }} />
+        </label>
+        {/* Preset swatches */}
+        {colors.map((c) => (
+          <button
+            key={c.value}
+            onClick={() => { onChange(c.value); setHexInput(c.value); }}
+            className="w-7 h-7 rounded-lg border-2 transition-all hover:scale-110 relative"
+            style={{
+              backgroundColor: c.value,
+              borderColor: value === c.value ? "white" : "rgba(255,255,255,0.15)",
+            }}
+            title={c.label}
+          >
+            {value === c.value && (
+              <Check className="w-3.5 h-3.5 absolute inset-0 m-auto text-white drop-shadow-[0_1px_2px_rgba(0,0,0,0.8)]" />
+            )}
+          </button>
+        ))}
+      </div>
+      {/* Hex input field */}
+      <div className="flex items-center gap-2">
+        <div className="w-5 h-5 rounded-md border border-white/20 shrink-0" style={{ backgroundColor: value }} />
+        <input
+          type="text"
+          value={hexInput}
+          onChange={(e) => {
+            const v = e.target.value;
+            setHexInput(v);
+            if (/^#[0-9a-fA-F]{6}$/.test(v)) onChange(v);
           }}
-          title={c.label}
-        >
-          {value === c.value && (
-            <Check className="w-3.5 h-3.5 absolute inset-0 m-auto text-white drop-shadow-[0_1px_2px_rgba(0,0,0,0.8)]" />
-          )}
-        </button>
-      ))}
+          onBlur={() => { if (!/^#[0-9a-fA-F]{6}$/.test(hexInput)) setHexInput(value); }}
+          placeholder="#000080"
+          className="flex-1 bg-white/10 border border-white/15 rounded-lg px-2 py-1 text-[11px] text-white/80 font-mono outline-none focus:border-white/30 placeholder:text-white/20 w-20"
+        />
+      </div>
     </div>
   );
 }
