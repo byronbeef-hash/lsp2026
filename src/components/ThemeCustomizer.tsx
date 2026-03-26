@@ -295,17 +295,22 @@ function TintSlider() {
 
     const t = v / 100; // 0 = deepest, 1 = lightest tint
 
-    // Keep the SAME hue, adjust lightness from very dark to very light
-    // Saturation decreases slightly as we lighten (more pastel)
+    // Shift hue slightly toward sky-blue (210°) as we lighten for a natural feel
+    // This prevents navy (240°) from going purple/lavender at high lightness
+    const hueShift = hsl.h > 220 ? (hsl.h - 210) * t * 0.6 : 0;
+    const adjustedHue = hsl.h - hueShift;
+
+    // Lightness scales from dark to very light
     const bgL = 5 + t * 87;     // 5% → 92% lightness
-    const bgS = Math.max(15, hsl.s * (1 - t * 0.4)); // saturation fades gently
+    // Saturation decreases more aggressively as we lighten (pastel, not vivid)
+    const bgS = Math.max(12, hsl.s * (1 - t * 0.55));
     const navL = 8 + t * 82;
     const sideL = 7 + t * 80;
 
-    const bgStart = hslToHex(hsl.h, bgS, bgL);
-    const bgEnd = hslToHex(hsl.h, bgS, Math.min(bgL + 5, 95));
-    const navCol = hslToHex(hsl.h, bgS * 0.9, navL);
-    const sideCol = hslToHex(hsl.h, bgS * 0.85, sideL);
+    const bgStart = hslToHex(adjustedHue, bgS, bgL);
+    const bgEnd = hslToHex(adjustedHue, bgS, Math.min(bgL + 5, 95));
+    const navCol = hslToHex(adjustedHue, bgS * 0.9, navL);
+    const sideCol = hslToHex(adjustedHue, bgS * 0.85, sideL);
 
     // Switch mode based on lightness
     const isLight = bgL > 55;
@@ -323,8 +328,8 @@ function TintSlider() {
       sidebarColor: sideCol,
       glassOpacity: glassOp,
       glassBlur: Math.round(20 - t * 8),
-      navOpacity: Math.round(35 + t * 40),
-      sidebarOpacity: Math.round(30 + t * 35),
+      navOpacity: Math.max(50, Math.round(50 + t * 35)),
+      sidebarOpacity: Math.max(40, Math.round(40 + t * 35)),
       cardOpacity: Math.round(10 + t * 42),
       innerBubbleOpacity: Math.round(8 + t * 25),
       chartSectionOpacity: Math.round(10 + t * 30),
@@ -335,14 +340,15 @@ function TintSlider() {
     applyThemeToDOM(updated);
   }, [hsl.h, hsl.s]);
 
-  // Build gradient track using the primary hue at different lightness values
-  const s0 = hslToHex(hsl.h, hsl.s, 5);
-  const s1 = hslToHex(hsl.h, hsl.s, 15);
-  const s2 = hslToHex(hsl.h, hsl.s * 0.9, 30);
-  const s3 = hslToHex(hsl.h, hsl.s * 0.8, 50);
-  const s4 = hslToHex(hsl.h, hsl.s * 0.6, 70);
-  const s5 = hslToHex(hsl.h, hsl.s * 0.4, 85);
-  const s6 = hslToHex(hsl.h, hsl.s * 0.2, 94);
+  // Build gradient track — shift hue toward sky blue as it lightens
+  const shift = (t: number) => hsl.h > 220 ? hsl.h - (hsl.h - 210) * t * 0.6 : hsl.h;
+  const s0 = hslToHex(shift(0), hsl.s, 5);
+  const s1 = hslToHex(shift(0.15), hsl.s, 15);
+  const s2 = hslToHex(shift(0.3), hsl.s * 0.9, 30);
+  const s3 = hslToHex(shift(0.5), hsl.s * 0.75, 50);
+  const s4 = hslToHex(shift(0.7), hsl.s * 0.5, 70);
+  const s5 = hslToHex(shift(0.85), hsl.s * 0.35, 85);
+  const s6 = hslToHex(shift(1), hsl.s * 0.2, 94);
 
   return (
     <section>

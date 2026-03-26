@@ -283,6 +283,8 @@ body {
   -webkit-backdrop-filter: blur(28px);
   border: 1px solid rgba(255, 255, 255, 0.15);
   border-radius: var(--glass-radius-lg);
+  /* Ensure nav always stays visually distinct from content */
+  min-height: 56px;
   box-shadow: var(--glass-shadow-lg), var(--glass-highlight-strong);
   transition: background 0.3s ease, backdrop-filter 0.3s ease;
 }
