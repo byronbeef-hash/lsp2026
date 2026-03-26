@@ -252,64 +252,104 @@ function MasterBrightnessSlider() {
   );
 }
 
-/* ─── Tint Slider (lighten while keeping primary color) ── */
+/* ─── Tint Slider (lighten while keeping primary hue) ──── */
+
+function hexToHSL(hex: string): { h: number; s: number; l: number } {
+  const r = parseInt(hex.slice(1, 3), 16) / 255;
+  const g = parseInt(hex.slice(3, 5), 16) / 255;
+  const b = parseInt(hex.slice(5, 7), 16) / 255;
+  const max = Math.max(r, g, b), min = Math.min(r, g, b);
+  const l = (max + min) / 2;
+  let h = 0, s = 0;
+  if (max !== min) {
+    const d = max - min;
+    s = l > 0.5 ? d / (2 - max - min) : d / (max + min);
+    if (max === r) h = ((g - b) / d + (g < b ? 6 : 0)) / 6;
+    else if (max === g) h = ((b - r) / d + 2) / 6;
+    else h = ((r - g) / d + 4) / 6;
+  }
+  return { h: h * 360, s: s * 100, l: l * 100 };
+}
+
+function hslToHex(h: number, s: number, l: number): string {
+  s /= 100; l /= 100;
+  const a = s * Math.min(l, 1 - l);
+  const f = (n: number) => {
+    const k = (n + h / 30) % 12;
+    const color = l - a * Math.max(Math.min(k - 3, 9 - k, 1), -1);
+    return Math.round(255 * color).toString(16).padStart(2, "0");
+  };
+  return `#${f(0)}${f(8)}${f(4)}`;
+}
 
 function TintSlider() {
   const { current } = useThemeStore();
   const [tintValue, setTintValue] = useState(0);
 
   const primaryColor = current.primaryColor || "#000080";
+  const hsl = hexToHSL(primaryColor);
 
   const handleChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
     const v = parseInt(e.target.value);
     setTintValue(v);
 
-    const t = v / 100; // 0 = pure primary, 1 = nearly white
+    const t = v / 100; // 0 = deepest, 1 = lightest tint
 
-    // Lighten the primary color toward white
-    const lightBg = lerpColor(primaryColor, "#f8f6f2", t * 0.85);
-    const lighterBg = lerpColor(primaryColor, "#fdfcfa", t * 0.9);
-    const lightNav = lerpColor(primaryColor, "#f0eee8", t * 0.8);
-    const lightSide = lerpColor(primaryColor, "#eceae4", t * 0.75);
+    // Keep the SAME hue, adjust lightness from very dark to very light
+    // Saturation decreases slightly as we lighten (more pastel)
+    const bgL = 5 + t * 87;     // 5% → 92% lightness
+    const bgS = Math.max(15, hsl.s * (1 - t * 0.4)); // saturation fades gently
+    const navL = 8 + t * 82;
+    const sideL = 7 + t * 80;
 
-    // Glass opacity increases as we lighten (more frosted)
-    const glassOp = Math.round(15 + t * 45);
-    const navOp = Math.round(40 + t * 40);
+    const bgStart = hslToHex(hsl.h, bgS, bgL);
+    const bgEnd = hslToHex(hsl.h, bgS, Math.min(bgL + 5, 95));
+    const navCol = hslToHex(hsl.h, bgS * 0.9, navL);
+    const sideCol = hslToHex(hsl.h, bgS * 0.85, sideL);
+
+    // Switch mode based on lightness
+    const isLight = bgL > 55;
+
+    // Glass opacity scales smoothly
+    const glassOp = Math.round(12 + t * 45);
 
     const store = useThemeStore.getState();
     const updated = {
       ...store.current,
-      mode: v > 50 ? "light" as const : "dark" as const,
-      bgGradientStart: v > 50 ? lightBg : lerpColor(primaryColor, "#000000", 0.6 - t * 0.4),
-      bgGradientEnd: v > 50 ? lighterBg : lerpColor(primaryColor, "#000000", 0.4 - t * 0.2),
-      navColor: v > 50 ? lightNav : lerpColor(primaryColor, "#000000", 0.5 - t * 0.3),
-      sidebarColor: v > 50 ? lightSide : lerpColor(primaryColor, "#000000", 0.5 - t * 0.3),
+      mode: isLight ? "light" as const : "dark" as const,
+      bgGradientStart: bgStart,
+      bgGradientEnd: bgEnd,
+      navColor: navCol,
+      sidebarColor: sideCol,
       glassOpacity: glassOp,
       glassBlur: Math.round(20 - t * 8),
-      navOpacity: navOp,
-      sidebarOpacity: Math.round(35 + t * 35),
-      cardOpacity: Math.round(12 + t * 40),
+      navOpacity: Math.round(35 + t * 40),
+      sidebarOpacity: Math.round(30 + t * 35),
+      cardOpacity: Math.round(10 + t * 42),
       innerBubbleOpacity: Math.round(8 + t * 25),
       chartSectionOpacity: Math.round(10 + t * 30),
-      megaMenuOpacity: Math.round(40 + t * 35),
+      megaMenuOpacity: Math.round(35 + t * 35),
     };
 
     useThemeStore.setState({ current: updated, activePresetId: null });
     applyThemeToDOM(updated);
-  }, [primaryColor]);
+  }, [hsl.h, hsl.s]);
 
-  // Build a gradient track from dark primary to light primary to near-white
-  const darkPrimary = lerpColor(primaryColor, "#000000", 0.6);
-  const midPrimary = primaryColor;
-  const lightPrimary = lerpColor(primaryColor, "#c0c0c0", 0.5);
-  const palePrimary = lerpColor(primaryColor, "#f0ece4", 0.7);
+  // Build gradient track using the primary hue at different lightness values
+  const s0 = hslToHex(hsl.h, hsl.s, 5);
+  const s1 = hslToHex(hsl.h, hsl.s, 15);
+  const s2 = hslToHex(hsl.h, hsl.s * 0.9, 30);
+  const s3 = hslToHex(hsl.h, hsl.s * 0.8, 50);
+  const s4 = hslToHex(hsl.h, hsl.s * 0.6, 70);
+  const s5 = hslToHex(hsl.h, hsl.s * 0.4, 85);
+  const s6 = hslToHex(hsl.h, hsl.s * 0.2, 94);
 
   return (
     <section>
       <h3 className="text-xs font-semibold text-white/40 uppercase tracking-wider mb-2">Colour Tint</h3>
       <p className="text-[10px] text-white/30 mb-3">Lighten the interface while keeping your primary colour</p>
       <div className="flex items-center gap-3">
-        <div className="w-4 h-4 rounded-full shrink-0 border border-white/20" style={{ background: primaryColor }} />
+        <div className="w-4 h-4 rounded-full shrink-0 border border-white/20" style={{ background: s1 }} />
         <div className="flex-1 relative">
           <input
             type="range"
@@ -324,16 +364,16 @@ function TintSlider() {
           <div
             className="absolute inset-0 h-3 rounded-full pointer-events-none border border-white/10"
             style={{
-              background: `linear-gradient(to right, ${darkPrimary} 0%, ${midPrimary} 30%, ${lightPrimary} 60%, ${palePrimary} 85%, #faf6f0 100%)`,
+              background: `linear-gradient(to right, ${s0} 0%, ${s1} 15%, ${s2} 30%, ${s3} 50%, ${s4} 70%, ${s5} 85%, ${s6} 100%)`,
             }}
           />
         </div>
-        <div className="w-4 h-4 rounded-full shrink-0 border border-white/20" style={{ background: palePrimary }} />
+        <div className="w-4 h-4 rounded-full shrink-0 border border-white/20" style={{ background: s5 }} />
       </div>
       <div className="flex justify-between mt-1.5 px-7">
         <span className="text-[9px] text-white/25">Deep</span>
         <span className="text-[9px] text-white/25">Primary</span>
-        <span className="text-[9px] text-white/25">Tint</span>
+        <span className="text-[9px] text-white/25">Pastel</span>
       </div>
     </section>
   );
