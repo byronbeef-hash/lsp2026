@@ -121,6 +121,137 @@ function SliderControl({
   );
 }
 
+/* ─── Master Brightness Slider ────────────────────────── */
+
+function lerpColor(a: string, b: string, t: number): string {
+  // Interpolate between two hex colors
+  const ar = parseInt(a.slice(1, 3), 16), ag = parseInt(a.slice(3, 5), 16), ab = parseInt(a.slice(5, 7), 16);
+  const br = parseInt(b.slice(1, 3), 16), bg = parseInt(b.slice(3, 5), 16), bb = parseInt(b.slice(5, 7), 16);
+  const r = Math.round(ar + (br - ar) * t);
+  const g = Math.round(ag + (bg - ag) * t);
+  const bl = Math.round(ab + (bb - ab) * t);
+  return `#${r.toString(16).padStart(2, "0")}${g.toString(16).padStart(2, "0")}${bl.toString(16).padStart(2, "0")}`;
+}
+
+// 5 color stops across the brightness range (0-100)
+const BRIGHTNESS_STOPS = [
+  { at: 0, bgStart: "#000020", bgEnd: "#000040", nav: "#000020", side: "#000020", mode: "dark" as const, glass: 12, blur: 22 },
+  { at: 25, bgStart: "#000040", bgEnd: "#000080", nav: "#000040", side: "#000040", mode: "dark" as const, glass: 20, blur: 18 },
+  { at: 50, bgStart: "#0a1628", bgEnd: "#1a3050", nav: "#0a1628", side: "#0a1628", mode: "dark" as const, glass: 30, blur: 16 },
+  { at: 75, bgStart: "#e8dcc8", bgEnd: "#f0e4d0", nav: "#e8dcc8", side: "#ddd0bc", mode: "light" as const, glass: 45, blur: 14 },
+  { at: 100, bgStart: "#f5f0e8", bgEnd: "#faf6f0", nav: "#f5f0e8", side: "#ede6d8", mode: "light" as const, glass: 55, blur: 12 },
+];
+
+function interpolateStops(v: number) {
+  // Find the two stops we're between
+  let lo = BRIGHTNESS_STOPS[0], hi = BRIGHTNESS_STOPS[BRIGHTNESS_STOPS.length - 1];
+  for (let i = 0; i < BRIGHTNESS_STOPS.length - 1; i++) {
+    if (v >= BRIGHTNESS_STOPS[i].at && v <= BRIGHTNESS_STOPS[i + 1].at) {
+      lo = BRIGHTNESS_STOPS[i];
+      hi = BRIGHTNESS_STOPS[i + 1];
+      break;
+    }
+  }
+  const range = hi.at - lo.at || 1;
+  const t = (v - lo.at) / range;
+  return {
+    bgStart: lerpColor(lo.bgStart, hi.bgStart, t),
+    bgEnd: lerpColor(lo.bgEnd, hi.bgEnd, t),
+    nav: lerpColor(lo.nav, hi.nav, t),
+    side: lerpColor(lo.side, hi.side, t),
+    mode: v >= 62 ? "light" as const : "dark" as const,
+    glass: Math.round(lo.glass + (hi.glass - lo.glass) * t),
+    blur: Math.round(lo.blur + (hi.blur - lo.blur) * t),
+  };
+}
+
+function MasterBrightnessSlider() {
+  const { current, updateSetting } = useThemeStore();
+  const [sliderValue, setSliderValue] = useState(() => {
+    // Estimate current position from mode and glass opacity
+    if (current.mode === "light") return Math.min(100, 70 + current.glassOpacity * 0.3);
+    return Math.min(60, 10 + current.glassOpacity * 1.5);
+  });
+
+  const handleChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
+    const v = parseInt(e.target.value);
+    setSliderValue(v);
+
+    const s = interpolateStops(v);
+
+    // Apply all interpolated values in one batch
+    // We set them directly on the store which triggers applyThemeToDOM once via Zustand
+    const store = useThemeStore.getState();
+    const updated = {
+      ...store.current,
+      mode: s.mode,
+      bgGradientStart: s.bgStart,
+      bgGradientEnd: s.bgEnd,
+      navColor: s.nav,
+      sidebarColor: s.side,
+      glassOpacity: s.glass,
+      glassBlur: s.blur,
+      navOpacity: Math.max(30, Math.min(90, s.glass + 15)),
+      sidebarOpacity: Math.max(25, Math.min(85, s.glass + 10)),
+      cardOpacity: Math.max(10, Math.min(80, s.glass - 5)),
+      innerBubbleOpacity: Math.max(5, Math.min(60, s.glass - 10)),
+      chartSectionOpacity: Math.max(10, Math.min(70, s.glass - 5)),
+      megaMenuOpacity: Math.max(30, Math.min(90, s.glass + 10)),
+    };
+    // Update store state and apply to DOM in one go
+    useThemeStore.setState({ current: updated, activePresetId: null });
+    applyThemeToDOM(updated);
+  }, []);
+
+  return (
+    <section>
+      <h3 className="text-xs font-semibold text-white/40 uppercase tracking-wider mb-2">Master Brightness</h3>
+      <p className="text-[10px] text-white/30 mb-3">Gradually shift the entire interface from dark to light</p>
+      <div className="flex items-center gap-3">
+        <Moon className="w-4 h-4 text-blue-300/50 shrink-0" />
+        <div className="flex-1 relative">
+          <input
+            type="range"
+            min={0}
+            max={100}
+            step={1}
+            value={sliderValue}
+            onChange={handleChange}
+            className="master-slider w-full h-3 rounded-full appearance-none cursor-pointer relative z-10"
+            style={{
+              background: "transparent",
+            }}
+          />
+          {/* Custom track behind the input */}
+          <div
+            className="absolute inset-0 h-3 rounded-full pointer-events-none border border-white/10"
+            style={{
+              background: `linear-gradient(to right,
+                #000020 0%,
+                #000050 15%,
+                #000080 25%,
+                #1a237e 35%,
+                #3949ab 45%,
+                #7986cb 55%,
+                #c5b9a0 65%,
+                #e0d4be 75%,
+                #ede6d8 85%,
+                #faf6f0 100%
+              )`,
+            }}
+          />
+        </div>
+        <Sun className="w-4 h-4 text-amber-400/70 shrink-0" />
+      </div>
+      <div className="flex justify-between mt-1.5 px-7">
+        <span className="text-[9px] text-white/25">Dark</span>
+        <span className="text-[9px] text-white/25">Mid</span>
+        <span className="text-[9px] text-white/25">Light</span>
+      </div>
+    </section>
+  );
+}
+
 /* ─── Main component ──────────────────────────────────── */
 
 interface ThemeCustomizerProps {
@@ -297,56 +428,7 @@ export function ThemeCustomizer({ open, onClose }: ThemeCustomizerProps) {
           </section>
 
           {/* ── Master Brightness ──────────────────────── */}
-          <section>
-            <h3 className="text-xs font-semibold text-white/40 uppercase tracking-wider mb-2">Master Brightness</h3>
-            <p className="text-[10px] text-white/30 mb-3">Slide to adjust the overall look from darker to lighter</p>
-            <div className="space-y-2">
-              <div className="flex items-center gap-3">
-                <Moon className="w-3.5 h-3.5 text-white/40 shrink-0" />
-                <input
-                  type="range"
-                  min={0}
-                  max={100}
-                  value={Math.round(
-                    (current.glassOpacity + current.navOpacity + current.sidebarOpacity + (current.cardOpacity ?? 40) + (current.innerBubbleOpacity ?? 30) + (current.chartSectionOpacity ?? 35)) / 6
-                  )}
-                  onChange={(e) => {
-                    const v = parseInt(e.target.value);
-                    // Scale all opacities proportionally around the master value
-                    // Nav and sidebar stay slightly higher, inner bubbles slightly lower
-                    updateSetting("glassOpacity", Math.max(5, Math.min(95, v)));
-                    updateSetting("navOpacity", Math.max(20, Math.min(95, v + 10)));
-                    updateSetting("sidebarOpacity", Math.max(15, Math.min(90, v + 5)));
-                    updateSetting("cardOpacity", Math.max(5, Math.min(90, v - 5)));
-                    updateSetting("innerBubbleOpacity", Math.max(5, Math.min(80, v - 15)));
-                    updateSetting("chartSectionOpacity", Math.max(5, Math.min(85, v - 10)));
-                    updateSetting("megaMenuOpacity", Math.max(20, Math.min(95, v + 5)));
-                    // Also adjust blur — more opaque = less blur needed
-                    updateSetting("glassBlur", Math.max(8, Math.min(30, 25 - Math.round(v * 0.12))));
-                    // If slider goes above 65, switch to light mode; below 35, switch to dark
-                    if (v > 65 && current.mode === "dark") {
-                      updateSetting("mode", "light");
-                      updateSetting("bgGradientStart", "#f2e8d8");
-                      updateSetting("bgGradientEnd", "#e8d8c4");
-                      updateSetting("navColor", "#f0e6d4");
-                      updateSetting("sidebarColor", "#ece0d0");
-                    } else if (v < 35 && current.mode === "light") {
-                      updateSetting("mode", "dark");
-                      updateSetting("bgGradientStart", "#000040");
-                      updateSetting("bgGradientEnd", "#000080");
-                      updateSetting("navColor", "#000040");
-                      updateSetting("sidebarColor", "#000040");
-                    }
-                  }}
-                  className="flex-1 h-2 rounded-full appearance-none cursor-pointer"
-                  style={{
-                    background: `linear-gradient(to right, #000040 0%, #1a237e 25%, #5c6bc0 50%, #e8d8c4 75%, #f5f0e8 100%)`,
-                  }}
-                />
-                <Sun className="w-3.5 h-3.5 text-amber-400/60 shrink-0" />
-              </div>
-            </div>
-          </section>
+          <MasterBrightnessSlider />
 
           {/* ── Mode ───────────────────────────────────── */}
           <section>
