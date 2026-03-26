@@ -296,6 +296,58 @@ export function ThemeCustomizer({ open, onClose }: ThemeCustomizerProps) {
             )}
           </section>
 
+          {/* ── Master Brightness ──────────────────────── */}
+          <section>
+            <h3 className="text-xs font-semibold text-white/40 uppercase tracking-wider mb-2">Master Brightness</h3>
+            <p className="text-[10px] text-white/30 mb-3">Slide to adjust the overall look from darker to lighter</p>
+            <div className="space-y-2">
+              <div className="flex items-center gap-3">
+                <Moon className="w-3.5 h-3.5 text-white/40 shrink-0" />
+                <input
+                  type="range"
+                  min={0}
+                  max={100}
+                  value={Math.round(
+                    (current.glassOpacity + current.navOpacity + current.sidebarOpacity + (current.cardOpacity ?? 40) + (current.innerBubbleOpacity ?? 30) + (current.chartSectionOpacity ?? 35)) / 6
+                  )}
+                  onChange={(e) => {
+                    const v = parseInt(e.target.value);
+                    // Scale all opacities proportionally around the master value
+                    // Nav and sidebar stay slightly higher, inner bubbles slightly lower
+                    updateSetting("glassOpacity", Math.max(5, Math.min(95, v)));
+                    updateSetting("navOpacity", Math.max(20, Math.min(95, v + 10)));
+                    updateSetting("sidebarOpacity", Math.max(15, Math.min(90, v + 5)));
+                    updateSetting("cardOpacity", Math.max(5, Math.min(90, v - 5)));
+                    updateSetting("innerBubbleOpacity", Math.max(5, Math.min(80, v - 15)));
+                    updateSetting("chartSectionOpacity", Math.max(5, Math.min(85, v - 10)));
+                    updateSetting("megaMenuOpacity", Math.max(20, Math.min(95, v + 5)));
+                    // Also adjust blur — more opaque = less blur needed
+                    updateSetting("glassBlur", Math.max(8, Math.min(30, 25 - Math.round(v * 0.12))));
+                    // If slider goes above 65, switch to light mode; below 35, switch to dark
+                    if (v > 65 && current.mode === "dark") {
+                      updateSetting("mode", "light");
+                      updateSetting("bgGradientStart", "#f2e8d8");
+                      updateSetting("bgGradientEnd", "#e8d8c4");
+                      updateSetting("navColor", "#f0e6d4");
+                      updateSetting("sidebarColor", "#ece0d0");
+                    } else if (v < 35 && current.mode === "light") {
+                      updateSetting("mode", "dark");
+                      updateSetting("bgGradientStart", "#000040");
+                      updateSetting("bgGradientEnd", "#000080");
+                      updateSetting("navColor", "#000040");
+                      updateSetting("sidebarColor", "#000040");
+                    }
+                  }}
+                  className="flex-1 h-2 rounded-full appearance-none cursor-pointer"
+                  style={{
+                    background: `linear-gradient(to right, #000040 0%, #1a237e 25%, #5c6bc0 50%, #e8d8c4 75%, #f5f0e8 100%)`,
+                  }}
+                />
+                <Sun className="w-3.5 h-3.5 text-amber-400/60 shrink-0" />
+              </div>
+            </div>
+          </section>
+
           {/* ── Mode ───────────────────────────────────── */}
           <section>
             <h3 className="text-xs font-semibold text-white/40 uppercase tracking-wider mb-3">Mode</h3>
