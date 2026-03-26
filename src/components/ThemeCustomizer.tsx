@@ -601,21 +601,36 @@ export function ThemeCustomizer({ open, onClose }: ThemeCustomizerProps) {
           <section>
             <h3 className="text-xs font-semibold text-white/40 uppercase tracking-wider mb-3">Mode</h3>
             <div className="flex gap-2">
-              {(["dark", "light"] as const).map((mode) => (
-                <button
-                  key={mode}
-                  onClick={() => updateSetting("mode", mode)}
-                  className={cn(
-                    "flex-1 flex items-center justify-center gap-2 py-2 rounded-xl text-xs font-medium transition-all",
-                    current.mode === mode
-                      ? "bg-white/15 ring-1 ring-white/30 text-white"
-                      : "bg-white/5 text-white/50 hover:bg-white/10"
-                  )}
-                >
-                  {mode === "dark" ? <Moon className="w-3.5 h-3.5" /> : <Sun className="w-3.5 h-3.5" />}
-                  {mode === "dark" ? "Dark" : "Light"}
-                </button>
-              ))}
+              <button
+                onClick={() => {
+                  // Switch to Navy Dark preset for dark mode
+                  if (current.mode !== "dark") loadPreset("builtin-navy-dark");
+                }}
+                className={cn(
+                  "flex-1 flex items-center justify-center gap-2 py-2 rounded-xl text-xs font-medium transition-all",
+                  current.mode === "dark"
+                    ? "bg-white/15 ring-1 ring-white/30 text-white"
+                    : "bg-white/5 text-white/50 hover:bg-white/10"
+                )}
+              >
+                <Moon className="w-3.5 h-3.5" />
+                Dark
+              </button>
+              <button
+                onClick={() => {
+                  // Switch to Sand preset for light mode
+                  if (current.mode !== "light") loadPreset("builtin-light-neutral");
+                }}
+                className={cn(
+                  "flex-1 flex items-center justify-center gap-2 py-2 rounded-xl text-xs font-medium transition-all",
+                  current.mode === "light"
+                    ? "bg-white/15 ring-1 ring-white/30 text-white"
+                    : "bg-white/5 text-white/50 hover:bg-white/10"
+                )}
+              >
+                <Sun className="w-3.5 h-3.5" />
+                Light
+              </button>
             </div>
           </section>
 

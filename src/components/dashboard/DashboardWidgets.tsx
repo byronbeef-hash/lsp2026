@@ -269,8 +269,8 @@ export function DashboardWidgets({ widgets, children }: DashboardWidgetsProps) {
             <span className="text-sm font-semibold text-white/80">Editing Dashboard — drag to reorder, hide or remove widgets</span>
           </div>
           <button
-            onClick={() => { setEditMode(false); setTrayOpen(false); }}
-            className="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-emerald-500/20 hover:bg-emerald-500/30 text-emerald-300 text-sm font-semibold border border-emerald-500/30 transition-all duration-200"
+            onClick={(e) => { e.stopPropagation(); e.preventDefault(); setEditMode(false); setTrayOpen(false); }}
+            className="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-emerald-500/20 hover:bg-emerald-500/30 text-emerald-300 text-sm font-semibold border border-emerald-500/30 transition-all duration-200 cursor-pointer z-50 relative"
           >
             ✓ Save & Exit
           </button>
