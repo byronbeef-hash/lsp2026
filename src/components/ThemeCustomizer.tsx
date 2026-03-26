@@ -252,6 +252,93 @@ function MasterBrightnessSlider() {
   );
 }
 
+/* ─── Tint Slider (lighten while keeping primary color) ── */
+
+function TintSlider() {
+  const { current } = useThemeStore();
+  const [tintValue, setTintValue] = useState(0);
+
+  const primaryColor = current.primaryColor || "#000080";
+
+  const handleChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
+    const v = parseInt(e.target.value);
+    setTintValue(v);
+
+    const t = v / 100; // 0 = pure primary, 1 = nearly white
+
+    // Lighten the primary color toward white
+    const lightBg = lerpColor(primaryColor, "#f8f6f2", t * 0.85);
+    const lighterBg = lerpColor(primaryColor, "#fdfcfa", t * 0.9);
+    const lightNav = lerpColor(primaryColor, "#f0eee8", t * 0.8);
+    const lightSide = lerpColor(primaryColor, "#eceae4", t * 0.75);
+
+    // Glass opacity increases as we lighten (more frosted)
+    const glassOp = Math.round(15 + t * 45);
+    const navOp = Math.round(40 + t * 40);
+
+    const store = useThemeStore.getState();
+    const updated = {
+      ...store.current,
+      mode: v > 50 ? "light" as const : "dark" as const,
+      bgGradientStart: v > 50 ? lightBg : lerpColor(primaryColor, "#000000", 0.6 - t * 0.4),
+      bgGradientEnd: v > 50 ? lighterBg : lerpColor(primaryColor, "#000000", 0.4 - t * 0.2),
+      navColor: v > 50 ? lightNav : lerpColor(primaryColor, "#000000", 0.5 - t * 0.3),
+      sidebarColor: v > 50 ? lightSide : lerpColor(primaryColor, "#000000", 0.5 - t * 0.3),
+      glassOpacity: glassOp,
+      glassBlur: Math.round(20 - t * 8),
+      navOpacity: navOp,
+      sidebarOpacity: Math.round(35 + t * 35),
+      cardOpacity: Math.round(12 + t * 40),
+      innerBubbleOpacity: Math.round(8 + t * 25),
+      chartSectionOpacity: Math.round(10 + t * 30),
+      megaMenuOpacity: Math.round(40 + t * 35),
+    };
+
+    useThemeStore.setState({ current: updated, activePresetId: null });
+    applyThemeToDOM(updated);
+  }, [primaryColor]);
+
+  // Build a gradient track from dark primary to light primary to near-white
+  const darkPrimary = lerpColor(primaryColor, "#000000", 0.6);
+  const midPrimary = primaryColor;
+  const lightPrimary = lerpColor(primaryColor, "#c0c0c0", 0.5);
+  const palePrimary = lerpColor(primaryColor, "#f0ece4", 0.7);
+
+  return (
+    <section>
+      <h3 className="text-xs font-semibold text-white/40 uppercase tracking-wider mb-2">Colour Tint</h3>
+      <p className="text-[10px] text-white/30 mb-3">Lighten the interface while keeping your primary colour</p>
+      <div className="flex items-center gap-3">
+        <div className="w-4 h-4 rounded-full shrink-0 border border-white/20" style={{ background: primaryColor }} />
+        <div className="flex-1 relative">
+          <input
+            type="range"
+            min={0}
+            max={100}
+            step={1}
+            value={tintValue}
+            onChange={handleChange}
+            className="master-slider w-full h-3 rounded-full appearance-none cursor-pointer relative z-10"
+            style={{ background: "transparent" }}
+          />
+          <div
+            className="absolute inset-0 h-3 rounded-full pointer-events-none border border-white/10"
+            style={{
+              background: `linear-gradient(to right, ${darkPrimary} 0%, ${midPrimary} 30%, ${lightPrimary} 60%, ${palePrimary} 85%, #faf6f0 100%)`,
+            }}
+          />
+        </div>
+        <div className="w-4 h-4 rounded-full shrink-0 border border-white/20" style={{ background: palePrimary }} />
+      </div>
+      <div className="flex justify-between mt-1.5 px-7">
+        <span className="text-[9px] text-white/25">Deep</span>
+        <span className="text-[9px] text-white/25">Primary</span>
+        <span className="text-[9px] text-white/25">Tint</span>
+      </div>
+    </section>
+  );
+}
+
 /* ─── Main component ──────────────────────────────────── */
 
 interface ThemeCustomizerProps {
@@ -429,6 +516,7 @@ export function ThemeCustomizer({ open, onClose }: ThemeCustomizerProps) {
 
           {/* ── Master Brightness ──────────────────────── */}
           <MasterBrightnessSlider />
+          <TintSlider />
 
           {/* ── Mode ───────────────────────────────────── */}
           <section>
