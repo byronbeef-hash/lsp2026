@@ -474,7 +474,7 @@ export default function RecordDetailPage({
 
       {/* Tabs */}
       <div
-        className="flex gap-1 glass p-1 rounded-2xl w-fit max-w-full animate-fade-in-up overflow-x-auto"
+        className="flex gap-1 glass p-1 rounded-2xl animate-fade-in-up overflow-x-auto scrollbar-hide"
         style={{ animationDelay: "50ms" }}
       >
         {tabs.map((tab) => (
