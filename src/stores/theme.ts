@@ -24,6 +24,7 @@ export interface ThemeSettings {
   cardColor: string; // hex color for card tint
   innerBubbleOpacity: number; // 0-100 — inner items (herd breakdown, sub-cards)
   chartSectionOpacity: number; // 0-100 — chart/graph sections
+  gradientMode?: "none" | "subtle" | "diagonal" | "radial"; // background gradient style
 }
 
 interface ThemeStore {
@@ -238,7 +239,16 @@ export function applyThemeToDOM(s: ThemeSettings) {
     const midG = Math.round((gs.g + ge.g) / 2);
     const midB = Math.round((gs.b + ge.b) / 2);
     const midHex = `#${midR.toString(16).padStart(2,"0")}${midG.toString(16).padStart(2,"0")}${midB.toString(16).padStart(2,"0")}`;
-    document.body.style.background = `linear-gradient(135deg, ${s.bgGradientStart} 0%, ${midHex} 30%, ${s.bgGradientEnd} 70%, ${s.accentColor}33 100%)`;
+    const gm = s.gradientMode || "subtle";
+    if (gm === "none") {
+      document.body.style.background = s.bgGradientStart;
+    } else if (gm === "subtle") {
+      document.body.style.background = `linear-gradient(180deg, ${s.bgGradientStart} 0%, ${midHex} 60%, ${s.bgGradientEnd} 100%)`;
+    } else if (gm === "diagonal") {
+      document.body.style.background = `linear-gradient(135deg, ${s.bgGradientStart} 0%, ${midHex} 50%, ${s.bgGradientEnd} 100%)`;
+    } else if (gm === "radial") {
+      document.body.style.background = `radial-gradient(ellipse at 30% 20%, ${s.bgGradientEnd} 0%, ${midHex} 40%, ${s.bgGradientStart} 100%)`;
+    }
 
     // Glass on dark: light translucent liquid glass cards
     const glassA = s.glassOpacity / 100;
@@ -286,7 +296,16 @@ export function applyThemeToDOM(s: ThemeSettings) {
     const midG = Math.round((gs.g + ge.g) / 2);
     const midB = Math.round((gs.b + ge.b) / 2);
     const midHex = `#${midR.toString(16).padStart(2,"0")}${midG.toString(16).padStart(2,"0")}${midB.toString(16).padStart(2,"0")}`;
-    document.body.style.background = `linear-gradient(135deg, ${s.bgGradientStart} 0%, ${midHex} 40%, ${s.bgGradientEnd} 100%)`;
+    const gm = s.gradientMode || "subtle";
+    if (gm === "none") {
+      document.body.style.background = s.bgGradientStart;
+    } else if (gm === "subtle") {
+      document.body.style.background = `linear-gradient(180deg, ${s.bgGradientStart} 0%, ${midHex} 60%, ${s.bgGradientEnd} 100%)`;
+    } else if (gm === "diagonal") {
+      document.body.style.background = `linear-gradient(135deg, ${s.bgGradientStart} 0%, ${midHex} 50%, ${s.bgGradientEnd} 100%)`;
+    } else if (gm === "radial") {
+      document.body.style.background = `radial-gradient(ellipse at 30% 20%, ${s.bgGradientEnd} 0%, ${midHex} 40%, ${s.bgGradientStart} 100%)`;
+    }
 
     // Glass cards: use white with alpha = opacity slider value
     // Higher opacity = more solid frosted white, lower = more background visible

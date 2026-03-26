@@ -684,6 +684,32 @@ export function ThemeCustomizer({ open, onClose }: ThemeCustomizerProps) {
             </div>
           </section>
 
+          {/* ── Background Fade ─────────────────────────── */}
+          <section>
+            <h3 className="text-xs font-semibold text-white/40 uppercase tracking-wider mb-3">Background Fade</h3>
+            <div className="grid grid-cols-4 gap-1.5 mb-3">
+              {([
+                { key: "none", label: "Flat" },
+                { key: "subtle", label: "Subtle" },
+                { key: "diagonal", label: "Diagonal" },
+                { key: "radial", label: "Radial" },
+              ] as const).map(({ key, label }) => (
+                <button
+                  key={key}
+                  onClick={() => updateSetting("gradientMode", key)}
+                  className={cn(
+                    "py-1.5 rounded-lg text-[10px] font-medium transition-all",
+                    (current.gradientMode || "subtle") === key
+                      ? "bg-white/15 ring-1 ring-white/25 text-white"
+                      : "bg-white/5 text-white/40 hover:bg-white/10"
+                  )}
+                >
+                  {label}
+                </button>
+              ))}
+            </div>
+          </section>
+
           {/* ── Glass Opacity ──────────────────────────── */}
           <section>
             <h3 className="text-xs font-semibold text-white/40 uppercase tracking-wider mb-3">Global</h3>
