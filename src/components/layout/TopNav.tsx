@@ -13,6 +13,7 @@ import {
   User,
   LogOut,
   Settings,
+  Shield,
   Settings2,
   ChevronDown,
   LayoutGrid,
@@ -264,6 +265,13 @@ export function TopNav() {
                     onClick={() => setProfileOpen(false)}
                   >
                     <BarChart3 className="w-4 h-4" /> Analytics
+                  </Link>
+                  <Link
+                    href="/admin/customers"
+                    className="flex items-center gap-3 px-3 py-2 rounded-lg text-sm text-amber-300/80 hover:bg-amber-500/10 hover:text-amber-300 transition-colors"
+                    onClick={() => setProfileOpen(false)}
+                  >
+                    <Shield className="w-4 h-4" /> Admin
                   </Link>
                   <div className="border-t border-white/10 mt-1 pt-1">
                     <button
