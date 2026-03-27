@@ -3,7 +3,8 @@
 import { use, useState, useMemo } from "react";
 import { GlassCard, GlassBadge, GlassButton, GlassSheet } from "@/components/glass";
 import { useRecordsStore, useMedicalStore } from "@/stores/modules";
-import { animalWeightHistory } from "@/lib/mock-data";
+import { animalWeightHistory as mockAnimalWeightHistory } from "@/lib/mock-data";
+import { useApiDataStore } from "@/stores/api-data";
 import Image from "next/image";
 import {
   Beef,
@@ -239,8 +240,12 @@ export default function RecordDetailPage({
     },
   ];
 
-  // Real weight history for this animal
-  const weightHistory = animalWeightHistory[record.visual_tag] || [];
+  // Weight history for this animal — prefer API data, fall back to mock
+  const apiWeightHistory = useApiDataStore((s) => s.animalWeightHistory);
+  const isApiConnected = useApiDataStore((s) => s.isApiConnected);
+  const weightHistory = (isApiConnected && apiWeightHistory[record.visual_tag]?.length > 0)
+    ? apiWeightHistory[record.visual_tag]
+    : mockAnimalWeightHistory[record.visual_tag] || [];
 
   // Computed weight stats
   const weightStats = useMemo(() => {
@@ -271,8 +276,10 @@ export default function RecordDetailPage({
     };
   }, [weightHistory]);
 
-  // Medical batches this animal is in
-  const animalMedicalBatches = batches.filter((b) =>
+  // Medical batches this animal is in — merge API + module store batches
+  const apiMedicalBatches = useApiDataStore((s) => s.medicalBatches);
+  const allBatches = isApiConnected && apiMedicalBatches.length > 0 ? apiMedicalBatches : batches;
+  const animalMedicalBatches = allBatches.filter((b) =>
     b.animals.includes(record.visual_tag)
   );
 

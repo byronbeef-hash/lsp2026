@@ -6,13 +6,14 @@ import {
   DashboardWidgets,
   WidgetDefinition,
 } from "@/components/dashboard/DashboardWidgets";
+import { useApiDataStore } from "@/stores/api-data";
 import {
-  mockDashboardStats,
   mockPaddocks,
   mockWeightHistory,
   mockBreedDistribution,
   mockActivity,
   mockCalendarEvents,
+  mockDashboardStats,
 } from "@/lib/mock-data";
 import {
   Beef,
@@ -40,10 +41,11 @@ import {
   ListChecks,
   MapPinned,
   Fence,
+  Loader2,
 } from "lucide-react";
 import Link from "next/link";
 import dynamic from "next/dynamic";
-import type { ActivityItem, CalendarEvent, Paddock } from "@/types";
+import type { ActivityItem, CalendarEvent, Paddock, BreedDistribution, WeightHistory } from "@/types";
 import { mockMapMarkers, mockFenceLines } from "@/lib/mock-data";
 
 const MapView = dynamic(() => import("@/components/maps/MapView"), {
@@ -195,6 +197,24 @@ const breedDotColors: Record<string, string> = {
   Mixed: "bg-pink-400",
 };
 
+// Additional colors for dynamic breeds from API
+const extraColors = [
+  "bg-cyan-500", "bg-rose-500", "bg-indigo-500", "bg-teal-500",
+  "bg-orange-500", "bg-lime-500", "bg-violet-500", "bg-fuchsia-500",
+];
+const extraDotColors = [
+  "bg-cyan-400", "bg-rose-400", "bg-indigo-400", "bg-teal-400",
+  "bg-orange-400", "bg-lime-400", "bg-violet-400", "bg-fuchsia-400",
+];
+
+function getBreedColor(breed: string, idx: number): string {
+  return breedColors[breed] || extraColors[idx % extraColors.length];
+}
+
+function getBreedDotColor(breed: string, idx: number): string {
+  return breedDotColors[breed] || extraDotColors[idx % extraDotColors.length];
+}
+
 // ─── Stat Card ──────────────────────────────────────────────
 
 function StatCard({
@@ -235,10 +255,23 @@ function StatCard({
   );
 }
 
+// ─── Skeleton Card ──────────────────────────────────────────
+
+function SkeletonCard() {
+  return (
+    <GlassCard>
+      <div className="animate-pulse space-y-3">
+        <div className="h-3 bg-white/10 rounded w-24" />
+        <div className="h-6 bg-white/10 rounded w-16" />
+        <div className="h-2 bg-white/10 rounded w-32" />
+      </div>
+    </GlassCard>
+  );
+}
+
 // ─── Weight Chart ───────────────────────────────────────────
 
-function WeightChart() {
-  const data = mockWeightHistory;
+function WeightChart({ data }: { data: WeightHistory[] }) {
   const maxWeight = Math.max(...data.map((d) => d.avg_weight));
   const minWeight = Math.min(...data.map((d) => d.avg_weight));
   const range = maxWeight - minWeight;
@@ -269,16 +302,14 @@ function WeightChart() {
 
 // ─── Breed Distribution Chart ───────────────────────────────
 
-function BreedChart() {
-  const data = mockBreedDistribution;
-
+function BreedChart({ data }: { data: BreedDistribution[] }) {
   return (
     <div className="space-y-3 mt-4">
-      {data.map((item) => (
+      {data.map((item, idx) => (
         <div key={item.breed} className="space-y-1.5">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2">
-              <div className={`w-2.5 h-2.5 rounded-full ${breedDotColors[item.breed] || "bg-white/40"}`} />
+              <div className={`w-2.5 h-2.5 rounded-full ${getBreedDotColor(item.breed, idx)}`} />
               <span className="text-sm text-white/80">{item.breed}</span>
             </div>
             <div className="flex items-center gap-2">
@@ -288,7 +319,7 @@ function BreedChart() {
           </div>
           <div className="h-2 w-full rounded-full bg-white/10 overflow-hidden">
             <div
-              className={`h-full rounded-full transition-all duration-700 ${breedColors[item.breed] || "bg-white/30"}`}
+              className={`h-full rounded-full transition-all duration-700 ${getBreedColor(item.breed, idx)}`}
               style={{ width: `${item.percentage}%` }}
             />
           </div>
@@ -312,6 +343,7 @@ const WIDGET_DEFINITIONS: WidgetDefinition[] = [
 // ─── Widget Content Components ──────────────────────────────
 
 function GreetingWidget() {
+  const isApiConnected = useApiDataStore((s) => s.isApiConnected);
   return (
     <div className="animate-fade-in-up">
       <div className="flex flex-col sm:flex-row sm:items-end sm:justify-between gap-4">
@@ -322,6 +354,12 @@ function GreetingWidget() {
           <p className="text-white/50 text-sm md:text-base whitespace-nowrap">{formatDate(new Date())}</p>
         </div>
         <div className="flex items-center gap-3">
+          {isApiConnected && (
+            <div className="glass-sm px-3 py-1.5 flex items-center gap-1.5">
+              <div className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
+              <span className="text-xs text-emerald-400 font-medium">API Connected</span>
+            </div>
+          )}
           <div className="flex items-center gap-4 glass-sm px-4 py-2.5">
             <div className="flex items-center gap-1.5">
               <Thermometer className="w-4 h-4 text-amber-400" />
@@ -344,18 +382,13 @@ function GreetingWidget() {
   );
 }
 
-// Herd breakdown by class
-const herdClasses = [
-  { name: "Cows", count: 120, avgAge: "4.2 yrs", avgWeight: 520, color: "bg-blue-500" },
-  { name: "Bulls", count: 5, avgAge: "5.8 yrs", avgWeight: 780, color: "bg-purple-500" },
-  { name: "Weaners", count: 100, avgAge: "8 mo", avgWeight: 280, color: "bg-amber-500" },
-  { name: "Steers", count: 48, avgAge: "2.1 yrs", avgWeight: 480, color: "bg-emerald-500" },
-  { name: "Heifers", count: 52, avgAge: "1.8 yrs", avgWeight: 420, color: "bg-pink-500" },
-];
-const totalHead = herdClasses.reduce((s, c) => s + c.count, 0);
-
 function StatsWidget() {
-  const stats = { ...mockDashboardStats, total_livestock: totalHead };
+  const dashboardStats = useApiDataStore((s) => s.dashboardStats);
+  const records = useApiDataStore((s) => s.records);
+  const isLoading = useApiDataStore((s) => s.isLoading);
+  const isInitialized = useApiDataStore((s) => s.isInitialized);
+
+  const stats = dashboardStats || mockDashboardStats;
   const [nyciPrice, setNyciPrice] = useState<number>(472.79);
 
   useEffect(() => {
@@ -369,10 +402,70 @@ function StatsWidget() {
       .catch(() => {});
   }, []);
 
-  const herdValue = stats.total_livestock * stats.avg_weight_kg * (nyciPrice / 100);
-  const weightGain = mockWeightHistory.length >= 2
-    ? mockWeightHistory[mockWeightHistory.length - 1].avg_weight - mockWeightHistory[mockWeightHistory.length - 2].avg_weight
+  if (isLoading && !isInitialized) {
+    return (
+      <div className="space-y-3 md:space-y-4">
+        <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 md:gap-4">
+          {[1, 2, 3, 4].map((i) => <SkeletonCard key={i} />)}
+        </div>
+      </div>
+    );
+  }
+
+  const totalHead = stats.total_livestock;
+  const herdValue = totalHead * stats.avg_weight_kg * (nyciPrice / 100);
+  const weightHistory = stats.weight_history || mockWeightHistory;
+  const weightGain = weightHistory.length >= 2
+    ? weightHistory[weightHistory.length - 1].avg_weight - weightHistory[weightHistory.length - 2].avg_weight
     : 0;
+
+  // Build herd breakdown from actual records
+  const maleRecords = records.filter((r) => r.sex === "Male");
+  const femaleRecords = records.filter((r) => r.sex === "Female");
+
+  // Group by rough categories based on weight/sex
+  const herdClasses = [
+    {
+      name: "Cows",
+      count: femaleRecords.filter((r) => (r.weight_kg || 0) > 400).length || stats.total_female,
+      avgWeight: femaleRecords.filter((r) => (r.weight_kg || 0) > 400).length > 0
+        ? Math.round(femaleRecords.filter((r) => (r.weight_kg || 0) > 400).reduce((s, r) => s + (r.weight_kg || 0), 0) / femaleRecords.filter((r) => (r.weight_kg || 0) > 400).length)
+        : 520,
+      color: "bg-blue-500",
+    },
+    {
+      name: "Bulls",
+      count: maleRecords.filter((r) => (r.weight_kg || 0) > 500).length || Math.round(stats.total_male * 0.05),
+      avgWeight: maleRecords.filter((r) => (r.weight_kg || 0) > 500).length > 0
+        ? Math.round(maleRecords.filter((r) => (r.weight_kg || 0) > 500).reduce((s, r) => s + (r.weight_kg || 0), 0) / maleRecords.filter((r) => (r.weight_kg || 0) > 500).length)
+        : 780,
+      color: "bg-purple-500",
+    },
+    {
+      name: "Heifers",
+      count: femaleRecords.filter((r) => (r.weight_kg || 0) <= 400).length || Math.round(stats.total_female * 0.4),
+      avgWeight: femaleRecords.filter((r) => (r.weight_kg || 0) <= 400).length > 0
+        ? Math.round(femaleRecords.filter((r) => (r.weight_kg || 0) <= 400).reduce((s, r) => s + (r.weight_kg || 0), 0) / femaleRecords.filter((r) => (r.weight_kg || 0) <= 400).length)
+        : 420,
+      color: "bg-pink-500",
+    },
+    {
+      name: "Steers",
+      count: maleRecords.filter((r) => (r.weight_kg || 0) <= 500 && (r.weight_kg || 0) > 300).length || Math.round(stats.total_male * 0.4),
+      avgWeight: maleRecords.filter((r) => (r.weight_kg || 0) <= 500 && (r.weight_kg || 0) > 300).length > 0
+        ? Math.round(maleRecords.filter((r) => (r.weight_kg || 0) <= 500 && (r.weight_kg || 0) > 300).reduce((s, r) => s + (r.weight_kg || 0), 0) / maleRecords.filter((r) => (r.weight_kg || 0) <= 500 && (r.weight_kg || 0) > 300).length)
+        : 480,
+      color: "bg-emerald-500",
+    },
+    {
+      name: "Weaners",
+      count: records.filter((r) => (r.weight_kg || 0) <= 300).length || Math.round(totalHead * 0.15),
+      avgWeight: records.filter((r) => (r.weight_kg || 0) <= 300).length > 0
+        ? Math.round(records.filter((r) => (r.weight_kg || 0) <= 300).reduce((s, r) => s + (r.weight_kg || 0), 0) / records.filter((r) => (r.weight_kg || 0) <= 300).length)
+        : 280,
+      color: "bg-amber-500",
+    },
+  ];
 
   return (
     <div className="space-y-3 md:space-y-4">
@@ -382,7 +475,7 @@ function StatsWidget() {
           label="Total Livestock"
           value={totalHead.toLocaleString()}
           icon={Beef}
-          trend={`\u2191 12 this week`}
+          trend={`${stats.total_male}M / ${stats.total_female}F`}
           delay={50}
         />
         <StatCard
@@ -433,9 +526,6 @@ function StatsWidget() {
                 <p className="text-2xl font-bold text-white mb-1">{cls.count}</p>
                 <div className="space-y-0.5">
                   <p className="text-[11px] text-white/40">
-                    Avg age: <span className="text-white/60 font-medium">{cls.avgAge}</span>
-                  </p>
-                  <p className="text-[11px] text-white/40">
                     Avg wt: <span className="text-white/60 font-medium">{cls.avgWeight} kg</span>
                   </p>
                   <p className="text-[11px] text-emerald-400/70 font-medium">
@@ -446,7 +536,7 @@ function StatsWidget() {
                 <div className="mt-2 h-1 rounded-full bg-white/10 overflow-hidden">
                   <div
                     className={`h-full rounded-full ${cls.color}`}
-                    style={{ width: `${(cls.count / totalHead) * 100}%` }}
+                    style={{ width: `${totalHead > 0 ? (cls.count / totalHead) * 100 : 0}%` }}
                   />
                 </div>
               </div>
@@ -459,6 +549,13 @@ function StatsWidget() {
 }
 
 function ChartsWidget() {
+  const weightHistory = useApiDataStore((s) => s.weightHistory);
+  const breedDistribution = useApiDataStore((s) => s.breedDistribution);
+  const isInitialized = useApiDataStore((s) => s.isInitialized);
+
+  const chartData = isInitialized && weightHistory.length > 0 ? weightHistory : mockWeightHistory;
+  const breedData = isInitialized && breedDistribution.length > 0 ? breedDistribution : mockBreedDistribution;
+
   return (
     <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
       {/* Weight Trend Chart */}
@@ -478,7 +575,7 @@ function ChartsWidget() {
               <BarChart3 className="w-4 h-4 text-white/60" />
             </div>
           </div>
-          <WeightChart />
+          <WeightChart data={chartData} />
         </GlassCard>
       </div>
 
@@ -501,7 +598,7 @@ function ChartsWidget() {
               <Beef className="w-4 h-4 text-white/60" />
             </div>
           </div>
-          <BreedChart />
+          <BreedChart data={breedData} />
         </GlassCard>
       </div>
     </div>
@@ -509,8 +606,12 @@ function ChartsWidget() {
 }
 
 function ActivityWidget() {
-  const activities = mockActivity.slice(0, 6);
-  const upcomingEvents = mockCalendarEvents
+  const recentActivity = useApiDataStore((s) => s.recentActivity);
+  const calendarEvents = useApiDataStore((s) => s.calendarEvents);
+  const isInitialized = useApiDataStore((s) => s.isInitialized);
+
+  const activities = (isInitialized && recentActivity.length > 0 ? recentActivity : mockActivity).slice(0, 6);
+  const upcomingEvents = (isInitialized && calendarEvents.length > 0 ? calendarEvents : mockCalendarEvents)
     .filter((e) => !e.completed)
     .sort((a, b) => a.date.localeCompare(b.date))
     .slice(0, 4);
@@ -631,7 +732,10 @@ function ActivityWidget() {
 }
 
 function MapWidget() {
-  const paddocks = mockPaddocks;
+  const apiPaddocks = useApiDataStore((s) => s.paddocks);
+  const isApiConnected = useApiDataStore((s) => s.isApiConnected);
+  const paddocks = isApiConnected && apiPaddocks.length > 0 ? apiPaddocks : mockPaddocks;
+
   return (
     <div
       className="animate-fade-in-up"
@@ -676,7 +780,10 @@ function MapWidget() {
 }
 
 function PaddocksWidget() {
-  const paddocks = mockPaddocks;
+  const apiPaddocks = useApiDataStore((s) => s.paddocks);
+  const isApiConnected = useApiDataStore((s) => s.isApiConnected);
+  const paddocks = isApiConnected && apiPaddocks.length > 0 ? apiPaddocks : mockPaddocks;
+
   return (
     <div
       className="animate-fade-in-up"

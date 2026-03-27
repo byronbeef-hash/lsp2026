@@ -24,6 +24,7 @@ import {
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import type { LivestockRecord } from "@/types";
+import { useApiDataStore } from "@/stores/api-data";
 
 const ITEMS_PER_PAGE = 10;
 
@@ -51,6 +52,8 @@ export default function RecordsPage() {
   const [showFilters, setShowFilters] = useState(false);
   const [deleteConfirmId, setDeleteConfirmId] = useState<number | null>(null);
   const [visibleCount, setVisibleCount] = useState(ITEMS_PER_PAGE);
+  const isApiConnected = useApiDataStore((s) => s.isApiConnected);
+  const apiBreeds = useApiDataStore((s) => s.breeds);
 
   // Map store filter values (null) to UI values ("All") and vice versa
   const uiFilterBreed = filterBreed ?? "All";
@@ -215,10 +218,14 @@ export default function RecordsPage() {
                 }}
                 options={[
                   { value: "All", label: "All Breeds" },
-                  { value: "Angus", label: "Angus" },
-                  { value: "Hereford", label: "Hereford" },
-                  { value: "Brahman", label: "Brahman" },
-                  { value: "Charolais", label: "Charolais" },
+                  ...(isApiConnected && apiBreeds.length > 0
+                    ? apiBreeds.map((b) => ({ value: b.name, label: b.name }))
+                    : [
+                        { value: "Angus", label: "Angus" },
+                        { value: "Hereford", label: "Hereford" },
+                        { value: "Brahman", label: "Brahman" },
+                        { value: "Charolais", label: "Charolais" },
+                      ]),
                 ]}
               />
               <GlassSelect
@@ -244,6 +251,7 @@ export default function RecordsPage() {
                 options={[
                   { value: "All", label: "All Conditions" },
                   { value: "Excellent", label: "Excellent" },
+                  { value: "Very Good", label: "Very Good" },
                   { value: "Good", label: "Good" },
                   { value: "Fair", label: "Fair" },
                   { value: "Poor", label: "Poor" },

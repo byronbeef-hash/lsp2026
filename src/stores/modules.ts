@@ -100,6 +100,7 @@ interface RecordsState {
   getRecordById: (id: number) => LivestockRecord | undefined;
   bulkDelete: (ids: number[]) => Promise<void>;
   exportCSV: () => void;
+  setRecords: (records: LivestockRecord[]) => void;
 }
 
 export const useRecordsStore = create<RecordsState>((set, get) => ({
@@ -259,6 +260,8 @@ export const useRecordsStore = create<RecordsState>((set, get) => ({
 
     return filtered;
   },
+
+  setRecords: (records) => set({ records }),
 
   getRecordById: (id) => get().records.find((r) => r.id === id),
 

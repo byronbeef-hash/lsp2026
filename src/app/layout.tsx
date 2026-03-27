@@ -1,6 +1,7 @@
 import type { Metadata, Viewport } from "next";
 import "./globals.css";
 import { AuthProvider } from "@/components/auth/AuthProvider";
+import { ApiDataProvider } from "@/components/auth/ApiDataProvider";
 
 export const metadata: Metadata = {
   title: "LiveStock Manager",
@@ -28,7 +29,9 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body className="antialiased">
-        <AuthProvider>{children}</AuthProvider>
+        <AuthProvider>
+          <ApiDataProvider>{children}</ApiDataProvider>
+        </AuthProvider>
       </body>
     </html>
   );

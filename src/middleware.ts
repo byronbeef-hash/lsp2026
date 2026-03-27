@@ -9,10 +9,10 @@ export async function middleware(request: NextRequest) {
     request.nextUrl.pathname.startsWith("/login") ||
     request.nextUrl.pathname.startsWith("/register");
 
-  // Check for demo session cookie
+  // Check for demo session cookie (also used for API-authenticated users)
   const isDemoUser = request.cookies.get("demo_session")?.value === "true";
   if (isDemoUser) {
-    // Demo user — allow all routes, but redirect away from auth pages
+    // Demo or API-authenticated user — allow all routes, but redirect away from auth pages
     if (isAuthRoute) {
       const url = request.nextUrl.clone();
       url.pathname = "/";
@@ -20,6 +20,10 @@ export async function middleware(request: NextRequest) {
     }
     return NextResponse.next();
   }
+
+  // Check for API token in localStorage (via cookie bridge)
+  // The API sets lsp-api-token in localStorage; we bridge it via the demo_session cookie
+  // during login. This is handled above already.
 
   // If Supabase is not configured, allow all routes (demo mode)
   if (!supabaseUrl || !supabaseKey) {

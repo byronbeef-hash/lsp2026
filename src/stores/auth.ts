@@ -1,5 +1,6 @@
 import { create } from "zustand";
 import { createClient } from "@/lib/supabase";
+import { clearAuth as clearApiAuth } from "@/lib/api-client";
 import type { User as SupabaseUser, Session } from "@supabase/supabase-js";
 
 interface AuthState {
@@ -120,6 +121,9 @@ export const useAuthStore = create<AuthState>((set) => ({
   logout: async () => {
     // Clear demo session cookie
     document.cookie = "demo_session=; path=/; max-age=0";
+
+    // Clear API auth (JWT tokens in localStorage)
+    clearApiAuth();
 
     try {
       const supabase = createClient();
