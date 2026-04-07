@@ -457,16 +457,16 @@ export const mockMedicalBatches: MedicalBatch[] = [
   },
 ];
 
-// All paddocks centered on Nimbin (-28.5841, 153.2482)
+// All paddocks centered on Nimbin (-28.5841, 153.2282)
 export const mockPaddocks: Paddock[] = [
   {
     id: 1, uuid: "pad-001", name: "North Paddock", area_hectares: 45,
     capacity: 80, current_count: 62, status: "active",
     pasture_type: "Improved Pasture", water_source: true,
-    lat: -28.5810, lng: 153.2490, farm_uuid: "farm-001",
+    lat: -28.5810, lng: 153.2290, farm_uuid: "farm-001",
     polygon: [
-      [-28.5780, 153.2440], [-28.5780, 153.2540], [-28.5830, 153.2540],
-      [-28.5840, 153.2520], [-28.5840, 153.2440],
+      [-28.5780, 153.2240], [-28.5780, 153.2340], [-28.5830, 153.2340],
+      [-28.5840, 153.2320], [-28.5840, 153.2240],
     ],
     created_at: "2025-01-15T00:00:00Z",
   },
@@ -474,10 +474,10 @@ export const mockPaddocks: Paddock[] = [
     id: 2, uuid: "pad-002", name: "South River Flat", area_hectares: 60,
     capacity: 100, current_count: 78, status: "active",
     pasture_type: "Native Grass", water_source: true,
-    lat: -28.5900, lng: 153.2500, farm_uuid: "farm-001",
+    lat: -28.5900, lng: 153.2300, farm_uuid: "farm-001",
     polygon: [
-      [-28.5870, 153.2440], [-28.5870, 153.2560], [-28.5930, 153.2560],
-      [-28.5940, 153.2500], [-28.5930, 153.2440],
+      [-28.5870, 153.2240], [-28.5870, 153.2360], [-28.5930, 153.2360],
+      [-28.5940, 153.2300], [-28.5930, 153.2240],
     ],
     created_at: "2025-01-15T00:00:00Z",
   },
@@ -485,10 +485,10 @@ export const mockPaddocks: Paddock[] = [
     id: 3, uuid: "pad-003", name: "Western Hill", area_hectares: 35,
     capacity: 50, current_count: 45, status: "active",
     pasture_type: "Mixed Pasture", water_source: true,
-    lat: -28.5830, lng: 153.2410, farm_uuid: "farm-001",
+    lat: -28.5830, lng: 153.2210, farm_uuid: "farm-001",
     polygon: [
-      [-28.5780, 153.2370], [-28.5780, 153.2440], [-28.5840, 153.2440],
-      [-28.5870, 153.2440], [-28.5870, 153.2370],
+      [-28.5780, 153.2170], [-28.5780, 153.2240], [-28.5840, 153.2240],
+      [-28.5870, 153.2240], [-28.5870, 153.2170],
     ],
     created_at: "2025-01-15T00:00:00Z",
   },
@@ -496,10 +496,10 @@ export const mockPaddocks: Paddock[] = [
     id: 4, uuid: "pad-004", name: "Holding Yards", area_hectares: 5,
     capacity: 40, current_count: 22, status: "active",
     pasture_type: "Bare Ground", water_source: true,
-    lat: -28.5845, lng: 153.2485, farm_uuid: "farm-001",
+    lat: -28.5845, lng: 153.2285, farm_uuid: "farm-001",
     polygon: [
-      [-28.5838, 153.2470], [-28.5838, 153.2500], [-28.5855, 153.2500],
-      [-28.5855, 153.2470],
+      [-28.5838, 153.2270], [-28.5838, 153.2300], [-28.5855, 153.2300],
+      [-28.5855, 153.2270],
     ],
     created_at: "2025-01-15T00:00:00Z",
   },
@@ -507,10 +507,10 @@ export const mockPaddocks: Paddock[] = [
     id: 5, uuid: "pad-005", name: "East Boundary", area_hectares: 50,
     capacity: 70, current_count: 40, status: "active",
     pasture_type: "Improved Pasture", water_source: false,
-    lat: -28.5815, lng: 153.2570, farm_uuid: "farm-001",
+    lat: -28.5815, lng: 153.2370, farm_uuid: "farm-001",
     polygon: [
-      [-28.5780, 153.2540], [-28.5780, 153.2620], [-28.5850, 153.2620],
-      [-28.5850, 153.2540],
+      [-28.5780, 153.2340], [-28.5780, 153.2420], [-28.5850, 153.2420],
+      [-28.5850, 153.2340],
     ],
     created_at: "2025-03-01T00:00:00Z",
   },
@@ -518,74 +518,74 @@ export const mockPaddocks: Paddock[] = [
     id: 6, uuid: "pad-006", name: "Calving Paddock", area_hectares: 20,
     capacity: 30, current_count: 0, status: "resting",
     pasture_type: "Improved Pasture", water_source: true,
-    lat: -28.5910, lng: 153.2400, farm_uuid: "farm-001",
+    lat: -28.5910, lng: 153.2200, farm_uuid: "farm-001",
     polygon: [
-      [-28.5870, 153.2370], [-28.5870, 153.2440], [-28.5940, 153.2440],
-      [-28.5940, 153.2370],
+      [-28.5870, 153.2170], [-28.5870, 153.2240], [-28.5940, 153.2240],
+      [-28.5940, 153.2170],
     ],
     created_at: "2025-01-15T00:00:00Z",
   },
 ];
 
 export const mockMapMarkers: MapMarker[] = [
-  { id: 1, name: "Main Dam", type: "dam", lat: -28.5855, lng: 153.2475, notes: "Capacity ~2ML, fed by creek" },
-  { id: 2, name: "North Trough", type: "trough", lat: -28.5800, lng: 153.2490, notes: "Auto-fill from dam pump" },
-  { id: 3, name: "South Trough", type: "trough", lat: -28.5910, lng: 153.2500, notes: "Solar pump from bore" },
-  { id: 4, name: "Main Gate", type: "gate", lat: -28.5841, lng: 153.2482, notes: "Property entrance - Nimbin" },
-  { id: 5, name: "Loading Ramp", type: "yard", lat: -28.5848, lng: 153.2490, notes: "Cattle loading facility" },
-  { id: 6, name: "Feed Shed", type: "shed", lat: -28.5843, lng: 153.2478, notes: "Grain & pellet storage" },
-  { id: 7, name: "Hay Silo", type: "silo", lat: -28.5850, lng: 153.2470, notes: "Round bale storage" },
-  { id: 8, name: "Western Gate", type: "gate", lat: -28.5830, lng: 153.2370, notes: "Access to Western Hill" },
-  { id: 9, name: "Creek Crossing", type: "water", lat: -28.5935, lng: 153.2510, notes: "Natural water source" },
+  { id: 1, name: "Main Dam", type: "dam", lat: -28.5855, lng: 153.2275, notes: "Capacity ~2ML, fed by creek" },
+  { id: 2, name: "North Trough", type: "trough", lat: -28.5800, lng: 153.2290, notes: "Auto-fill from dam pump" },
+  { id: 3, name: "South Trough", type: "trough", lat: -28.5910, lng: 153.2300, notes: "Solar pump from bore" },
+  { id: 4, name: "Main Gate", type: "gate", lat: -28.5841, lng: 153.2282, notes: "Property entrance - Nimbin" },
+  { id: 5, name: "Loading Ramp", type: "yard", lat: -28.5848, lng: 153.2290, notes: "Cattle loading facility" },
+  { id: 6, name: "Feed Shed", type: "shed", lat: -28.5843, lng: 153.2278, notes: "Grain & pellet storage" },
+  { id: 7, name: "Hay Silo", type: "silo", lat: -28.5850, lng: 153.2270, notes: "Round bale storage" },
+  { id: 8, name: "Western Gate", type: "gate", lat: -28.5830, lng: 153.2170, notes: "Access to Western Hill" },
+  { id: 9, name: "Creek Crossing", type: "water", lat: -28.5935, lng: 153.2310, notes: "Natural water source" },
 ];
 
 export const mockFenceLines: FenceLine[] = [
   {
     id: 1, name: "North Boundary Fence", type: "boundary", condition: "good",
-    coordinates: [[-28.5780, 153.2370], [-28.5780, 153.2540], [-28.5780, 153.2620]],
+    coordinates: [[-28.5780, 153.2170], [-28.5780, 153.2340], [-28.5780, 153.2420]],
     length_km: 2.6,
   },
   {
     id: 2, name: "East Boundary Fence", type: "boundary", condition: "good",
-    coordinates: [[-28.5780, 153.2620], [-28.5850, 153.2620], [-28.5940, 153.2560]],
+    coordinates: [[-28.5780, 153.2420], [-28.5850, 153.2420], [-28.5940, 153.2360]],
     length_km: 2.0,
   },
   {
     id: 3, name: "South Boundary Fence", type: "boundary", condition: "fair",
-    coordinates: [[-28.5940, 153.2560], [-28.5940, 153.2440], [-28.5940, 153.2370]],
+    coordinates: [[-28.5940, 153.2360], [-28.5940, 153.2240], [-28.5940, 153.2170]],
     length_km: 2.0,
   },
   {
     id: 4, name: "West Boundary Fence", type: "boundary", condition: "good",
-    coordinates: [[-28.5940, 153.2370], [-28.5870, 153.2370], [-28.5780, 153.2370]],
+    coordinates: [[-28.5940, 153.2170], [-28.5870, 153.2170], [-28.5780, 153.2170]],
     length_km: 1.8,
   },
   {
     id: 5, name: "North-South Internal", type: "electric", condition: "needs_repair",
-    coordinates: [[-28.5780, 153.2540], [-28.5840, 153.2520], [-28.5870, 153.2540]],
+    coordinates: [[-28.5780, 153.2340], [-28.5840, 153.2320], [-28.5870, 153.2340]],
     length_km: 1.1,
   },
   {
     id: 6, name: "Holding Yard Fence", type: "internal", condition: "good",
-    coordinates: [[-28.5838, 153.2470], [-28.5838, 153.2500], [-28.5855, 153.2500], [-28.5855, 153.2470], [-28.5838, 153.2470]],
+    coordinates: [[-28.5838, 153.2270], [-28.5838, 153.2300], [-28.5855, 153.2300], [-28.5855, 153.2270], [-28.5838, 153.2270]],
     length_km: 0.5,
   },
 ];
 
 export const mockPropertyBoundary: PropertyBoundary = {
   id: 1,
-  name: "Nimbin Station",
+  name: "Anderson Road Farm",
   coordinates: [
-    [-28.5760, 153.2350],
-    [-28.5760, 153.2640],
-    [-28.5850, 153.2640],
-    [-28.5950, 153.2580],
-    [-28.5960, 153.2440],
-    [-28.5960, 153.2350],
-    [-28.5870, 153.2350],
+    [-28.5775, 153.2200],
+    [-28.5775, 153.2400],
+    [-28.5830, 153.2420],
+    [-28.5880, 153.2400],
+    [-28.5940, 153.2350],
+    [-28.5940, 153.2220],
+    [-28.5890, 153.2200],
   ],
   area_hectares: 215,
-  address: "Nimbin NSW 2480",
+  address: "99 Anderson Rd, Nimbin NSW 2480",
 };
 
 export const mockNotifications: Notification[] = [
