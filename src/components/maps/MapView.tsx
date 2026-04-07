@@ -829,7 +829,7 @@ export default function MapView({
   } | null>(null);
 
   const center = useMemo<L.LatLngTuple>(() => {
-    if (paddocks.length === 0) return [-28.5841, 153.2282];
+    if (paddocks.length === 0) return [-28.5841, 153.2132];
     const avgLat =
       paddocks.reduce((sum, p) => sum + p.lat, 0) / paddocks.length;
     const avgLng =
