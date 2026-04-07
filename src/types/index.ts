@@ -13,7 +13,7 @@ export interface LivestockRecord {
   uuid: string;
   visual_tag: string;
   eid: string | null;
-  sex: "Male" | "Female" | null;
+  sex: "Male" | "Female" | "Steer" | null;
   weight_kg: number | null;
   weight_lb: number | null;
   breed: string | null;

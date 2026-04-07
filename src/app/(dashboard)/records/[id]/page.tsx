@@ -176,7 +176,7 @@ export default function RecordDetailPage({
     {
       id: 1,
       date: "2026-03-20 14:32",
-      user: "Tim Dickinson",
+      user: "Brad Anderson",
       field: "Weight",
       oldValue: "445 kg",
       newValue: `${record.weight_kg} kg`,
@@ -184,7 +184,7 @@ export default function RecordDetailPage({
     {
       id: 2,
       date: "2026-03-15 09:10",
-      user: "Tim Dickinson",
+      user: "Brad Anderson",
       field: "Condition",
       oldValue: "Fair",
       newValue: record.condition || "Good",
@@ -200,7 +200,7 @@ export default function RecordDetailPage({
     {
       id: 4,
       date: "2026-02-10 08:22",
-      user: "Tim Dickinson",
+      user: "Brad Anderson",
       field: "Notes",
       oldValue: "--",
       newValue: record.notes || "Routine check-up completed",
@@ -208,7 +208,7 @@ export default function RecordDetailPage({
     {
       id: 5,
       date: "2026-01-05 16:00",
-      user: "Tim Dickinson",
+      user: "Brad Anderson",
       field: "Record Created",
       oldValue: "--",
       newValue: "Initial record created",

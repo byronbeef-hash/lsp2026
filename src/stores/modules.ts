@@ -52,7 +52,7 @@ const mockSales: SaleRecord[] = [
 ];
 
 const mockFarms: Farm[] = [
-  { id: 1, name: "Nimbin Station", location: "Nimbin NSW 2480", size_hectares: 215, owner_name: "Tim Dickinson", created_at: "2025-01-01T00:00:00Z" },
+  { id: 1, name: "Nimbin Station", location: "Nimbin NSW 2480", size_hectares: 215, owner_name: "Brad Anderson", created_at: "2025-01-01T00:00:00Z" },
 ];
 
 const mockRainReadings: RainGaugeReading[] = [

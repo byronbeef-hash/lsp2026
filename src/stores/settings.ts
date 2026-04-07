@@ -34,8 +34,8 @@ interface SettingsState {
 }
 
 const defaultProfile: ProfileSettings = {
-  firstName: "Tim",
-  lastName: "Dickinson",
+  firstName: "Brad",
+  lastName: "Anderson",
   email: "",
 };
 

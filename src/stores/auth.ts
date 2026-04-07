@@ -81,9 +81,9 @@ export const useAuthStore = create<AuthState>((set) => ({
         id: "demo-user-001",
         email: "beef",
         user_metadata: {
-          first_name: "Tim",
-          last_name: "Dickinson",
-          full_name: "Tim Dickinson",
+          first_name: "Brad",
+          last_name: "Anderson",
+          full_name: "Brad Anderson",
         },
         app_metadata: {},
         aud: "authenticated",

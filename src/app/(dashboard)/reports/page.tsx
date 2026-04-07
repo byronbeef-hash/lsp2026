@@ -106,7 +106,7 @@ const PRINT_CSS = `
 const FARM = {
   name: "Nimbin Station",
   address: "Nimbin NSW 2480",
-  owner: "Tim Dickinson",
+  owner: "Brad Anderson",
   pic: "N0012345",
   phone: "0412 345 678",
 };
@@ -1142,7 +1142,7 @@ export default function ReportsPage() {
         rows={[
           ["Ivermectin Plus", "Parasite control", "42 days meat / 28 days ESI", "March 2026", "Dr. Sarah Mitchell"],
           ["Oxytetracycline LA", "Antibiotic treatment", "28 days meat / 35 days ESI", "March 2026", "Dr. James Cooper"],
-          ["Coopers Tik-Guard", "Tick control pour-on", "14 days meat / 0 days ESI", "February 2026", "Tim Dickinson"],
+          ["Coopers Tik-Guard", "Tick control pour-on", "14 days meat / 0 days ESI", "February 2026", "Brad Anderson"],
         ]}
       />
 
@@ -1152,7 +1152,7 @@ export default function ReportsPage() {
         rows={[
           ["Primary Veterinarian", "Dr. Sarah Mitchell", "0412 987 654"],
           ["Secondary Veterinarian", "Dr. James Cooper", "0423 456 789"],
-          ["Property Owner", "Tim Dickinson", FARM.phone],
+          ["Property Owner", "Brad Anderson", FARM.phone],
           ["NSW DPI Emergency", "Animal Health Hotline", "1800 675 888"],
           ["Local Land Services", "Northern Rivers LLS", "02 6623 3900"],
           ["Fire & Rescue", "Nimbin RFS", "000"],
