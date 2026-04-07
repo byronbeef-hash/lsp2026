@@ -9,6 +9,17 @@ export async function middleware(request: NextRequest) {
     request.nextUrl.pathname.startsWith("/login") ||
     request.nextUrl.pathname.startsWith("/register");
 
+  // Customer demo site — no login required, always allow through
+  const hostname = request.headers.get("host") || "";
+  if (hostname.includes("lsp-customer-demo")) {
+    if (isAuthRoute) {
+      const url = request.nextUrl.clone();
+      url.pathname = "/";
+      return NextResponse.redirect(url);
+    }
+    return NextResponse.next();
+  }
+
   // Check for demo session cookie (also used for API-authenticated users)
   const isDemoUser = request.cookies.get("demo_session")?.value === "true";
   if (isDemoUser) {

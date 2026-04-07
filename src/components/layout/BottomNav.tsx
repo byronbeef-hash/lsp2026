@@ -20,7 +20,7 @@ const navItems = [
 ];
 
 // These paths should highlight the "More" tab since they're accessed from it
-const moreSubPaths = ["/paddocks", "/calendar", "/scanner", "/reports", "/notifications", "/settings", "/supplies", "/sales", "/rain-gauge", "/todo", "/farms", "/climate", "/markets", "/finance", "/chemicals", "/feed", "/machinery", "/ai-advisor", "/analytics", "/admin"];
+const moreSubPaths = ["/paddocks", "/calendar", "/scanner", "/reports", "/notifications", "/settings", "/supplies", "/sales", "/rain-gauge", "/todo", "/farms", "/climate", "/markets", "/finance", "/chemicals", "/feed", "/machinery", "/ai-advisor", "/analytics", "/admin", "/racing-desk"];
 
 export function BottomNav() {
   const pathname = usePathname();
