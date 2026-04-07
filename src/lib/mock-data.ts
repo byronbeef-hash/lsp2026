@@ -202,7 +202,7 @@ export const animalWeightHistory: Record<string, AnimalWeightRecord[]> = {
 export const mockRecords: LivestockRecord[] = [
   {
     id: 1, uuid: "rec-001", visual_tag: "AU-0142", eid: "982000411234567",
-    sex: "Female", weight_kg: 485, weight_lb: 1069, breed: "Angus",
+    sex: "Female", weight_kg: 485, weight_lb: 1069, breed: "Charolais",
     condition: "Good", date_of_birth: "2022-03-15", date_of_sale: null,
     date_of_death: null, record_date: "2026-03-01", notes: "Healthy, good condition. 2nd calf cow.",
     is_pregnant: true, is_dehorn: false, mother_visual_tag: "AU-0098",
@@ -211,7 +211,7 @@ export const mockRecords: LivestockRecord[] = [
   },
   {
     id: 2, uuid: "rec-002", visual_tag: "AU-0143", eid: "982000411234568",
-    sex: "Male", weight_kg: 620, weight_lb: 1367, breed: "Hereford",
+    sex: "Male", weight_kg: 620, weight_lb: 1367, breed: "Charolais",
     condition: "Excellent", date_of_birth: "2021-08-22", date_of_sale: null,
     date_of_death: null, record_date: "2026-03-02", notes: "Stud sire. Semen tested Oct 2025.",
     is_pregnant: false, is_dehorn: true, mother_visual_tag: "AU-0077",
@@ -220,7 +220,7 @@ export const mockRecords: LivestockRecord[] = [
   },
   {
     id: 3, uuid: "rec-003", visual_tag: "AU-0144", eid: "982000411234569",
-    sex: "Female", weight_kg: 410, weight_lb: 904, breed: "Angus",
+    sex: "Female", weight_kg: 410, weight_lb: 904, breed: "Charolais",
     condition: "Fair", date_of_birth: "2023-01-10", date_of_sale: null,
     date_of_death: null, record_date: "2026-03-03", notes: "Underweight, monitor feed. On supplementary grain.",
     is_pregnant: false, is_dehorn: false, mother_visual_tag: "AU-0102",
@@ -229,7 +229,7 @@ export const mockRecords: LivestockRecord[] = [
   },
   {
     id: 4, uuid: "rec-004", visual_tag: "AU-0145", eid: "982000411234570",
-    sex: "Male", weight_kg: 550, weight_lb: 1213, breed: "Brahman",
+    sex: "Male", weight_kg: 550, weight_lb: 1213, breed: "Charolais",
     condition: "Good", date_of_birth: "2022-06-18", date_of_sale: null,
     date_of_death: null, record_date: "2026-03-01", notes: "Cross-bred sire. Heat tolerant.",
     is_pregnant: false, is_dehorn: true, mother_visual_tag: "AU-0115",
@@ -247,7 +247,7 @@ export const mockRecords: LivestockRecord[] = [
   },
   {
     id: 6, uuid: "rec-006", visual_tag: "AU-0147", eid: "982000411234574",
-    sex: "Male", weight_kg: 380, weight_lb: 838, breed: "Angus",
+    sex: "Male", weight_kg: 380, weight_lb: 838, breed: "Charolais",
     condition: "Good", date_of_birth: "2023-09-20", date_of_sale: null,
     date_of_death: null, record_date: "2026-03-05", notes: "Young bull, growing well. ADG 1.2kg.",
     is_pregnant: false, is_dehorn: false, mother_visual_tag: "AU-0142",
@@ -256,7 +256,7 @@ export const mockRecords: LivestockRecord[] = [
   },
   {
     id: 7, uuid: "rec-007", visual_tag: "AU-0148", eid: "982000411234572",
-    sex: "Female", weight_kg: 510, weight_lb: 1124, breed: "Hereford",
+    sex: "Female", weight_kg: 510, weight_lb: 1124, breed: "Charolais",
     condition: "Excellent", date_of_birth: "2021-12-03", date_of_sale: null,
     date_of_death: null, record_date: "2026-03-04", notes: "Prime breeding stock. 3rd calf.",
     is_pregnant: true, is_dehorn: false, mother_visual_tag: "AU-0066",
@@ -265,7 +265,7 @@ export const mockRecords: LivestockRecord[] = [
   },
   {
     id: 8, uuid: "rec-008", visual_tag: "AU-0149", eid: "982000411234573",
-    sex: "Male", weight_kg: 590, weight_lb: 1301, breed: "Angus",
+    sex: "Male", weight_kg: 590, weight_lb: 1301, breed: "Charolais",
     condition: "Good", date_of_birth: "2022-02-14", date_of_sale: null,
     date_of_death: null, record_date: "2026-03-05", notes: "Marked for sale. Feedlot ready.",
     is_pregnant: false, is_dehorn: true, mother_visual_tag: "AU-0098",
@@ -274,7 +274,7 @@ export const mockRecords: LivestockRecord[] = [
   },
   {
     id: 9, uuid: "rec-009", visual_tag: "AU-0150", eid: "982000411234575",
-    sex: "Female", weight_kg: 445, weight_lb: 981, breed: "Angus",
+    sex: "Female", weight_kg: 445, weight_lb: 981, breed: "Charolais",
     condition: "Good", date_of_birth: "2022-09-12", date_of_sale: null,
     date_of_death: null, record_date: "2026-03-06", notes: "Quiet temperament. Easy calver.",
     is_pregnant: true, is_dehorn: false, mother_visual_tag: "AU-0102",
@@ -292,7 +292,7 @@ export const mockRecords: LivestockRecord[] = [
   },
   {
     id: 11, uuid: "rec-011", visual_tag: "AU-0152", eid: "982000411234577",
-    sex: "Female", weight_kg: 390, weight_lb: 860, breed: "Brahman",
+    sex: "Female", weight_kg: 390, weight_lb: 860, breed: "Charolais",
     condition: "Good", date_of_birth: "2023-05-28", date_of_sale: null,
     date_of_death: null, record_date: "2026-03-07", notes: "First join this season. Tick resistant.",
     is_pregnant: false, is_dehorn: false, mother_visual_tag: "AU-0115",
@@ -301,7 +301,7 @@ export const mockRecords: LivestockRecord[] = [
   },
   {
     id: 12, uuid: "rec-012", visual_tag: "AU-0153", eid: "982000411234578",
-    sex: "Female", weight_kg: 520, weight_lb: 1146, breed: "Angus",
+    sex: "Female", weight_kg: 520, weight_lb: 1146, breed: "Charolais",
     condition: "Excellent", date_of_birth: "2021-11-15", date_of_sale: null,
     date_of_death: null, record_date: "2026-03-07", notes: "Top breeding cow. EBVs above average.",
     is_pregnant: true, is_dehorn: false, mother_visual_tag: "AU-0098",
@@ -310,7 +310,7 @@ export const mockRecords: LivestockRecord[] = [
   },
   {
     id: 13, uuid: "rec-013", visual_tag: "AU-0154", eid: "982000411234579",
-    sex: "Male", weight_kg: 340, weight_lb: 750, breed: "Hereford",
+    sex: "Male", weight_kg: 340, weight_lb: 750, breed: "Charolais",
     condition: "Good", date_of_birth: "2024-01-20", date_of_sale: null,
     date_of_death: null, record_date: "2026-03-08", notes: "Weaner. Yard weaned successfully.",
     is_pregnant: false, is_dehorn: false, mother_visual_tag: "AU-0148",
@@ -319,7 +319,7 @@ export const mockRecords: LivestockRecord[] = [
   },
   {
     id: 14, uuid: "rec-014", visual_tag: "AU-0155", eid: "982000411234580",
-    sex: "Female", weight_kg: 465, weight_lb: 1025, breed: "Angus",
+    sex: "Female", weight_kg: 465, weight_lb: 1025, breed: "Charolais",
     condition: "Good", date_of_birth: "2022-07-08", date_of_sale: null,
     date_of_death: null, record_date: "2026-03-08", notes: "Quiet. Good feet and structure.",
     is_pregnant: true, is_dehorn: false, mother_visual_tag: "AU-0142",
@@ -328,7 +328,7 @@ export const mockRecords: LivestockRecord[] = [
   },
   {
     id: 15, uuid: "rec-015", visual_tag: "AU-0156", eid: "982000411234581",
-    sex: "Male", weight_kg: 560, weight_lb: 1235, breed: "Brahman",
+    sex: "Male", weight_kg: 560, weight_lb: 1235, breed: "Charolais",
     condition: "Good", date_of_birth: "2022-03-30", date_of_sale: null,
     date_of_death: null, record_date: "2026-03-09", notes: "Cross-bred. Good for northern country.",
     is_pregnant: false, is_dehorn: true, mother_visual_tag: "AU-0115",
@@ -337,7 +337,7 @@ export const mockRecords: LivestockRecord[] = [
   },
   {
     id: 16, uuid: "rec-016", visual_tag: "AU-0157", eid: "982000411234582",
-    sex: "Female", weight_kg: 435, weight_lb: 959, breed: "Hereford",
+    sex: "Female", weight_kg: 435, weight_lb: 959, breed: "Charolais",
     condition: "Fair", date_of_birth: "2023-02-18", date_of_sale: null,
     date_of_death: null, record_date: "2026-03-09", notes: "Slight limp RH. Monitor foot condition.",
     is_pregnant: false, is_dehorn: false, mother_visual_tag: "AU-0066",
@@ -355,7 +355,7 @@ export const mockRecords: LivestockRecord[] = [
   },
   {
     id: 18, uuid: "rec-018", visual_tag: "AU-0159", eid: "982000411234584",
-    sex: "Female", weight_kg: 500, weight_lb: 1102, breed: "Angus",
+    sex: "Female", weight_kg: 500, weight_lb: 1102, breed: "Charolais",
     condition: "Excellent", date_of_birth: "2021-06-25", date_of_sale: null,
     date_of_death: null, record_date: "2026-03-10", notes: "Donor cow. 4th calf. Excellent milk.",
     is_pregnant: true, is_dehorn: false, mother_visual_tag: "AU-0098",
@@ -364,7 +364,7 @@ export const mockRecords: LivestockRecord[] = [
   },
   {
     id: 19, uuid: "rec-019", visual_tag: "AU-0160", eid: "982000411234585",
-    sex: "Male", weight_kg: 310, weight_lb: 683, breed: "Angus",
+    sex: "Male", weight_kg: 310, weight_lb: 683, breed: "Charolais",
     condition: "Good", date_of_birth: "2024-04-15", date_of_sale: null,
     date_of_death: null, record_date: "2026-03-11", notes: "Weaner bull. Yard weaned. ADG 0.9kg.",
     is_pregnant: false, is_dehorn: false, mother_visual_tag: "AU-0153",
@@ -373,7 +373,7 @@ export const mockRecords: LivestockRecord[] = [
   },
   {
     id: 20, uuid: "rec-020", visual_tag: "AU-0161", eid: "982000411234586",
-    sex: "Female", weight_kg: 455, weight_lb: 1003, breed: "Hereford",
+    sex: "Female", weight_kg: 455, weight_lb: 1003, breed: "Charolais",
     condition: "Good", date_of_birth: "2022-12-01", date_of_sale: null,
     date_of_death: null, record_date: "2026-03-11", notes: "First calf heifer. Joined to low birth weight sire.",
     is_pregnant: true, is_dehorn: false, mother_visual_tag: "AU-0077",
